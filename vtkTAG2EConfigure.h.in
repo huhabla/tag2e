@@ -1,0 +1,33 @@
+/*
+ * Program: vtkGRASSTAG2E
+ * COPYRIGHT: (C) 2009 by Soeren Gebbert, soerengebbert@googlemail.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+*/
+
+/* 
+ * Here is where system computed values get stored.
+ * These values should only change when the target compile platform changes.
+ */
+
+#cmakedefine VTK_TAG2E_BUILD_SHARED_LIBS
+#ifndef VTK_TAG2E_BUILD_SHARED_LIBS
+#define VTK_TAG2E_STATIC
+#endif
+
+#if defined(_MSC_VER) && !defined(VTK_TAG2E_STATIC)
+#pragma warning ( disable : 4275 )
+#endif
+
+#if defined(_MSC_VER)
+#define _CRT_SECURE_NO_DEPRECATE 1
+#define _CRT_NONSTDC_NO_DEPRECATE 1
+#pragma warning ( disable : 4996 )
+#endif
