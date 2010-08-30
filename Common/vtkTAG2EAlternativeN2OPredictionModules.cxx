@@ -152,17 +152,39 @@ double vtkTAG2EAlternativeN2OPredictionModules::Bouwman(double N_rate) {
 
 //----------------------------------------------------------------------------
 
-double vtkTAG2EAlternativeN2OPredictionModules::Roelandt(double N_rate, double T_spring, double P_sum, double T_win, int croptype) {
+double vtkTAG2EAlternativeN2OPredictionModules::RoelandtBest(double N_rate, double T_spring, double P_sum, double T_win, int croptype) {
     double f;
 
     if (croptype != VTK_TAG2E_CROPTYPE_GRASS) {
-        //f=-8.183-5.273+(0.7511-0.231)*T_spring+(0.01444-0.0188)*P_sum;// minimum
         f = -8.183 + 0.7511 * T_spring + 0.01444 * P_sum; //best case
-        //f=-8.183+5.273+(0.7511+0.231)*T_spring+(0.01444+0.0188)*P_sum;// maximum
     } else {
-        // f=exp(-0.5095-0.4038+(0.0028-0.0019)*N_rate+(0.1245-0.0929)*T_win);//min
         f = exp(-0.5095 + 0.0028 * N_rate + 0.1245 * T_win); //best case
-        // f=exp(-0.5095+0.4038+(0.0028+0.0019)*N_rate+(0.1245+0.0929)*T_win);//min
+    }
+    return f;
+}
+
+//----------------------------------------------------------------------------
+
+double vtkTAG2EAlternativeN2OPredictionModules::RoelandtMin(double N_rate, double T_spring, double P_sum, double T_win, int croptype) {
+    double f;
+
+    if (croptype != VTK_TAG2E_CROPTYPE_GRASS) {
+        f=-8.183-5.273+(0.7511-0.231)*T_spring+(0.01444-0.0188)*P_sum;// minimum
+    } else {
+        f=exp(-0.5095-0.4038+(0.0028-0.0019)*N_rate+(0.1245-0.0929)*T_win);//min
+    }
+    return f;
+}
+
+//----------------------------------------------------------------------------
+
+double vtkTAG2EAlternativeN2OPredictionModules::RoelandtMax(double N_rate, double T_spring, double P_sum, double T_win, int croptype) {
+    double f;
+
+    if (croptype != VTK_TAG2E_CROPTYPE_GRASS) {
+        f=-8.183+5.273+(0.7511+0.231)*T_spring+(0.01444+0.0188)*P_sum;// maximum
+    } else {
+        f=exp(-0.5095+0.4038+(0.0028+0.0019)*N_rate+(0.1245+0.0929)*T_win);//min
     }
     return f;
 }

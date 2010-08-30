@@ -32,36 +32,51 @@
 
 
 /**
- * \brief
+ * \brief This class computes the annual emission of N2O in [kg /(ha a)] for
+ * agricultural mineral soil in Europe using the annual fertilizer input, the
+ * soil nitrogen content, the sand content, the soil organic carbon content as
+ * well as the climate and crop type. The computational approach is based on
+ * emperical formulars from Freibauer und Kaltschmitt which where derived
+ * using stepwise multivariate linear regression analysis.
+ *
+ * As input vtkImageData is needed. Each vtkImageData must be of the same data type.
+ * The computation is multi threaded. The number of threads which should be used for
+ * computation can be set.
+ *
+ * Cell data will be used as default. The resulting image data contains the
+ * resulting N2O emission in [kg /(ha a)].
  *
  * \author Soeren Gebbert
  * \author Rene Dechow
+ *
+ * \cite Controls and models for estimating direct nitrous oxide emissions from
+ * temperate and sub-boreal agricultural mineral soils in Europe.
+ * Annette Freibauer and Martin Kaltschmitt
  *
  *
  * */
 
 
-#ifndef __vtkTAG2EFreibauerN2OEstimation_h
-#define __vtkTAG2EFreibauerN2OEstimation_h
+#ifndef __vtkTAG2EDImageDataN2OFilterFreibauer_h
+#define __vtkTAG2EDImageDataN2OFilterFreibauer_h
 
 
 #include "vtkTAG2EFilteringWin32Header.h"
 #include "vtkThreadedImageAlgorithm.h"
 
-class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EFreibauerN2OEstimation : public vtkThreadedImageAlgorithm
+class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EDImageDataN2OFilterFreibauer : public vtkThreadedImageAlgorithm
 {
 public:
-  static vtkTAG2EFreibauerN2OEstimation *New();
-  vtkTypeRevisionMacro(vtkTAG2EFreibauerN2OEstimation,vtkThreadedImageAlgorithm);
+  static vtkTAG2EDImageDataN2OFilterFreibauer *New();
+  vtkTypeRevisionMacro(vtkTAG2EDImageDataN2OFilterFreibauer,vtkThreadedImageAlgorithm);
 
-
-  //! \brief Set the Nitrogen fertilization rate input
+  //!\brief The input of annual fertilizer input in [(kg N )/(ha a)]
   virtual void SetNitrogenRate(vtkDataObject *in) { this->SetInput(0,in); }
-  //! \brief Set the sand fraction input in percent
+  //!\brief The input of sand content in top soil, in [%] of soil weight
   virtual void SetSandFraction(vtkDataObject *in) { this->SetInput(1,in); }
-  //! \brief Set the oranic carbon soil fraction input
-  virtual void SetSoilOrganicCorbonate(vtkDataObject *in) { this->SetInput(2,in); }
-  //! \brief Set the soil nitrogen fraction input
+  //!\brief The input of soil organic carbon content in top soil in [%] of soil weight
+  virtual void SetSoilOrganicCorbon(vtkDataObject *in) { this->SetInput(2,in); }
+  //!\brief The input of total soil nitrogen content in [%] of soil weight
   virtual void SetSoilNitrogen(vtkDataObject *in) { this->SetInput(3,in); }
   //! \brief Set the crop type input
   virtual void SetCropType(vtkDataObject *in) { this->SetInput(4,in); }
@@ -73,8 +88,8 @@ public:
   vtkGetMacro(NullValue, double);
 
 protected:
-  vtkTAG2EFreibauerN2OEstimation();
-  ~vtkTAG2EFreibauerN2OEstimation() {};
+  vtkTAG2EDImageDataN2OFilterFreibauer();
+  ~vtkTAG2EDImageDataN2OFilterFreibauer() {};
 
   virtual int RequestInformation (vtkInformation *, 
                                   vtkInformationVector **,
@@ -90,8 +105,8 @@ protected:
   double NullValue;
 
 private:
-  vtkTAG2EFreibauerN2OEstimation(const vtkTAG2EFreibauerN2OEstimation&);  // Not implemented.
-  void operator=(const vtkTAG2EFreibauerN2OEstimation&);  // Not implemented.
+  vtkTAG2EDImageDataN2OFilterFreibauer(const vtkTAG2EDImageDataN2OFilterFreibauer&);  // Not implemented.
+  void operator=(const vtkTAG2EDImageDataN2OFilterFreibauer&);  // Not implemented.
 };
 
 #endif
