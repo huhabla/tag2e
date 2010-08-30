@@ -38,22 +38,22 @@
 #include <vtkObjectFactory.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
 
-#include "vtkTAG2EFreibauerN2OEstimation.h"
+#include "vtkTAG2EDImageDataN2OFilterFreibauer.h"
 #include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
-vtkCxxRevisionMacro(vtkTAG2EFreibauerN2OEstimation, "$Revision: 1.1 $");
-vtkStandardNewMacro(vtkTAG2EFreibauerN2OEstimation);
+vtkCxxRevisionMacro(vtkTAG2EDImageDataN2OFilterFreibauer, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkTAG2EDImageDataN2OFilterFreibauer);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFreibauerN2OEstimation::vtkTAG2EFreibauerN2OEstimation() {
+vtkTAG2EDImageDataN2OFilterFreibauer::vtkTAG2EDImageDataN2OFilterFreibauer() {
     this->SetNumberOfInputPorts(6);
     this->NullValue = -999999;
 }
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EFreibauerN2OEstimation::RequestInformation(
+int vtkTAG2EDImageDataN2OFilterFreibauer::RequestInformation(
         vtkInformation * vtkNotUsed(request),
         vtkInformationVector ** vtkNotUsed(inputVector),
         vtkInformationVector *outputVector) {
@@ -68,7 +68,7 @@ int vtkTAG2EFreibauerN2OEstimation::RequestInformation(
 // Handles the six input
 
 template <class T>
-void vtkTAG2EFreibauerN2OEstimationExecute(vtkTAG2EFreibauerN2OEstimation *self,
+void vtkTAG2EDImageDataN2OFilterFreibauerExecute(vtkTAG2EDImageDataN2OFilterFreibauer *self,
 vtkImageData *NrateData,
 vtkImageData *sandFractData,
 vtkImageData *soilOrgFractData,
@@ -154,7 +154,7 @@ int outExt[6], int id, T *) {
 // It just executes a switch statement to call the correct function for
 // the regions data types.
 
-void vtkTAG2EFreibauerN2OEstimation::ThreadedRequestData(
+void vtkTAG2EDImageDataN2OFilterFreibauer::ThreadedRequestData(
         vtkInformation * vtkNotUsed(request),
         vtkInformationVector ** vtkNotUsed(inputVector),
         vtkInformationVector * vtkNotUsed(outputVector),
@@ -178,7 +178,7 @@ void vtkTAG2EFreibauerN2OEstimation::ThreadedRequestData(
 
     switch (inData[0][0]->GetScalarType()) {
             vtkTemplateMacro(
-                    vtkTAG2EFreibauerN2OEstimationExecute(this, inData[0][0],
+                    vtkTAG2EDImageDataN2OFilterFreibauerExecute(this, inData[0][0],
                     inData[1][0], inData[2][0], inData[3][0], inData[4][0],
                     inData[5][0], outData[0], outExt, id,
                     static_cast<VTK_TT *> (0)));

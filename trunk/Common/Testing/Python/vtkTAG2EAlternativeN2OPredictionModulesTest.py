@@ -44,18 +44,18 @@ class vtkTAG2EAlternativeN2OPredictionModulesTest(unittest.TestCase):
 
         models = vtkTAG2EAlternativeN2OPredictionModules()
 
-        N_rate = 20
-        Corg = 30
+        N_rate = 500
+        Corg = 20
         silt = 20
-        clay = 10
-        pH = 6.5
+        clay = 20
+        pH = 7.0
         T_spring = 20
         P_sum = 30
         T_win = 2
         sand = 50
-        soilC = 40
-        soilN = 10
-        croptype = 6
+        soilC = 20
+        soilN = 20
+        croptype = 1
         climate = 1
 
         print " "
@@ -63,8 +63,12 @@ class vtkTAG2EAlternativeN2OPredictionModulesTest(unittest.TestCase):
         print models.Bouwman(N_rate)
         print "Model Freibauer: ",
         print models.Freibauer(N_rate, sand, soilC, soilN, croptype, climate)
-        print "Model Roelandt : ",
-        print models.Roelandt(N_rate, T_spring, P_sum, T_win, croptype)
+        print "Model Roelandt Best : ",
+        print models.RoelandtBest(N_rate, T_spring, P_sum, T_win, croptype)
+        print "Model Roelandt Min: ",
+        print models.RoelandtMin(N_rate, T_spring, P_sum, T_win, croptype)
+        print "Model Roelandt Max: ",
+        print models.RoelandtMax(N_rate, T_spring, P_sum, T_win, croptype)
         print "Model Stehfest : ",
         print models.Stehfest(N_rate, Corg, silt, clay, pH, croptype, climate)
 

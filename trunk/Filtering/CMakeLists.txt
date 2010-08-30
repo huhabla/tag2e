@@ -7,12 +7,14 @@
 #
 
 SET (Filtering_SRCS
-vtkTAG2EFreibauerN2OEstimation.cxx
+vtkTAG2EDImageDataN2OFilterFreibauer.cxx
+vtkTAG2EDataSetN2OFilterFreibauer.cxx
 )
 
 SET (Filtering_H
 vtkTAG2EFilteringWin32Header.h
-vtkTAG2EFreibauerN2OEstimation.h
+vtkTAG2EDImageDataN2OFilterFreibauer.h
+vtkTAG2EDataSetN2OFilterFreibauer.h
 )
 
 # --------------------------------------------------------------------------

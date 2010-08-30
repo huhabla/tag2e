@@ -84,7 +84,9 @@ public:
 
   static double Bouwman(double N_rate);
   static double Freibauer(double N_rate, double sand, double soilC, double soilN, int croptype,int climate);
-  static double Roelandt(double N_rate, double T_spring, double P_sum, double T_win, int croptype);
+  static double RoelandtBest(double N_rate, double T_spring, double P_sum, double T_win, int croptype);
+  static double RoelandtMin(double N_rate, double T_spring, double P_sum, double T_win, int croptype);
+  static double RoelandtMax(double N_rate, double T_spring, double P_sum, double T_win, int croptype);
   static double Stehfest(double N_rate, double Corg, double silt, double clay, double pH, int croptype, int climate);
 
 protected:
