@@ -86,6 +86,7 @@ public:
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
   //! approach for grouping different but data identical areas)
+  //! Categories must be integer values in range 0 .. n.
   vtkSetStringMacro(CategoryArrayName);
 
 
@@ -114,6 +115,11 @@ public:
   //!\brief Use the point data arrays instead of the default cell data arrays
   vtkBooleanMacro(UsePointData, int);
 
+  //!\brief The value which should be used as result for wrong category data
+  vtkSetMacro(NullValue, double);
+  //!\brief The value which should be used as result for wrong category data
+  vtkGetMacro(NullValue, double);
+
 protected:
   vtkTAG2EDataSetN2OFilterFreibauer();
   ~vtkTAG2EDataSetN2OFilterFreibauer() {};
@@ -127,6 +133,7 @@ protected:
   char *CategoryArrayName;
 
   int UsePointData;
+  double NullValue;
 
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
