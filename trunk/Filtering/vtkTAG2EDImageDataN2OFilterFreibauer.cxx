@@ -106,27 +106,24 @@ int outExt[6], int id, T *) {
         T* outSIEnd = outIt.EndSpan();
 
         while (outSI != outSIEnd) {
+            Nrate= static_cast<double> (*NrateSI);
+            sandFract = static_cast<double> (*sandFractSI);
+            soilOrgFract = static_cast<double> (*soilOrgFractSI);
+            soilN = static_cast<double> (*soilNSI);
+            cropType = static_cast<int> (*cropTypeSI);
+            climate = static_cast<int> (*climateSI);
 
-            if (Nrate == self->GetNullValue() ||
-                    sandFract == self->GetNullValue() ||
-                    soilOrgFract == self->GetNullValue() ||
-                    soilN == self->GetNullValue() ||
-                    cropType == self->GetNullValue() ||
-                    climate == self->GetNullValue()) {
+            if (Nrate        == self->GetNullValue() ||
+                sandFract    == self->GetNullValue() ||
+                soilOrgFract == self->GetNullValue() ||
+                soilN        == self->GetNullValue() ||
+                cropType     == self->GetNullValue() ||
+                climate      == self->GetNullValue()) {
                 result = self->GetNullValue();
             } else {
-                Nrate = static_cast<double> (*NrateSI);
-                sandFract = static_cast<double> (*sandFractSI);
-                soilOrgFract = static_cast<double> (*soilOrgFractSI);
-                soilN = static_cast<double> (*soilNSI);
-                cropType = static_cast<int> (*cropTypeSI);
-                climate = static_cast<int> (*climateSI);
-
                 result = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(Nrate,
                         sandFract, soilOrgFract, soilN, cropType, climate);
             }
-
-            //cout << "Thread: " << id << " Result: " << result << endl;
 
             *outSI = static_cast<T> (result);
             ++NrateSI;
@@ -163,7 +160,7 @@ void vtkTAG2EDImageDataN2OFilterFreibauer::ThreadedRequestData(
         int outExt[6], int id) {
     int i;
 
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < this->GetNumberOfInputPorts(); i++) {
         // this filter expects that input is the same type as output.
         if (inData[i][0]->GetScalarType() != outData[0]->GetScalarType()) {
             vtkErrorMacro( << "Execute: input " << i << " ScalarType, "

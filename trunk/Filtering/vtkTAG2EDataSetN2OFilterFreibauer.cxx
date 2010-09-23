@@ -52,6 +52,7 @@ vtkStandardNewMacro(vtkTAG2EDataSetN2OFilterFreibauer);
 vtkTAG2EDataSetN2OFilterFreibauer::vtkTAG2EDataSetN2OFilterFreibauer()
 {
     this->UsePointData = 0;
+    this->NullValue = -999999;
     this->SandFractionArrayName =NULL;
     this->SoilNitrogenArrayName = NULL;
     this->CropTypeArrayName = NULL;
@@ -156,6 +157,13 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
   for(i = 0; i < num; i++) {
       // Get the category
       cat = (int)data->GetArray(this->CategoryArrayName)->GetTuple1(i);
+
+      if(cat < 0)
+      {
+          N2Oemission->InsertValue(i, this->NullValue);
+          continue;
+      }
+
       // Check if the result was computed befor
       if(cats->GetValue(cat) == 0)
       {
@@ -187,10 +195,13 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
   output->GetPointData()->CopyScalarsOff();
   output->GetPointData()->PassData(input->GetPointData());
   output->GetCellData()->PassData(input->GetCellData());
-
-  output->GetPointData()->AddArray(N2Oemission);
-  output->GetPointData()->SetActiveScalars(N2Oemission->GetName());
-
+  if(this->UsePointData) {
+    output->GetPointData()->AddArray(N2Oemission);
+    output->GetPointData()->SetActiveScalars(N2Oemission->GetName());
+  } else {
+    output->GetCellData()->AddArray(N2Oemission);
+    output->GetCellData()->SetActiveScalars(N2Oemission->GetName());
+  }
   N2Oemission->Delete();
   catN2O->Delete();
   cats->Delete();
