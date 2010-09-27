@@ -79,14 +79,14 @@ double vtkTAG2EAlternativeN2OPredictionModules::Stehfest(double N_rate, double C
             }
         }
     }
-    // Berechne fertilization rate
+
     sumN = 0.0038 * N_rate;
     // sum Corg
-    if (Corg < 1)
+    if (Corg < 1.0)
         sumCorg = 0;
-    if ((Corg >= 1) && (Corg <= 3))
+    if ((Corg >= 1.0) && (Corg <= 3.0))
         sumCorg = 0.0526;
-    if (Corg > 3) {
+    if (Corg > 3.0) {
         if (Corg > 9998)
             sumCorg = 0.0526;
         else 

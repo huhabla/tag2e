@@ -41,19 +41,21 @@
 #include <vtkObjectFactory.h>
 #include <vtkPointData.h>
 #include <vtkDataSetAttributes.h>
-#include "vtkTAG2EDataSetN2OFilterFreibauer.h"
+#include "vtkTAG2EDataSetN2OFilterStehfest.h"
 #include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
-vtkCxxRevisionMacro(vtkTAG2EDataSetN2OFilterFreibauer, "$Revision: 1.20 $");
-vtkStandardNewMacro(vtkTAG2EDataSetN2OFilterFreibauer);
+vtkCxxRevisionMacro(vtkTAG2EDataSetN2OFilterStehfest, "$Revision: 1.20 $");
+vtkStandardNewMacro(vtkTAG2EDataSetN2OFilterStehfest);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EDataSetN2OFilterFreibauer::vtkTAG2EDataSetN2OFilterFreibauer()
+vtkTAG2EDataSetN2OFilterStehfest::vtkTAG2EDataSetN2OFilterStehfest()
 {
     this->UsePointData = 0;
     this->NullValue = -999999;
-    this->SandFractionArrayName =NULL;
+    this->SiltFractionArrayName =NULL;
+    this->ClayFractionArrayName =NULL;
+    this->pHArrayName =NULL;
     this->SoilNitrogenArrayName = NULL;
     this->CropTypeArrayName = NULL;
     this->ClimateTypeArrayName = NULL;
@@ -64,7 +66,7 @@ vtkTAG2EDataSetN2OFilterFreibauer::vtkTAG2EDataSetN2OFilterFreibauer()
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
+int vtkTAG2EDataSetN2OFilterStehfest::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
@@ -87,7 +89,9 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
          !input->GetPointData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetPointData()->HasArray(this->SoilNitrogenArrayName) ||
          !input->GetPointData()->HasArray(this->SoilOrganicCorbonArrayName) ||
-         !input->GetPointData()->HasArray(this->SandFractionArrayName)) {
+         !input->GetPointData()->HasArray(this->ClayFractionArrayName) ||
+         !input->GetPointData()->HasArray(this->SiltFractionArrayName) ||
+         !input->GetPointData()->HasArray(this->pHArrayName)) {
           vtkErrorMacro(<< "Missing point data input array, abort.");
           return 0;
       }
@@ -98,7 +102,9 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
          !input->GetCellData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetCellData()->HasArray(this->SoilNitrogenArrayName) ||
          !input->GetCellData()->HasArray(this->SoilOrganicCorbonArrayName) ||
-         !input->GetCellData()->HasArray(this->SandFractionArrayName)) {
+         !input->GetCellData()->HasArray(this->ClayFractionArrayName) ||
+         !input->GetCellData()->HasArray(this->SiltFractionArrayName) ||
+         !input->GetCellData()->HasArray(this->pHArrayName)) {
           vtkErrorMacro(<< "Missing cell data input array, abort.");
           return 0;
       }
@@ -138,7 +144,7 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
   N2Oemission->FillComponent(0, 0);
 
   int i, cat;
-  double n, sc, sn, cr, cl, s, n2o;
+  double n, sc, sn, cr, cl, n2o, clay, silt, pH;
   int num;
   vtkDataSetAttributes *data = NULL;
 
@@ -172,9 +178,11 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
           sn = data->GetArray(this->SoilNitrogenArrayName)->GetTuple1(i);
           cr = (int)data->GetArray(this->CropTypeArrayName)->GetTuple1(i);
           cl = (int)data->GetArray(this->ClimateTypeArrayName)->GetTuple1(i);
-          s = data->GetArray(this->SandFractionArrayName)->GetTuple1(i);
+          clay = data->GetArray(this->ClayFractionArrayName)->GetTuple1(i);
+          silt = data->GetArray(this->SiltFractionArrayName)->GetTuple1(i);
+          pH = data->GetArray(this->pHArrayName)->GetTuple1(i);
           // Compute the model
-          n2o = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(n, s, sc, sn, cr, cl);
+          n2o = vtkTAG2EAlternativeN2OPredictionModules::Stehfest(n, sc, silt, clay, pH, cr, cl);
           // Save the value for the cat
           catN2O->InsertValue(cat, n2o);
           // Mark as computed
@@ -189,8 +197,6 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
       //cout << "old: " << i << " cat: " << cat << " n2o: " << n2o << endl;
   }
 
-  // Update self
-  //
   output->GetPointData()->CopyScalarsOff();
   output->GetPointData()->PassData(input->GetPointData());
   output->GetCellData()->PassData(input->GetCellData());
@@ -210,7 +216,7 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EDataSetN2OFilterFreibauer::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTAG2EDataSetN2OFilterStehfest::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
