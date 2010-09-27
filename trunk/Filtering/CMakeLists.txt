@@ -9,12 +9,18 @@
 SET (Filtering_SRCS
 vtkTAG2EDImageDataN2OFilterFreibauer.cxx
 vtkTAG2EDataSetN2OFilterFreibauer.cxx
+vtkTAG2EDataSetN2OFilterStehfest.cxx
+vtkTAG2EDataSetN2OFilterRoelandt.cxx
+vtkTAG2EDataSetN2OFilterBouwman.cxx
 )
 
 SET (Filtering_H
 vtkTAG2EFilteringWin32Header.h
 vtkTAG2EDImageDataN2OFilterFreibauer.h
 vtkTAG2EDataSetN2OFilterFreibauer.h
+vtkTAG2EDataSetN2OFilterStehfest.h
+vtkTAG2EDataSetN2OFilterRoelandt.h
+vtkTAG2EDataSetN2OFilterBouwman.h
 )
 
 # --------------------------------------------------------------------------
