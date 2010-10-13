@@ -57,22 +57,34 @@ def main():
 
 
     nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nrate")
-    nrate.SetDescription("The Nitrogen fertilization rate rater map")
+    nrate.SetDescription("The Nitrogen fertilization rate raster map")
 
     sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "sand")
-    sand.SetDescription("The sand fraction rater map in percent")
+    sand.SetDescription("The sand fraction raster map in percent")
 
     soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "csoil")
     soilC.SetDescription("The oranic carbon soil fraction raster map in percent")
 
     soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction rater map in percent")
+    soilN.SetDescription("The soil nitrogen fraction raster map in percent")
 
-    croptype = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "croptype")
+    croptype = vtkGRASSOption()
+    croptype.SetKey("croptype")
+    croptype.MultipleOff()
+    croptype.RequiredOff()
+    croptype.SetDefaultAnswer("grass")
+    croptype.SetDefaultOptions("grass,other")
     croptype.SetDescription("The crop type")
-
-    climate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "climate")
+    croptype.SetTypeToString()
+    
+    climate = vtkGRASSOption()
+    climate.SetKey("climate")
+    climate.MultipleOff()
+    climate.RequiredOff()
+    climate.SetDefaultAnswer("temperate")
+    climate.SetDefaultOptions("subboreal,temperate")
     climate.SetDescription("The climate type")
+    climate.SetTypeToString()
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     output.SetDescription("The N2O emission estimation")
@@ -100,48 +112,46 @@ def main():
     rnrate.SetRasterName(nrate.GetAnswer())
     rnrate.UseCurrentRegion()
     rnrate.SetNullValue(-999999)
+    rnrate.ReadMapAsDouble()
     rnrate.UseNullValueOn()
 
     rsand = vtkGRASSRasterImageReader()
     rsand.SetRasterName(sand.GetAnswer())
     rsand.UseCurrentRegion()
     rsand.SetNullValue(-999999)
+    rsand.ReadMapAsDouble()
     rsand.UseNullValueOn()
 
     rsoilC = vtkGRASSRasterImageReader()
     rsoilC.SetRasterName(soilC.GetAnswer())
     rsoilC.UseCurrentRegion()
     rsoilC.SetNullValue(-999999)
+    rsoilC.ReadMapAsDouble()
     rsoilC.UseNullValueOn()
 
     rsoilN = vtkGRASSRasterImageReader()
     rsoilN.SetRasterName(soilN.GetAnswer())
     rsoilN.UseCurrentRegion()
     rsoilN.SetNullValue(-999999)
+    rsoilN.ReadMapAsDouble()
     rsoilN.UseNullValueOn()
 
-    rcroptype = vtkGRASSRasterImageReader()
-    rcroptype.SetRasterName(croptype.GetAnswer())
-    rcroptype.UseCurrentRegion()
-    rcroptype.SetNullValue(-999999)
-    rcroptype.UseNullValueOn()
-
-    rclimate = vtkGRASSRasterImageReader()
-    rclimate.SetRasterName(climate.GetAnswer())
-    rclimate.UseCurrentRegion()
-    rclimate.SetNullValue(-999999)
-    rclimate.UseNullValueOn()
-
     messages.Message("Start N2O emission computation")
-    # The VTK filter
-    model = vtkTAG2EDImageDataN2OFilterFreibauer()
+    
+    model = vtkTAG2EImageDataN2OFilterFreibauer()
     model.SetNitrogenRate(rnrate.GetOutput())
     model.SetSandFraction(rsand.GetOutput())
-    model.SetSoilOrganicCorbon(rsoilC.GetOutput())
+    model.SetSoilOrganicCarbon(rsoilC.GetOutput())
     model.SetSoilNitrogen(rsoilN.GetOutput())
-    model.SetCropType(rcroptype.GetOutput())
-    model.SetClimateType(rclimate.GetOutput())
     model.SetNumberOfThreads(int(threads.GetAnswer()))
+    if croptype.GetAnswer() == "grass":
+        model.SetCropTypeToGrass()
+    else:
+        model.SetCropTypeToOther()
+    if climate.GetAnswer() == "temperate":
+        model.SetClimateTypeToTemperate()
+    else:
+        model.SetClimateTypeToSubBoreal()
     model.SetNullValue(rnrate.GetNullValue())
     model.Update()
 

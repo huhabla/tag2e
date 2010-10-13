@@ -42,7 +42,6 @@
 #include <vtkPointData.h>
 #include <vtkDataSetAttributes.h>
 #include "vtkTAG2EDataSetN2OFilterFreibauer.h"
-#include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
 vtkCxxRevisionMacro(vtkTAG2EDataSetN2OFilterFreibauer, "$Revision: 1.20 $");
 vtkStandardNewMacro(vtkTAG2EDataSetN2OFilterFreibauer);
@@ -55,9 +54,9 @@ vtkTAG2EDataSetN2OFilterFreibauer::vtkTAG2EDataSetN2OFilterFreibauer()
     this->NullValue = -999999;
     this->SandFractionArrayName =NULL;
     this->SoilNitrogenArrayName = NULL;
-    this->CropTypeArrayName = NULL;
-    this->ClimateTypeArrayName = NULL;
-    this->SoilOrganicCorbonArrayName = NULL;
+    this->ClimateType = VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE;
+    this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
+    this->SoilOrganicCarbonArrayName = NULL;
     this->NitrogenRateArrayName = NULL;
     this->CategoryArrayName = NULL;
 }
@@ -82,22 +81,18 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
   // Check for all arrays
   if(this->UsePointData) {
       if(!input->GetPointData()->HasArray(this->CategoryArrayName) ||
-         !input->GetPointData()->HasArray(this->CropTypeArrayName) ||
-         !input->GetPointData()->HasArray(this->ClimateTypeArrayName) ||
          !input->GetPointData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetPointData()->HasArray(this->SoilNitrogenArrayName) ||
-         !input->GetPointData()->HasArray(this->SoilOrganicCorbonArrayName) ||
+         !input->GetPointData()->HasArray(this->SoilOrganicCarbonArrayName) ||
          !input->GetPointData()->HasArray(this->SandFractionArrayName)) {
           vtkErrorMacro(<< "Missing point data input array, abort.");
           return 0;
       }
   }else {
       if(!input->GetCellData()->HasArray(this->CategoryArrayName) ||
-         !input->GetCellData()->HasArray(this->CropTypeArrayName) ||
-         !input->GetCellData()->HasArray(this->ClimateTypeArrayName) ||
          !input->GetCellData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetCellData()->HasArray(this->SoilNitrogenArrayName) ||
-         !input->GetCellData()->HasArray(this->SoilOrganicCorbonArrayName) ||
+         !input->GetCellData()->HasArray(this->SoilOrganicCarbonArrayName) ||
          !input->GetCellData()->HasArray(this->SandFractionArrayName)) {
           vtkErrorMacro(<< "Missing cell data input array, abort.");
           return 0;
@@ -168,10 +163,10 @@ int vtkTAG2EDataSetN2OFilterFreibauer::RequestData(
       {
           // Gather the input data
           n = data->GetArray(this->NitrogenRateArrayName)->GetTuple1(i);
-          sc = data->GetArray(this->SoilOrganicCorbonArrayName)->GetTuple1(i);
+          sc = data->GetArray(this->SoilOrganicCarbonArrayName)->GetTuple1(i);
           sn = data->GetArray(this->SoilNitrogenArrayName)->GetTuple1(i);
-          cr = (int)data->GetArray(this->CropTypeArrayName)->GetTuple1(i);
-          cl = (int)data->GetArray(this->ClimateTypeArrayName)->GetTuple1(i);
+          cr = this->CropType;
+          cl = this->ClimateType;
           s = data->GetArray(this->SandFractionArrayName)->GetTuple1(i);
           // Compute the model
           n2o = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(n, s, sc, sn, cr, cl);

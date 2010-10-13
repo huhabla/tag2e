@@ -62,6 +62,7 @@
 
 #include <vtkDataSetAlgorithm.h>
 #include "vtkTAG2EFilteringWin32Header.h"
+#include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
 class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EDataSetN2OFilterStehfest : public vtkDataSetAlgorithm
 {
@@ -79,15 +80,11 @@ public:
   //!\brief The name of the array of clay content in top soil, in [%] of soil weight
   vtkSetStringMacro(ClayFractionArrayName);
   //!\brief The name of the array of soil organic carbon content in top soil in [%] of soil weight
-  vtkSetStringMacro(SoilOrganicCorbonArrayName);
+  vtkSetStringMacro(SoilOrganicCarbonArrayName);
   //!\brief The name of the array of total soil nitrogen content in [%] of soil weight
   vtkSetStringMacro(SoilNitrogenArrayName);
   //!\brief The name of the array of the pH value of top soil
   vtkSetStringMacro(pHArrayName);
-  //!\brief The name of the array of the crop type
-  vtkSetStringMacro(CropTypeArrayName);
-  //!\brief The name of the array of the climate type
-  vtkSetStringMacro(ClimateTypeArrayName);
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -103,15 +100,11 @@ public:
   //!\brief The name of the array of clay content in top soil, in [%] of soil weight
   vtkGetStringMacro(ClayFractionArrayName);
   //!\brief The name of the array of soil organic carbon content in top soil in [%] of soil weight
-  vtkGetStringMacro(SoilOrganicCorbonArrayName);
+  vtkGetStringMacro(SoilOrganicCarbonArrayName);
   //!\brief The name of the array of total soil nitrogen content in [%] of soil weight
   vtkGetStringMacro(SoilNitrogenArrayName);
   //!\brief The name of the array of the pH value of top soil
   vtkGetStringMacro(pHArrayName);
-  //!\brief The name of the array of the crop type
-  vtkGetStringMacro(CropTypeArrayName);
-  //!\brief The name of the array of the climate type
-  vtkGetStringMacro(ClimateTypeArrayName);
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -130,22 +123,53 @@ public:
   //!\brief The value which should be used as result for wrong category data
   vtkGetMacro(NullValue, double);
 
+  //!\brief Set the croptype to grass (this is the default)
+  void SetCropTypeToGrass(){this->SetCropType(VTK_TAG2E_CROPTYPE_GRASS);}
+  //!\brief Set the croptype to cereals 
+  void SetCropTypeToCereals(){this->SetCropType(VTK_TAG2E_CROPTYPE_CEREALS);}
+  //!\brief Set the croptype to fallow 
+  void SetCropTypeToFallow(){this->SetCropType(VTK_TAG2E_CROPTYPE_FALLOW);}
+  //!\brief Set the croptype to legume
+  void SetCropTypeToLegume(){this->SetCropType(VTK_TAG2E_CROPTYPE_LEGUME);}
+  //!\brief Set the croptype to roots
+  void SetCropTypeToRoots(){this->SetCropType(VTK_TAG2E_CROPTYPE_ROOTS);}
+  //!\brief Set the croptype to vegetables
+  void SetCropTypeToVegetables(){this->SetCropType(VTK_TAG2E_CROPTYPE_VEGETABLES);}
+  //!\brief Set the croptype to other than grass
+  void SetCropTypeToOther(){this->SetCropType(VTK_TAG2E_CROPTYPE_OTHER);}
+  
+  //!\brief Set the climate type to boreal (this is the default)
+  void SetClimateTypeToBoreal(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_STEHFEST_BOREAL);}
+  //!\brief Set the climate type to continental
+  void SetClimateTypeToContinental(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_STEHFEST_CONTINENTAL);}
+  //!\brief Set the climate type to oceanic
+  void SetClimateTypeToOceanic(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_STEHFEST_OCEANIC);}
+  //!\brief Set the climate type to sub-tropic
+  void SetClimateTypeToSubTropic(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_STEHFEST_SUBTROPIC);}
+  //!\brief Set the climate type to tropic
+  void SetClimateTypeToTropic(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_STEHFEST_TROPIC);}
+  
 protected:
   vtkTAG2EDataSetN2OFilterStehfest();
   ~vtkTAG2EDataSetN2OFilterStehfest() {};
+  
 
   char *NitrogenRateArrayName;
   char *SiltFractionArrayName;
   char *ClayFractionArrayName;
-  char *SoilOrganicCorbonArrayName;
+  char *SoilOrganicCarbonArrayName;
   char *SoilNitrogenArrayName;
   char *pHArrayName;
-  char *CropTypeArrayName;
-  char *ClimateTypeArrayName;
   char *CategoryArrayName;
 
   int UsePointData;
   double NullValue;
+  
+  int CropType;
+  int ClimateType;
+  
+  vtkSetMacro(ClimateType, int);
+  vtkSetMacro(CropType, int);
 
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 

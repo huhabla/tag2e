@@ -37,23 +37,23 @@
 #include <vtkInformationVector.h>
 #include <vtkObjectFactory.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
+#include "vtkTAG2EImageDataN2OFilterFreibauer.h"
 
-#include "vtkTAG2EDImageDataN2OFilterFreibauer.h"
-#include "vtkTAG2EAlternativeN2OPredictionModules.h"
-
-vtkCxxRevisionMacro(vtkTAG2EDImageDataN2OFilterFreibauer, "$Revision: 1.1 $");
-vtkStandardNewMacro(vtkTAG2EDImageDataN2OFilterFreibauer);
+vtkCxxRevisionMacro(vtkTAG2EImageDataN2OFilterFreibauer, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkTAG2EImageDataN2OFilterFreibauer);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EDImageDataN2OFilterFreibauer::vtkTAG2EDImageDataN2OFilterFreibauer() {
-    this->SetNumberOfInputPorts(6);
+vtkTAG2EImageDataN2OFilterFreibauer::vtkTAG2EImageDataN2OFilterFreibauer() {
+    this->SetNumberOfInputPorts(4);
     this->NullValue = -999999;
+    this->ClimateType = VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE;
+    this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
 }
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EDImageDataN2OFilterFreibauer::RequestInformation(
+int vtkTAG2EImageDataN2OFilterFreibauer::RequestInformation(
         vtkInformation * vtkNotUsed(request),
         vtkInformationVector ** vtkNotUsed(inputVector),
         vtkInformationVector *outputVector) {
@@ -68,21 +68,19 @@ int vtkTAG2EDImageDataN2OFilterFreibauer::RequestInformation(
 // Handles the six input
 
 template <class T>
-void vtkTAG2EDImageDataN2OFilterFreibauerExecute(vtkTAG2EDImageDataN2OFilterFreibauer *self,
+void vtkTAG2EImageDataN2OFilterFreibauerExecute(vtkTAG2EImageDataN2OFilterFreibauer *self,
 vtkImageData *NrateData,
 vtkImageData *sandFractData,
 vtkImageData *soilOrgFractData,
 vtkImageData *soilNData,
-vtkImageData *cropTypeData,
-vtkImageData *climateData,
+int cropType,
+int climateType,
 vtkImageData *outData,
 int outExt[6], int id, T *) {
     vtkImageIterator<T> NrateIt(NrateData, outExt);
     vtkImageIterator<T> sandFractIt(sandFractData, outExt);
     vtkImageIterator<T> soilOrgFractIt(soilOrgFractData, outExt);
     vtkImageIterator<T> soilNIt(soilNData, outExt);
-    vtkImageIterator<T> cropTypeIt(cropTypeData, outExt);
-    vtkImageIterator<T> climateIt(climateData, outExt);
     vtkImageProgressIterator<T> outIt(outData, outExt, self, id);
 
     double result;
@@ -90,8 +88,6 @@ int outExt[6], int id, T *) {
     double sandFract;
     double soilOrgFract;
     double soilN;
-    int cropType;
-    int climate;
 
     // Loop through ouput pixels
     while (!outIt.IsAtEnd()) {
@@ -99,8 +95,6 @@ int outExt[6], int id, T *) {
         T* sandFractSI = sandFractIt.BeginSpan();
         T* soilOrgFractSI = soilOrgFractIt.BeginSpan();
         T* soilNSI = soilNIt.BeginSpan();
-        T* cropTypeSI = cropTypeIt.BeginSpan();
-        T* climateSI = climateIt.BeginSpan();
 
         T* outSI = outIt.BeginSpan();
         T* outSIEnd = outIt.EndSpan();
@@ -110,27 +104,21 @@ int outExt[6], int id, T *) {
             sandFract = static_cast<double> (*sandFractSI);
             soilOrgFract = static_cast<double> (*soilOrgFractSI);
             soilN = static_cast<double> (*soilNSI);
-            cropType = static_cast<int> (*cropTypeSI);
-            climate = static_cast<int> (*climateSI);
 
             if (Nrate        == self->GetNullValue() ||
                 sandFract    == self->GetNullValue() ||
                 soilOrgFract == self->GetNullValue() ||
-                soilN        == self->GetNullValue() ||
-                cropType     == self->GetNullValue() ||
-                climate      == self->GetNullValue()) {
+                soilN        == self->GetNullValue()) {
                 result = self->GetNullValue();
             } else {
                 result = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(Nrate,
-                        sandFract, soilOrgFract, soilN, cropType, climate);
+                        sandFract, soilOrgFract, soilN, cropType, climateType);
             }
 
             *outSI = static_cast<T> (result);
             ++NrateSI;
             ++sandFractSI;
             ++soilOrgFractSI;
-            ++cropTypeSI;
-            ++climateSI;
             ++soilNSI;
             ++outSI;
         }
@@ -138,8 +126,6 @@ int outExt[6], int id, T *) {
         sandFractIt.NextSpan();
         soilOrgFractIt.NextSpan();
         soilNIt.NextSpan();
-        climateIt.NextSpan();
-        cropTypeIt.NextSpan();
         outIt.NextSpan();
     }
 }
@@ -151,7 +137,7 @@ int outExt[6], int id, T *) {
 // It just executes a switch statement to call the correct function for
 // the regions data types.
 
-void vtkTAG2EDImageDataN2OFilterFreibauer::ThreadedRequestData(
+void vtkTAG2EImageDataN2OFilterFreibauer::ThreadedRequestData(
         vtkInformation * vtkNotUsed(request),
         vtkInformationVector ** vtkNotUsed(inputVector),
         vtkInformationVector * vtkNotUsed(outputVector),
@@ -175,9 +161,9 @@ void vtkTAG2EDImageDataN2OFilterFreibauer::ThreadedRequestData(
 
     switch (inData[0][0]->GetScalarType()) {
             vtkTemplateMacro(
-                    vtkTAG2EDImageDataN2OFilterFreibauerExecute(this, inData[0][0],
-                    inData[1][0], inData[2][0], inData[3][0], inData[4][0],
-                    inData[5][0], outData[0], outExt, id,
+                    vtkTAG2EImageDataN2OFilterFreibauerExecute(this, inData[0][0],
+                    inData[1][0], inData[2][0], inData[3][0], this->CropType,
+                    this->ClimateType, outData[0], outExt, id,
                     static_cast<VTK_TT *> (0)));
         default:
             vtkErrorMacro( << "Execute: Unknown ScalarType");

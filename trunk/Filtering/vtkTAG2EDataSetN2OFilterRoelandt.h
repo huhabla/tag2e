@@ -61,6 +61,7 @@
 
 #include <vtkDataSetAlgorithm.h>
 #include "vtkTAG2EFilteringWin32Header.h"
+#include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
 class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EDataSetN2OFilterRoelandt : public vtkDataSetAlgorithm
 {
@@ -77,8 +78,7 @@ public:
   vtkSetStringMacro(TempWinterArrayName);
   //!\brief The name of the array of annual precipitation
   vtkSetStringMacro(PrecipitationSumArrayName);
-  //!\brief The name of the array of the crop type
-  vtkSetStringMacro(CropTypeArrayName);
+  
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -95,8 +95,7 @@ public:
   vtkGetStringMacro(TempWinterArrayName);
   //!\brief The name of the array of annual precipitation
   vtkGetStringMacro(PrecipitationSumArrayName);
-  //!\brief The name of the array of the crop type
-  vtkGetStringMacro(CropTypeArrayName);
+  
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -122,7 +121,12 @@ public:
 
   //!\brief Which model type should be used, Best, Min or Max
   vtkGetMacro(ModelType, int);
-
+  
+  //!\brief Set the croptype to grass (this is the default)
+  void SetCropTypeToGrass(){this->SetCropType(VTK_TAG2E_CROPTYPE_GRASS);}
+  //!\brief Set the croptype to other than grass
+  void SetCropTypeToOther(){this->SetCropType(VTK_TAG2E_CROPTYPE_OTHER);}
+  
 protected:
   vtkTAG2EDataSetN2OFilterRoelandt();
   ~vtkTAG2EDataSetN2OFilterRoelandt() {};
@@ -130,14 +134,17 @@ protected:
   char *NitrogenRateArrayName;
   char *TempSpringArrayName;
   char *TempWinterArrayName;
-  char *CropTypeArrayName;
+  
   char *PrecipitationSumArrayName;
   char *CategoryArrayName;
 
   int ModelType;
   int UsePointData;
   double NullValue;
-
+  
+  int CropType;
+  vtkSetMacro(CropType, int);
+  
   //!\brief Which model type should be used, Best, Min or Max
   vtkSetMacro(ModelType, int);
 

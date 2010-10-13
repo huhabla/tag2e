@@ -115,14 +115,17 @@ double vtkTAG2EAlternativeN2OPredictionModules::Stehfest(double N_rate, double C
         else
             sumtexture = 0.4312;
     }
+    
     //sumclimate
-    if (climate == 1)
+    if (climate == VTK_TAG2E_CLIMATETYPE_STEHFEST_CONTINENTAL) // Continental climate
         sumclimate = 0;
-    else if (climate == 2)
+    else if (climate == VTK_TAG2E_CLIMATETYPE_STEHFEST_OCEANIC) // Oceanic climate
         sumclimate = 0.0226;
-    if (climate == 4)
+    if (climate == VTK_TAG2E_CLIMATETYPE_STEHFEST_TROPIC) // Tropic climate
+        sumclimate = -0.3022;
+    if (climate == VTK_TAG2E_CLIMATETYPE_STEHFEST_SUBTROPIC) // Subtropic climate
         sumclimate = 0.6117;
-    if (climate == 8)
+    if (climate == VTK_TAG2E_CLIMATETYPE_STEHFEST_BOREAL) // Boreal climate
         sumclimate = 0; //boreal is assumed to behave like continental
     //sumcroptype
     if ((croptype == VTK_TAG2E_CROPTYPE_CEREALS) || (croptype == VTK_TAG2E_CROPTYPE_CEREALS_C))
@@ -134,7 +137,7 @@ double vtkTAG2EAlternativeN2OPredictionModules::Stehfest(double N_rate, double C
     if ((croptype == VTK_TAG2E_CROPTYPE_OTHER) || (croptype == VTK_TAG2E_CROPTYPE_ROOTS) || (croptype == VTK_TAG2E_CROPTYPE_VEGETABLES))
         sumcroptype = 0.4420; //other
     //if(croptype==)sumcroptype=-0.885;//rice
-    if (croptype == VTK_TAG2E_CROPTYPE_FELLOW)
+    if (croptype == VTK_TAG2E_CROPTYPE_FALLOW)
         sumcroptype = 0.587;
     //n2o emission
     f1 = sumN + sumpH + sumtexture + sumclimate + sumcroptype + 1.991 - 1.516;
@@ -192,15 +195,15 @@ double vtkTAG2EAlternativeN2OPredictionModules::RoelandtMax(double N_rate, doubl
 //----------------------------------------------------------------------------
 
 double vtkTAG2EAlternativeN2OPredictionModules::Freibauer(double N_rate, double sand, double soilC, double soilN, int croptype,int climate) {
-    double f;
+    double f = 0.0;
     if (croptype != VTK_TAG2E_CROPTYPE_GRASS) {
-        if ((climate != 1) && (climate != 8)) {
+        if (climate == VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE) {
             if (soilC > 9998)
                 soilC = 1.2;
             if (sand > 9998)
                 sand = 40;
             f = 0.6 + 0.002 * N_rate + 1.27 * soilC - 0.024 * sand;
-        } else {
+        } else if (climate == VTK_TAG2E_CLIMATETYPE_FREIBAUER_SUBBOREAL){
             if (soilN > 9998) {
                 soilN = 0.12;
             }

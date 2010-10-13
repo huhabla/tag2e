@@ -4,7 +4,7 @@
 #
 # Program: r.n2o.freibauer
 #
-# Purpose: Estimation of n2o emission in agriculture using the freibauer approach
+# Purpose: Estimation of n2o emission in agriculture using the stehfest approach
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -49,11 +49,11 @@ from libvtkGRASSBridgeCommonPython import *
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("v.n2o.freibauer")
+    init.Init("r.n2o.stehfest")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Estimation of n2o emission in agriculture using the freibauer approach")
+    module.SetDescription("Estimation of n2o emission in agriculture using the stehfest approach")
     module.AddKeyword("raster")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
@@ -64,23 +64,29 @@ def main():
     feature.MultipleOff()
     
     nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nrate")
-    nrate.SetDescription("The Nitrogen fertilization rate column name (%)")
+    nrate.SetDescription("The Nitrogen fertilization rate column name (N Kg/ha)")
 
-    sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "sand")
-    sand.SetDescription("The sand fraction rater column name (%)")
+    silt = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "silt")
+    silt.SetDescription("The silt fraction  column name (%)")
+
+    clay = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "clay")
+    clay.SetDescription("The clay fraction  column name (%)")
 
     soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction  column name (%)")
+    soilC.SetDescription("The oranic carbon soil fraction column name (%)")
 
     soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction  column name (%)")
+    soilN.SetDescription("The soil nitrogen fraction column name (%)")
+
+    pH =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "ph")
+    pH.SetDescription("The pH of the upper value")
 
     croptype = vtkGRASSOption()
     croptype.SetKey("croptype")
     croptype.MultipleOff()
     croptype.RequiredOff()
     croptype.SetDefaultAnswer("grass")
-    croptype.SetDefaultOptions("grass,other")
+    croptype.SetDefaultOptions("grass,cereals,fallow,legume,roots,vegt,other")
     croptype.SetDescription("The crop type")
     croptype.SetTypeToString()
     
@@ -88,8 +94,8 @@ def main():
     climate.SetKey("climate")
     climate.MultipleOff()
     climate.RequiredOff()
-    climate.SetDefaultAnswer("temperate")
-    climate.SetDefaultOptions("subboreal,temperate")
+    climate.SetDefaultAnswer("boreal")
+    climate.SetDefaultOptions("boreal,continental,oceanic,subtropic,tropic")
     climate.SetDescription("The climate type")
     climate.SetTypeToString()
 
@@ -107,7 +113,9 @@ def main():
 
     columns = vtkStringArray()
     columns.InsertNextValue(nrate.GetAnswer())
-    columns.InsertNextValue(sand.GetAnswer())
+    columns.InsertNextValue(silt.GetAnswer())
+    columns.InsertNextValue(clay.GetAnswer())
+    columns.InsertNextValue(pH.GetAnswer())
     columns.InsertNextValue(soilC.GetAnswer())
     columns.InsertNextValue(soilN.GetAnswer())
     columns.InsertNextValue("cat")
@@ -125,22 +133,41 @@ def main():
 
     messages.Message("Start N2O emission computation")
 
-    model = vtkTAG2EDataSetN2OFilterFreibauer()
+    model = vtkTAG2EDataSetN2OFilterStehfest()
     model.SetInput(dataset.GetOutput())
     model.SetNitrogenRateArrayName(nrate.GetAnswer())
-    model.SetSandFractionArrayName(sand.GetAnswer())
-    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
+    model.SetSiltFractionArrayName(silt.GetAnswer())
+    model.SetClayFractionArrayName(clay.GetAnswer())
     model.SetSoilNitrogenArrayName(soilN.GetAnswer())
+    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
+    model.SetpHArrayName(pH.GetAnswer())
     model.SetCategoryArrayName("cat")
+    model.UsePointDataOff()
+    
     if croptype.GetAnswer() == "grass":
         model.SetCropTypeToGrass()
+    elif croptype.GetAnswer() == "cereals":
+        model.SetCropTypeToCereals()
+    elif croptype.GetAnswer() == "fallow":
+        model.SetCropTypeToFallow()
+    elif croptype.GetAnswer() == "legume":
+        model.SetCropTypeToLegume()
+    elif croptype.GetAnswer() == "vegt":
+        model.SetCropTypeToVegetables()
     else:
         model.SetCropTypeToOther()
-    if climate.GetAnswer() == "temperate":
-        model.SetClimateTypeToTemperate()
+        
+    if climate.GetAnswer() == "continental":
+        model.SetClimateTypeToContinental()
+    elif climate.GetAnswer() == "oceanic":
+        model.SetClimateTypeToOceanic()
+    elif climate.GetAnswer() == "subtropic":
+        model.SetClimateTypeToSubTropic()
+    elif climate.GetAnswer() == "tropic":
+        model.SetClimateTypeToTropic()
     else:
-        model.SetClimateTypeToSubBoreal()
-    model.UsePointDataOff()
+        model.SetClimateTypeToBoreal()
+        
     model.Update()
     
     writer = vtkXMLPolyDataWriter()

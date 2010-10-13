@@ -90,7 +90,7 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
   }
   
  // First, copy the input to the output as a starting point
-  output->CopyStructure( input );
+  output->CopyStructure(input);
 
   // We compute the N2O emission only for each category
   // If the emission was computed for one categorie, the result will be stored

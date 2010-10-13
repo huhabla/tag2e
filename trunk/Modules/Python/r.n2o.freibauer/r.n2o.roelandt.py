@@ -2,9 +2,9 @@
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
 #
-# Program: r.n2o.freibauer
+# Program: r.n2o.roelandt
 #
-# Purpose: Estimation of n2o emission in agriculture using the freibauer approach
+# Purpose: Estimation of n2o emission in agriculture using the roelandt approach
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -48,24 +48,24 @@ from libvtkGRASSBridgeCommonPython import *
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("r.n2o.freibauer")
+    init.Init("r.n2o.roelandt")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Estimation of n2o emission in agriculture using the freibauer approach")
+    module.SetDescription("Estimation of n2o emission in agriculture using the roelandt approach")
     module.AddKeyword("raster")
 
     nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nrate")
     nrate.SetDescription("The Nitrogen fertilization rate raster map")
 
-    sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "sand")
-    sand.SetDescription("The sand fraction raster map in percent")
+    T_win = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "twinter")
+    T_win.SetDescription("The mean temperature of jan, feb and mar")
 
-    soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction raster map in percent")
+    T_spring = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "tspring")
+    T_spring.SetDescription("The mean temperature of apr, may and jun")
 
-    soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction raster map in percent")
+    P_sum =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "prec")
+    P_sum.SetDescription("The summer precipitation")
 
     croptype = vtkGRASSOption()
     croptype.SetKey("croptype")
@@ -75,15 +75,6 @@ def main():
     croptype.SetDefaultOptions("grass,other")
     croptype.SetDescription("The crop type")
     croptype.SetTypeToString()
-    
-    climate = vtkGRASSOption()
-    climate.SetKey("climate")
-    climate.MultipleOff()
-    climate.RequiredOff()
-    climate.SetDefaultAnswer("temperate")
-    climate.SetDefaultOptions("subboreal,temperate")
-    climate.SetDescription("The climate type")
-    climate.SetTypeToString()
 
     categories = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "categories")
     categories.SetDescription("The categories")
@@ -114,38 +105,38 @@ def main():
     dataset = vtkImageData()
     dataset.DeepCopy(rnrate.GetOutput())
 
-    rsand = vtkGRASSRasterImageReader()
-    rsand.SetRasterName(sand.GetAnswer())
-    rsand.UseCurrentRegion()
-    rsand.SetNullValue(-999999)
-    rsand.UseNullValueOn()
-    rsand.ReadMapAsDouble()
-    rsand.Update()
-    rsand.GetOutput().GetPointData().GetScalars().SetName(sand.GetAnswer())
+    rT_win = vtkGRASSRasterImageReader()
+    rT_win.SetRasterName(T_win.GetAnswer())
+    rT_win.UseCurrentRegion()
+    rT_win.SetNullValue(-999999)
+    rT_win.UseNullValueOn()
+    rT_win.ReadMapAsDouble()
+    rT_win.Update()
+    rT_win.GetOutput().GetPointData().GetScalars().SetName(T_win.GetAnswer())
     
-    dataset.GetPointData().AddArray(rsand.GetOutput().GetPointData().GetScalars())
+    dataset.GetPointData().AddArray(rT_win.GetOutput().GetPointData().GetScalars())
 
-    rsoilC = vtkGRASSRasterImageReader()
-    rsoilC.SetRasterName(soilC.GetAnswer())
-    rsoilC.UseCurrentRegion()
-    rsoilC.SetNullValue(-999999)
-    rsoilC.UseNullValueOn()
-    rsoilC.ReadMapAsDouble()
-    rsoilC.Update()
-    rsoilC.GetOutput().GetPointData().GetScalars().SetName(soilC.GetAnswer())
+    rT_spring = vtkGRASSRasterImageReader()
+    rT_spring.SetRasterName(T_spring.GetAnswer())
+    rT_spring.UseCurrentRegion()
+    rT_spring.SetNullValue(-999999)
+    rT_spring.UseNullValueOn()
+    rT_spring.ReadMapAsDouble()
+    rT_spring.Update()
+    rT_spring.GetOutput().GetPointData().GetScalars().SetName(T_spring.GetAnswer())
 
-    dataset.GetPointData().AddArray(rsoilC.GetOutput().GetPointData().GetScalars())
+    dataset.GetPointData().AddArray(rT_spring.GetOutput().GetPointData().GetScalars())
 
-    rsoilN = vtkGRASSRasterImageReader()
-    rsoilN.SetRasterName(soilN.GetAnswer())
-    rsoilN.UseCurrentRegion()
-    rsoilN.SetNullValue(-999999)
-    rsoilN.UseNullValueOn()
-    rsoilN.ReadMapAsDouble()
-    rsoilN.Update()
-    rsoilN.GetOutput().GetPointData().GetScalars().SetName(soilN.GetAnswer())
+    rP_sum = vtkGRASSRasterImageReader()
+    rP_sum.SetRasterName(P_sum.GetAnswer())
+    rP_sum.UseCurrentRegion()
+    rP_sum.SetNullValue(-999999)
+    rP_sum.UseNullValueOn()
+    rP_sum.ReadMapAsDouble()
+    rP_sum.Update()
+    rP_sum.GetOutput().GetPointData().GetScalars().SetName(P_sum.GetAnswer())
 
-    dataset.GetPointData().AddArray(rsoilN.GetOutput().GetPointData().GetScalars())
+    dataset.GetPointData().AddArray(rP_sum.GetOutput().GetPointData().GetScalars())
 
     rcategories = vtkGRASSRasterImageReader()
     rcategories.SetRasterName(categories.GetAnswer())
@@ -160,22 +151,18 @@ def main():
 
     messages.Message("Start N2O emission computation")
 
-    model = vtkTAG2EDataSetN2OFilterFreibauer()
+    model = vtkTAG2EDataSetN2OFilterRoelandt()
     model.SetInput(dataset)
     model.SetNitrogenRateArrayName(nrate.GetAnswer())
-    model.SetSandFractionArrayName(sand.GetAnswer())
-    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
-    model.SetSoilNitrogenArrayName(soilN.GetAnswer())
-    model.SetCategoryArrayName(categories.GetAnswer())
-    model.SetNullValue(rnrate.GetNullValue())
+    model.SetTempWinterArrayName(T_win.GetAnswer())
+    model.SetTempSpringArrayName(T_spring.GetAnswer())
+    model.SetPrecipitationSumArrayName(P_sum.GetAnswer())
     if croptype.GetAnswer() == "grass":
         model.SetCropTypeToGrass()
     else:
         model.SetCropTypeToOther()
-    if climate.GetAnswer() == "temperate":
-        model.SetClimateTypeToTemperate()
-    else:
-        model.SetClimateTypeToSubBoreal()
+    model.SetCategoryArrayName(categories.GetAnswer())
+    model.SetNullValue(rnrate.GetNullValue())
     model.UsePointDataOn()
     model.Update()
 
@@ -188,7 +175,6 @@ def main():
     writer.UseCurrentRegion()
     writer.SetRasterName(output.GetAnswer())
     writer.Update()
-
 
 if __name__ == "__main__":
     main()
