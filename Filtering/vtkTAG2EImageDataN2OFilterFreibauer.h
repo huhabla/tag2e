@@ -57,40 +57,52 @@
  * */
 
 
-#ifndef __vtkTAG2EDImageDataN2OFilterFreibauer_h
-#define __vtkTAG2EDImageDataN2OFilterFreibauer_h
+#ifndef __vtkTAG2EImageDataN2OFilterFreibauer_h
+#define __vtkTAG2EImageDataN2OFilterFreibauer_h
 
 
 #include "vtkTAG2EFilteringWin32Header.h"
 #include "vtkThreadedImageAlgorithm.h"
+#include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
-class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EDImageDataN2OFilterFreibauer : public vtkThreadedImageAlgorithm
+class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EImageDataN2OFilterFreibauer : public vtkThreadedImageAlgorithm
 {
 public:
-  static vtkTAG2EDImageDataN2OFilterFreibauer *New();
-  vtkTypeRevisionMacro(vtkTAG2EDImageDataN2OFilterFreibauer,vtkThreadedImageAlgorithm);
+  static vtkTAG2EImageDataN2OFilterFreibauer *New();
+  vtkTypeRevisionMacro(vtkTAG2EImageDataN2OFilterFreibauer,vtkThreadedImageAlgorithm);
 
   //!\brief The input of annual fertilizer input in [(kg N )/(ha a)]
   virtual void SetNitrogenRate(vtkDataObject *in) { this->SetInput(0,in); }
   //!\brief The input of sand content in top soil, in [%] of soil weight
   virtual void SetSandFraction(vtkDataObject *in) { this->SetInput(1,in); }
   //!\brief The input of soil organic carbon content in top soil in [%] of soil weight
-  virtual void SetSoilOrganicCorbon(vtkDataObject *in) { this->SetInput(2,in); }
+  virtual void SetSoilOrganicCarbon(vtkDataObject *in) { this->SetInput(2,in); }
   //!\brief The input of total soil nitrogen content in [%] of soil weight
   virtual void SetSoilNitrogen(vtkDataObject *in) { this->SetInput(3,in); }
-  //! \brief Set the crop type input
-  virtual void SetCropType(vtkDataObject *in) { this->SetInput(4,in); }
-  //! \brief Set the climate type input
-  virtual void SetClimateType(vtkDataObject *in) { this->SetInput(5,in); }
 
-
+  //!\brief Set the climate type to sub-boreal
+  void SetClimateTypeToSubBoreal(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_FREIBAUER_SUBBOREAL);}
+  //!\brief Set the climate type to temperate western europe (this is the default)
+  void SetClimateTypeToTemperate(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE);}
+  
+  //!\brief Set the croptype to grass (this is the default)
+  void SetCropTypeToGrass(){this->SetCropType(VTK_TAG2E_CROPTYPE_GRASS);}
+  //!\brief Set the croptype to other than grass
+  void SetCropTypeToOther(){this->SetCropType(VTK_TAG2E_CROPTYPE_OTHER);}
+  
   vtkSetMacro(NullValue, double);
   vtkGetMacro(NullValue, double);
 
 protected:
-  vtkTAG2EDImageDataN2OFilterFreibauer();
-  ~vtkTAG2EDImageDataN2OFilterFreibauer() {};
+  vtkTAG2EImageDataN2OFilterFreibauer();
+  ~vtkTAG2EImageDataN2OFilterFreibauer() {};
 
+  double NullValue;
+  int ClimateType;
+  int CropType;
+  vtkSetMacro(ClimateType, int);
+  vtkSetMacro(CropType, int);
+  
   virtual int RequestInformation (vtkInformation *, 
                                   vtkInformationVector **,
                                   vtkInformationVector *);
@@ -102,11 +114,10 @@ protected:
                                    vtkImageData **outData,
                                    int extent[6], int threadId);
 
-  double NullValue;
 
 private:
-  vtkTAG2EDImageDataN2OFilterFreibauer(const vtkTAG2EDImageDataN2OFilterFreibauer&);  // Not implemented.
-  void operator=(const vtkTAG2EDImageDataN2OFilterFreibauer&);  // Not implemented.
+  vtkTAG2EImageDataN2OFilterFreibauer(const vtkTAG2EImageDataN2OFilterFreibauer&);  // Not implemented.
+  void operator=(const vtkTAG2EImageDataN2OFilterFreibauer&);  // Not implemented.
 };
 
 #endif

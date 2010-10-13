@@ -57,9 +57,9 @@ vtkTAG2EDataSetN2OFilterStehfest::vtkTAG2EDataSetN2OFilterStehfest()
     this->ClayFractionArrayName =NULL;
     this->pHArrayName =NULL;
     this->SoilNitrogenArrayName = NULL;
-    this->CropTypeArrayName = NULL;
-    this->ClimateTypeArrayName = NULL;
-    this->SoilOrganicCorbonArrayName = NULL;
+    this->ClimateType = VTK_TAG2E_CLIMATETYPE_STEHFEST_BOREAL;
+    this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
+    this->SoilOrganicCarbonArrayName = NULL;
     this->NitrogenRateArrayName = NULL;
     this->CategoryArrayName = NULL;
 }
@@ -84,11 +84,9 @@ int vtkTAG2EDataSetN2OFilterStehfest::RequestData(
   // Check for all arrays
   if(this->UsePointData) {
       if(!input->GetPointData()->HasArray(this->CategoryArrayName) ||
-         !input->GetPointData()->HasArray(this->CropTypeArrayName) ||
-         !input->GetPointData()->HasArray(this->ClimateTypeArrayName) ||
          !input->GetPointData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetPointData()->HasArray(this->SoilNitrogenArrayName) ||
-         !input->GetPointData()->HasArray(this->SoilOrganicCorbonArrayName) ||
+         !input->GetPointData()->HasArray(this->SoilOrganicCarbonArrayName) ||
          !input->GetPointData()->HasArray(this->ClayFractionArrayName) ||
          !input->GetPointData()->HasArray(this->SiltFractionArrayName) ||
          !input->GetPointData()->HasArray(this->pHArrayName)) {
@@ -97,11 +95,9 @@ int vtkTAG2EDataSetN2OFilterStehfest::RequestData(
       }
   }else {
       if(!input->GetCellData()->HasArray(this->CategoryArrayName) ||
-         !input->GetCellData()->HasArray(this->CropTypeArrayName) ||
-         !input->GetCellData()->HasArray(this->ClimateTypeArrayName) ||
          !input->GetCellData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetCellData()->HasArray(this->SoilNitrogenArrayName) ||
-         !input->GetCellData()->HasArray(this->SoilOrganicCorbonArrayName) ||
+         !input->GetCellData()->HasArray(this->SoilOrganicCarbonArrayName) ||
          !input->GetCellData()->HasArray(this->ClayFractionArrayName) ||
          !input->GetCellData()->HasArray(this->SiltFractionArrayName) ||
          !input->GetCellData()->HasArray(this->pHArrayName)) {
@@ -174,10 +170,10 @@ int vtkTAG2EDataSetN2OFilterStehfest::RequestData(
       {
           // Gather the input data
           n = data->GetArray(this->NitrogenRateArrayName)->GetTuple1(i);
-          sc = data->GetArray(this->SoilOrganicCorbonArrayName)->GetTuple1(i);
+          sc = data->GetArray(this->SoilOrganicCarbonArrayName)->GetTuple1(i);
           sn = data->GetArray(this->SoilNitrogenArrayName)->GetTuple1(i);
-          cr = (int)data->GetArray(this->CropTypeArrayName)->GetTuple1(i);
-          cl = (int)data->GetArray(this->ClimateTypeArrayName)->GetTuple1(i);
+          cr = this->CropType;
+          cl = this->ClimateType;
           clay = data->GetArray(this->ClayFractionArrayName)->GetTuple1(i);
           silt = data->GetArray(this->SiltFractionArrayName)->GetTuple1(i);
           pH = data->GetArray(this->pHArrayName)->GetTuple1(i);

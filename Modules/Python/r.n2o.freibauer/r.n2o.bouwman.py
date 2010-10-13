@@ -2,9 +2,9 @@
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
 #
-# Program: r.n2o.freibauer
+# Program: r.n2o.bouwman
 #
-# Purpose: Estimation of n2o emission in agriculture using the freibauer approach
+# Purpose: Estimation of n2o emission in agriculture using the bouwman approach
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -38,6 +38,7 @@ import sys
 
 #include the VTK and vtkGRASSBridge Python libraries
 from libvtkFilteringPython import *
+from libvtkIOPython import *
 from libvtkImagingPython import *
 from libvtkCommonPython import *
 from libvtkTAG2ECommonPython import *
@@ -48,42 +49,15 @@ from libvtkGRASSBridgeCommonPython import *
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("r.n2o.freibauer")
+    init.Init("r.n2o.bouwman")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Estimation of n2o emission in agriculture using the freibauer approach")
+    module.SetDescription("Estimation of n2o emission in agriculture using the bouwman approach")
     module.AddKeyword("raster")
 
     nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nrate")
     nrate.SetDescription("The Nitrogen fertilization rate raster map")
-
-    sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "sand")
-    sand.SetDescription("The sand fraction raster map in percent")
-
-    soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction raster map in percent")
-
-    soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction raster map in percent")
-
-    croptype = vtkGRASSOption()
-    croptype.SetKey("croptype")
-    croptype.MultipleOff()
-    croptype.RequiredOff()
-    croptype.SetDefaultAnswer("grass")
-    croptype.SetDefaultOptions("grass,other")
-    croptype.SetDescription("The crop type")
-    croptype.SetTypeToString()
-    
-    climate = vtkGRASSOption()
-    climate.SetKey("climate")
-    climate.MultipleOff()
-    climate.RequiredOff()
-    climate.SetDefaultAnswer("temperate")
-    climate.SetDefaultOptions("subboreal,temperate")
-    climate.SetDescription("The climate type")
-    climate.SetTypeToString()
 
     categories = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "categories")
     categories.SetDescription("The categories")
@@ -114,39 +88,6 @@ def main():
     dataset = vtkImageData()
     dataset.DeepCopy(rnrate.GetOutput())
 
-    rsand = vtkGRASSRasterImageReader()
-    rsand.SetRasterName(sand.GetAnswer())
-    rsand.UseCurrentRegion()
-    rsand.SetNullValue(-999999)
-    rsand.UseNullValueOn()
-    rsand.ReadMapAsDouble()
-    rsand.Update()
-    rsand.GetOutput().GetPointData().GetScalars().SetName(sand.GetAnswer())
-    
-    dataset.GetPointData().AddArray(rsand.GetOutput().GetPointData().GetScalars())
-
-    rsoilC = vtkGRASSRasterImageReader()
-    rsoilC.SetRasterName(soilC.GetAnswer())
-    rsoilC.UseCurrentRegion()
-    rsoilC.SetNullValue(-999999)
-    rsoilC.UseNullValueOn()
-    rsoilC.ReadMapAsDouble()
-    rsoilC.Update()
-    rsoilC.GetOutput().GetPointData().GetScalars().SetName(soilC.GetAnswer())
-
-    dataset.GetPointData().AddArray(rsoilC.GetOutput().GetPointData().GetScalars())
-
-    rsoilN = vtkGRASSRasterImageReader()
-    rsoilN.SetRasterName(soilN.GetAnswer())
-    rsoilN.UseCurrentRegion()
-    rsoilN.SetNullValue(-999999)
-    rsoilN.UseNullValueOn()
-    rsoilN.ReadMapAsDouble()
-    rsoilN.Update()
-    rsoilN.GetOutput().GetPointData().GetScalars().SetName(soilN.GetAnswer())
-
-    dataset.GetPointData().AddArray(rsoilN.GetOutput().GetPointData().GetScalars())
-
     rcategories = vtkGRASSRasterImageReader()
     rcategories.SetRasterName(categories.GetAnswer())
     rcategories.UseCurrentRegion()
@@ -160,24 +101,18 @@ def main():
 
     messages.Message("Start N2O emission computation")
 
-    model = vtkTAG2EDataSetN2OFilterFreibauer()
+    model = vtkTAG2EDataSetN2OFilterBouwman()
     model.SetInput(dataset)
     model.SetNitrogenRateArrayName(nrate.GetAnswer())
-    model.SetSandFractionArrayName(sand.GetAnswer())
-    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
-    model.SetSoilNitrogenArrayName(soilN.GetAnswer())
     model.SetCategoryArrayName(categories.GetAnswer())
     model.SetNullValue(rnrate.GetNullValue())
-    if croptype.GetAnswer() == "grass":
-        model.SetCropTypeToGrass()
-    else:
-        model.SetCropTypeToOther()
-    if climate.GetAnswer() == "temperate":
-        model.SetClimateTypeToTemperate()
-    else:
-        model.SetClimateTypeToSubBoreal()
     model.UsePointDataOn()
     model.Update()
+
+    writer = vtkXMLImageDataWriter()
+    writer.SetInput(model.GetOutput())
+    writer.SetFileName(output.GetAnswer() + ".vti")
+    writer.Write()
 
     messages.Message("Writing result raster map")
     # Write the result as raster map

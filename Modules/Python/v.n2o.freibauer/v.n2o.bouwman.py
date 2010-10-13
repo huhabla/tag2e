@@ -4,7 +4,7 @@
 #
 # Program: r.n2o.freibauer
 #
-# Purpose: Estimation of n2o emission in agriculture using the freibauer approach
+# Purpose: Estimation of n2o emission in agriculture using the bouwman approach
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -39,7 +39,6 @@ import sys
 #include the VTK and vtkGRASSBridge Python libraries
 from libvtkFilteringPython import *
 from libvtkImagingPython import *
-from libvtkIOPython import *
 from libvtkCommonPython import *
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
@@ -49,49 +48,22 @@ from libvtkGRASSBridgeCommonPython import *
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("v.n2o.freibauer")
+    init.Init("v.n2o.bouwman")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Estimation of n2o emission in agriculture using the freibauer approach")
+    module.SetDescription("Estimation of n2o emission in agriculture using the bouwman approach")
     module.AddKeyword("raster")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
+
+    nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nrate")
+    nrate.SetDescription("The Nitrogen fertilization rate column name (%)")
 
     feature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorFeatureType())
     feature.SetDefaultOptions("point,centroid,area")
     feature.SetDefaultAnswer("area")
     feature.MultipleOff()
-    
-    nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nrate")
-    nrate.SetDescription("The Nitrogen fertilization rate column name (%)")
-
-    sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "sand")
-    sand.SetDescription("The sand fraction rater column name (%)")
-
-    soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction  column name (%)")
-
-    soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction  column name (%)")
-
-    croptype = vtkGRASSOption()
-    croptype.SetKey("croptype")
-    croptype.MultipleOff()
-    croptype.RequiredOff()
-    croptype.SetDefaultAnswer("grass")
-    croptype.SetDefaultOptions("grass,other")
-    croptype.SetDescription("The crop type")
-    croptype.SetTypeToString()
-    
-    climate = vtkGRASSOption()
-    climate.SetKey("climate")
-    climate.MultipleOff()
-    climate.RequiredOff()
-    climate.SetDefaultAnswer("temperate")
-    climate.SetDefaultOptions("subboreal,temperate")
-    climate.SetDescription("The climate type")
-    climate.SetTypeToString()
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The N2O emission estimation output map")
@@ -107,9 +79,6 @@ def main():
 
     columns = vtkStringArray()
     columns.InsertNextValue(nrate.GetAnswer())
-    columns.InsertNextValue(sand.GetAnswer())
-    columns.InsertNextValue(soilC.GetAnswer())
-    columns.InsertNextValue(soilN.GetAnswer())
     columns.InsertNextValue("cat")
 
     messages.Message("Reading vector map into memory")
@@ -125,29 +94,13 @@ def main():
 
     messages.Message("Start N2O emission computation")
 
-    model = vtkTAG2EDataSetN2OFilterFreibauer()
+    model = vtkTAG2EDataSetN2OFilterBouwman()
     model.SetInput(dataset.GetOutput())
     model.SetNitrogenRateArrayName(nrate.GetAnswer())
-    model.SetSandFractionArrayName(sand.GetAnswer())
-    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
-    model.SetSoilNitrogenArrayName(soilN.GetAnswer())
     model.SetCategoryArrayName("cat")
-    if croptype.GetAnswer() == "grass":
-        model.SetCropTypeToGrass()
-    else:
-        model.SetCropTypeToOther()
-    if climate.GetAnswer() == "temperate":
-        model.SetClimateTypeToTemperate()
-    else:
-        model.SetClimateTypeToSubBoreal()
     model.UsePointDataOff()
     model.Update()
-    
-    writer = vtkXMLPolyDataWriter()
-    writer.SetInput(model.GetOutput())
-    writer.SetFileName("/tmp/1.vtp")
-    writer.Write()
-    
+
     messages.Message("Writing result vector map")
     
     # Areas must be treated in a specific way to garant correct topology
@@ -173,6 +126,7 @@ def main():
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
+
 
 if __name__ == "__main__":
     main()

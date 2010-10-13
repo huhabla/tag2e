@@ -36,7 +36,7 @@
  * agricultural mineral soil in Europe using the annual fertilizer input, the
  * soil nitrogen content, the sand content, the soil organic carbon content as
  * well as the climate and crop type. The computational approach is based on
- * emperical formulars from Freibauer und Klatschmitt which where derived
+ * emperical formulars from Freibauer und Kaltschmitt which where derived
  * using stepwise multivariate linear regression analysis.
  *
  * As input any vtkDataSet can be used including the input parameter as cell or
@@ -62,6 +62,7 @@
 
 #include <vtkDataSetAlgorithm.h>
 #include "vtkTAG2EFilteringWin32Header.h"
+#include "vtkTAG2EAlternativeN2OPredictionModules.h"
 
 class VTK_TAG2E_FILTERING_EXPORT vtkTAG2EDataSetN2OFilterFreibauer : public vtkDataSetAlgorithm
 {
@@ -75,13 +76,10 @@ public:
   //!\brief The name of the array of sand content in top soil, in [%] of soil weight
   vtkSetStringMacro(SandFractionArrayName);
   //!\brief The name of the array of soil organic carbon content in top soil in [%] of soil weight
-  vtkSetStringMacro(SoilOrganicCorbonArrayName);
+  vtkSetStringMacro(SoilOrganicCarbonArrayName);
   //!\brief The name of the array of total soil nitrogen content in [%] of soil weight
   vtkSetStringMacro(SoilNitrogenArrayName);
-  //!\brief The name of the array of the crop type
-  vtkSetStringMacro(CropTypeArrayName);
-  //!\brief The name of the array of the climate type
-  vtkSetStringMacro(ClimateTypeArrayName);
+
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -89,19 +87,15 @@ public:
   //! Categories must be integer values in range 0 .. n.
   vtkSetStringMacro(CategoryArrayName);
 
-
   //!\brief The name of the array of annual fertilizer input in [(kg N )/(ha a)]
   vtkGetStringMacro(NitrogenRateArrayName);
   //!\brief The name of the array of sand content in top soil, in [%] of soil weight
   vtkGetStringMacro(SandFractionArrayName);
   //!\brief The name of the array of soil organic carbon content in top soil in [%] of soil weight
-  vtkGetStringMacro(SoilOrganicCorbonArrayName);
+  vtkGetStringMacro(SoilOrganicCarbonArrayName);
   //!\brief The name of the array of total soil nitrogen content in [%] of soil weight
   vtkGetStringMacro(SoilNitrogenArrayName);
-  //!\brief The name of the array of the crop type
-  vtkGetStringMacro(CropTypeArrayName);
-  //!\brief The name of the array of the climate type
-  vtkGetStringMacro(ClimateTypeArrayName);
+
   //!\brief The name of the category array, which describes cells/points with identical
   //! data. This is used to speed up the computation in case the input data set
   //! has many cells/points but does not vary much in parameters (Like the multi polygon
@@ -119,22 +113,37 @@ public:
   vtkSetMacro(NullValue, double);
   //!\brief The value which should be used as result for wrong category data
   vtkGetMacro(NullValue, double);
+  
 
+  //!\brief Set the climate type to sub-boreal
+  void SetClimateTypeToSubBoreal(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_FREIBAUER_SUBBOREAL);}
+  //!\brief Set the climate type to temperate western europe (this is the default)
+  void SetClimateTypeToTemperate(){this->SetClimateType(VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE);}
+  
+  //!\brief Set the croptype to grass (this is the default)
+  void SetCropTypeToGrass(){this->SetCropType(VTK_TAG2E_CROPTYPE_GRASS);}
+  //!\brief Set the croptype to other than grass
+  void SetCropTypeToOther(){this->SetCropType(VTK_TAG2E_CROPTYPE_OTHER);}
+  
 protected:
   vtkTAG2EDataSetN2OFilterFreibauer();
   ~vtkTAG2EDataSetN2OFilterFreibauer() {};
 
+
   char *NitrogenRateArrayName;
   char *SandFractionArrayName;
-  char *SoilOrganicCorbonArrayName;
+  char *SoilOrganicCarbonArrayName;
   char *SoilNitrogenArrayName;
-  char *CropTypeArrayName;
-  char *ClimateTypeArrayName;
   char *CategoryArrayName;
-
+  
   int UsePointData;
   double NullValue;
 
+  int ClimateType;
+  int CropType;
+  vtkSetMacro(ClimateType, int);
+  vtkSetMacro(CropType, int);
+  
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 private:

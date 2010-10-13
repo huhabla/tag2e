@@ -55,7 +55,7 @@ vtkTAG2EDataSetN2OFilterRoelandt::vtkTAG2EDataSetN2OFilterRoelandt()
     this->NullValue = -999999;
     this->TempSpringArrayName =NULL;
     this->TempWinterArrayName = NULL;
-    this->CropTypeArrayName = NULL;
+    this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
     this->PrecipitationSumArrayName = NULL;
     this->NitrogenRateArrayName = NULL;
     this->CategoryArrayName = NULL;
@@ -81,7 +81,6 @@ int vtkTAG2EDataSetN2OFilterRoelandt::RequestData(
   // Check for all arrays
   if(this->UsePointData) {
       if(!input->GetPointData()->HasArray(this->CategoryArrayName) ||
-         !input->GetPointData()->HasArray(this->CropTypeArrayName) ||
          !input->GetPointData()->HasArray(this->TempWinterArrayName) ||
          !input->GetPointData()->HasArray(this->NitrogenRateArrayName) ||
          !input->GetPointData()->HasArray(this->TempSpringArrayName) ||
@@ -91,9 +90,9 @@ int vtkTAG2EDataSetN2OFilterRoelandt::RequestData(
       }
   }else {
       if(!input->GetCellData()->HasArray(this->CategoryArrayName) ||
-         !input->GetCellData()->HasArray(this->CropTypeArrayName) ||
          !input->GetCellData()->HasArray(this->TempWinterArrayName) ||
          !input->GetCellData()->HasArray(this->NitrogenRateArrayName) ||
+         !input->GetCellData()->HasArray(this->TempSpringArrayName) ||
          !input->GetCellData()->HasArray(this->PrecipitationSumArrayName)) {
           vtkErrorMacro(<< "Missing cell data input array, abort.");
           return 0;
@@ -166,7 +165,7 @@ int vtkTAG2EDataSetN2OFilterRoelandt::RequestData(
           n = data->GetArray(this->NitrogenRateArrayName)->GetTuple1(i);
           ts = data->GetArray(this->TempSpringArrayName)->GetTuple1(i);
           tw = data->GetArray(this->TempWinterArrayName)->GetTuple1(i);
-          cr = (int)data->GetArray(this->CropTypeArrayName)->GetTuple1(i);
+          cr = this->CropType;
           P = (int)data->GetArray(this->PrecipitationSumArrayName)->GetTuple1(i);
           
           // Compute the model
