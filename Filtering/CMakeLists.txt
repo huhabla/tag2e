@@ -7,20 +7,30 @@
 #
 
 SET (Filtering_SRCS
-vtkTAG2EImageDataN2OFilterFreibauer.cxx
-vtkTAG2EDataSetN2OFilterFreibauer.cxx
-vtkTAG2EDataSetN2OFilterStehfest.cxx
-vtkTAG2EDataSetN2OFilterRoelandt.cxx
-vtkTAG2EDataSetN2OFilterBouwman.cxx
+    vtkTAG2EAbstractCalibrationParameter.cxx
+    vtkTAG2EImageDataN2OFilterFreibauer.cxx
+    vtkTAG2EDataSetN2OFilterFreibauer.cxx
+    vtkTAG2EDataSetN2OFilterStehfest.cxx
+    vtkTAG2EDataSetN2OFilterRoelandt.cxx
+    vtkTAG2EDataSetN2OFilterBouwman.cxx
+    vtkTAG2EFuzzyInferenceSchemeCalibration.cxx
+    vtkTAG2EFuzzyInferenceScheme.cxx
+    vtkTAG2EFuzzyInferenceSchemeModel.cxx
+    vtkTAG2EModelBase.cxx
 )
 
 SET (Filtering_H
-vtkTAG2EFilteringWin32Header.h
-vtkTAG2EImageDataN2OFilterFreibauer.h
-vtkTAG2EDataSetN2OFilterFreibauer.h
-vtkTAG2EDataSetN2OFilterStehfest.h
-vtkTAG2EDataSetN2OFilterRoelandt.h
-vtkTAG2EDataSetN2OFilterBouwman.h
+    vtkTAG2EAbstractCalibrationParameter.h
+    vtkTAG2EFilteringWin32Header.h
+    vtkTAG2EImageDataN2OFilterFreibauer.h
+    vtkTAG2EDataSetN2OFilterFreibauer.h
+    vtkTAG2EDataSetN2OFilterStehfest.h
+    vtkTAG2EDataSetN2OFilterRoelandt.h
+    vtkTAG2EDataSetN2OFilterBouwman.h
+    vtkTAG2EFuzzyInferenceSchemeCalibration.h
+    vtkTAG2EFuzzyInferenceScheme.h
+    vtkTAG2EFuzzyInferenceSchemeModel.h
+    vtkTAG2EModelBase.h
 )
 
 # --------------------------------------------------------------------------
