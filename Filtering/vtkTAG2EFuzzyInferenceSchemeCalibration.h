@@ -56,12 +56,8 @@ public:
     virtual double GetF() {
         ;
     }
-
-    //!\brief Write the fuzzy inference scheme file to a file specified by FileName
-    bool Write(){;}
     
-protected:
-    
+protected:   
     vtkTAG2EFuzzyInferenceSchemeCalibration(){;}
     virtual ~vtkTAG2EFuzzyInferenceSchemeCalibration(){;}
 private:

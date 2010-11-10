@@ -47,11 +47,13 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent) {
         ;
     }
+    
     static vtkTAG2EFuzzyInferenceScheme *New();
     
     //!\brief Read the fuzzy inference scheme file specified by FileName
-    bool Read(){;}
-    
+    virtual bool Read();
+    //!\brief Write the XML Fuzzy Inference Scheme as file
+    virtual void Write();
     //\brief filename of the XML fuzzy inference schemen which should be read or written
     vtkSetStringMacro(FileName);
     //\brief filename of the XML fuzzy inference schemen which should be read or written
@@ -60,30 +62,26 @@ public:
     double ComputeResponse(vtkKeyValueMap *map/*Key - Value map of factor names and factor values (char*, double)*/){;}
     
     //!\brief Get the XML representation of the fuzzy dataset
-    vtkGetObjectMacro(Root, vtkXMLDataElement);
-    //!\brief Set the XML representation of the fuzzy dataset
-    vtkSetObjectMacro(Root, vtkXMLDataElement);
+    vtkGetObjectMacro(XMLRoot, vtkXMLDataElement);
     
 protected:
     
     char *FileName;
     double **DecisionMatrix;
-    vtkXMLDataElement *Root;
-    
-    void ComputeDecisionMatrix();
-    
+    vtkXMLDataElement *XMLRoot;
+        
     // Hide the calibration paranter methods from user
 
     virtual void ChangeParameter(int idx) {
-        assert("ChangeParameter must be implemented in a subclass");
+        assert("ChangeParameter must be implemented as public method in a subclass");
     }
 
     virtual int GetNumberOfParameter() {
-        assert("GetNumberOfParameter must be implemented in a subclass");
+        assert("GetNumberOfParameter must be implemented as public method in a subclass");
     }
 
     virtual double GetF() {
-        assert("GetF must be implemented in a subclass");
+        assert("GetF must be implemented as public method in a subclass");
     }
 
     vtkTAG2EFuzzyInferenceScheme();
