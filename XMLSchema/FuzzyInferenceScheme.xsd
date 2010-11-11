@@ -1,15 +1,15 @@
 <xsd:schema
   xmlns='http://www.w3.org/2000/10/XMLSchema'
-  targetNamespace='http://www.w3.org/namespace/'
-  xmlns:tag2e='http://www.w3.org/namespace/'
+  targetNamespace='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
  <xsd:element name='FuzzyInferenceScheme'>
   <xsd:complexType>
    <xsd:choice minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:Weights'/>
-    <xsd:element ref='tag2e:Responces'/>
     <xsd:element ref='tag2e:Factor'/>
+    <xsd:element ref='tag2e:Responces'/>
+    <xsd:element ref='tag2e:Weights'/>
    </xsd:choice>
    <xsd:attribute name='name' type='xsd:string' use='required'/>
    <xsd:attribute name='numberOfFaktors' type='xsd:nonNegativeInteger' use='required'/>
@@ -48,7 +48,15 @@
   </xsd:attribute>
    <xsd:attribute name='priority' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-   <xsd:attribute name='position' type='xsd:string' use='required'/>
+   <xsd:attribute name='position' use='required'>
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="left"/>
+        <xsd:enumeration value="intermediate"/>
+        <xsd:enumeration value="right"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+  </xsd:attribute>
   </xsd:complexType>
  </xsd:element>
 
