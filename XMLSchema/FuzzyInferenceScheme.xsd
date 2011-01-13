@@ -4,12 +4,22 @@
   xmlns:tag2e='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+
+ <xsd:element name='WeightedFuzzyInferenceScheme'>
+  <xsd:complexType>
+   <xsd:choice minOccurs='0' maxOccurs='unbounded'>
+    <xsd:element ref='tag2e:FuzzyInferenceScheme'/>
+    <xsd:element ref='tag2e:Weights'/>
+   </xsd:choice>
+   <xsd:attribute name='name' type='xsd:string' use='required'/>
+  </xsd:complexType>
+ </xsd:element>
+
  <xsd:element name='FuzzyInferenceScheme'>
   <xsd:complexType>
    <xsd:choice minOccurs='0' maxOccurs='unbounded'>
     <xsd:element ref='tag2e:Factor'/>
     <xsd:element ref='tag2e:Responces'/>
-    <xsd:element ref='tag2e:Weights'/>
    </xsd:choice>
    <xsd:attribute name='name' type='xsd:string' use='required'/>
    <xsd:attribute name='numberOfFaktors' type='xsd:nonNegativeInteger' use='required'/>
@@ -89,6 +99,8 @@
     <xsd:element ref='tag2e:Response'/>
    </xsd:sequence>
    <xsd:attribute name='numberOfResponces' type='xsd:nonNegativeInteger' use='required'/>
+   <xsd:attribute name='min' type='xsd:double' use='required'/>
+   <xsd:attribute name='max' type='xsd:double' use='required'/>
   </xsd:complexType>
  </xsd:element>
 
@@ -115,6 +127,8 @@
    <xsd:attribute name='name' type='xsd:string' use='required'/>
    <xsd:attribute name='active' type='xsd:boolean' use='required'/>
    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+   <xsd:attribute name='min' type='xsd:double' use='required'/>
+   <xsd:attribute name='max' type='xsd:double' use='required'/>
   </xsd:complexType>
  </xsd:element>
 </xsd:schema>
