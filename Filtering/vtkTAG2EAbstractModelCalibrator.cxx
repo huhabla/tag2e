@@ -30,31 +30,21 @@
  * GNU General Public License for more details.
  */
 
+#include <vtkObjectFactory.h>
+#include "vtkTAG2EAbstractModelCalibrator.h"
 
-#ifndef VTKTAG2EFUZZYINFERENCESCHEMEMODEL_H
-#define	VTKTAG2EFUZZYINFERENCESCHEMEMODEL_H
+vtkCxxRevisionMacro(vtkTAG2EAbstractModelCalibrator, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EAbstractModelCalibrator);
 
-#include "vtkTAG2EModelBase.h"
+vtkTAG2EAbstractModelCalibrator::vtkTAG2EAbstractModelCalibrator()
+{
+  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(1);
+  this->Model = NULL;
+  this->ModelParameter = NULL;
+}
 
-class vtkTAG2EFuzzyInferenceSchemeModel : public vtkTAG2EModelBase {
-public:
-    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceSchemeModel, vtkTAG2EModelBase);
-
-    void PrintSelf(ostream& os, vtkIndent indent) {
-        ;
-    }
-    static vtkTAG2EFuzzyInferenceSchemeModel *New();
-protected:
-
-    int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
-        ;
-    }
-    vtkTAG2EFuzzyInferenceSchemeModel();
-    virtual ~vtkTAG2EFuzzyInferenceSchemeModel();
-private:
-    vtkTAG2EFuzzyInferenceSchemeModel(const vtkTAG2EFuzzyInferenceSchemeModel& orig); // Not implemented.
-    void operator=(const vtkTAG2EFuzzyInferenceSchemeModel&); // Not implemented.
-};
-
-#endif	/* VTKTAG2EFUZZYINFERENCESCHEMEMODEL_H */
+vtkTAG2EAbstractModelCalibrator::~vtkTAG2EAbstractModelCalibrator()
+{
+}
 

@@ -31,7 +31,7 @@
  */
 
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EAbstractCalibrationParameter.h"
+#include "vtkTAG2EAbstractCalibratableModel.h"
 
-vtkCxxRevisionMacro(vtkTAG2EAbstractCalibrationParameter, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModel, "$Revision: 1.0 $");
 

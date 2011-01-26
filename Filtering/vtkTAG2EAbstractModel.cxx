@@ -31,16 +31,20 @@
  */
 
 #include <vtkObjectFactory.h>
-#include "vtkTAG2ESimulatedAnnealingFilter.h"
+#include "vtkTAG2EAbstractModel.h"
 
-vtkCxxRevisionMacro(vtkTAG2ESimulatedAnnealingFilter, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2ESimulatedAnnealingFilter);
+vtkCxxRevisionMacro(vtkTAG2EAbstractModel, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EAbstractModel);
 
-vtkTAG2ESimulatedAnnealingFilter::vtkTAG2ESimulatedAnnealingFilter()
+vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
 {
+  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(1);
+  this->ModelParameterCollection = NULL;
+  this->ModelParameter = NULL;
 }
 
-vtkTAG2ESimulatedAnnealingFilter::~vtkTAG2ESimulatedAnnealingFilter()
+vtkTAG2EAbstractModel::~vtkTAG2EAbstractModel()
 {
 }
 

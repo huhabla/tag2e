@@ -1,3 +1,4 @@
+/*=========================================================================
 /*
  *  Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
  *
@@ -30,20 +31,8 @@
  * GNU General Public License for more details.
  */
 
-#include <vtkObjectFactory.h>
-#include "vtkTAG2EModelBase.h"
+#include "vtkTAG2EModelParameterCollection.h"
+#include "vtkObjectFactory.h"
 
-vtkCxxRevisionMacro(vtkTAG2EModelBase, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EModelBase);
-
-vtkTAG2EModelBase::vtkTAG2EModelBase()
-{
-  this->SetNumberOfInputPorts(1);
-  this->SetNumberOfOutputPorts(1);
-  this->ParameterCollection = NULL;
-}
-
-vtkTAG2EModelBase::~vtkTAG2EModelBase()
-{
-}
-
+vtkCxxRevisionMacro(vtkTAG2EModelParameterCollection, "$Revision: 1.2 $");
+vtkStandardNewMacro(vtkTAG2EModelParameterCollection);

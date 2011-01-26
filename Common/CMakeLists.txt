@@ -8,14 +8,14 @@
 
 SET (Common_SRCS
 vtkTAG2EAlternativeN2OPredictionModules.cxx
-vtkTAG2ECalibrationParameterCollection.cxx
+vtkTAG2EModelParameterCollection.cxx
 vtkKeyValueMap.cxx
 )
 
 SET (Common_H
 vtkTAG2EAlternativeN2OPredictionModules.h
 vtkTAG2ECommonWin32Header.h
-vtkTAG2ECalibrationParameterCollection.h
+vtkTAG2EModelParameterCollection.h
 vtkTAG2EDefines.h
 vtkKeyValueMap.h
 )

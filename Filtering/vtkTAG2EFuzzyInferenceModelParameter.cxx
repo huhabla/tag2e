@@ -32,51 +32,22 @@
 
 
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EFuzzyInferenceScheme.h"
+#include "vtkTAG2EFuzzyInferenceModelParameter.h"
 #include <vtkXMLDataParser.h>
 
-vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceScheme, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EFuzzyInferenceScheme);
+vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModelParameter);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceScheme::vtkTAG2EFuzzyInferenceScheme()
+vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter()
 {
-  this->XMLRoot = vtkXMLDataElement::New();
-  this->XMLRoot->SetName("FuzzyInferenceScheme");
-  this->XMLRoot->SetAttribute("name", "undefined");
-  this->XMLRoot->SetIntAttribute("numberOfFaktors", 1);
+  ;
 }
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceScheme::~vtkTAG2EFuzzyInferenceScheme()
+vtkTAG2EFuzzyInferenceModelParameter::~vtkTAG2EFuzzyInferenceModelParameter()
 {
-  this->XMLRoot->Delete();
-}
-
-//----------------------------------------------------------------------------
-
-bool vtkTAG2EFuzzyInferenceScheme::Read()
-{
-  vtkXMLDataParser *reader = vtkXMLDataParser::New();
-  reader->SetFileName(this->FileName);
-  if(0 == reader->Parse()) {
-    vtkErrorMacro(<<"Unable to parse XML file " << this->FileName);
-    return false;
-  }
-  
-  this->XMLRoot->DeepCopy(reader->GetRootElement());
-
-  reader->Delete();
-  
-  this->Modified();
-  
-  return true;
-}
-
-
-void vtkTAG2EFuzzyInferenceScheme::Write()
-{
-  this->XMLRoot->PrintXML(this->FileName);
+  ;
 }

@@ -30,35 +30,36 @@
  * GNU General Public License for more details.
  */
 
-#ifndef VTKTAG2EMODELBASE_H
-#define	VTKTAG2EMODELBASE_H
+#ifndef vtkTAG2EAbstractModelVariationAnalyser_H
+#define	vtkTAG2EAbstractModelVariationAnalyser_H
 
-#include <vtkDataSetAlgorithm.h>
+#include <vtkTemporalDataSetAlgorithm.h>
 #include <assert.h>
-#include "vtkTAG2EAbstractCalibrationParameter.h"
-#include "vtkTAG2ECalibrationParameterCollection.h"
+#include "vtkTAG2EAbstractModel.h"
+#include "vtkTAG2EModelParameterCollection.h"
 
-class vtkTAG2EModelBase : public vtkDataSetAlgorithm {
+class vtkTAG2EAbstractModelVariationAnalyser : public vtkTemporalDataSetAlgorithm {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EModelBase, vtkDataSetAlgorithm);
-    static vtkTAG2EModelBase *New(); 
+    vtkTypeRevisionMacro(vtkTAG2EAbstractModelVariationAnalyser, vtkTemporalDataSetAlgorithm);
+    static vtkTAG2EAbstractModelVariationAnalyser *New(); 
     
-    vtkSetObjectMacro(ParameterCollection, vtkTAG2ECalibrationParameterCollection);
-    vtkGetObjectMacro(ParameterCollection, vtkTAG2ECalibrationParameterCollection);
+    //!\brief Set the model which should be analyzed
+    vtkSetObjectMacro(Model, vtkTAG2EAbstractModel);
+    vtkGetObjectMacro(Model, vtkTAG2EAbstractModel);
 
 protected:
-    vtkTAG2EModelBase();
-    ~vtkTAG2EModelBase();
+    vtkTAG2EAbstractModelVariationAnalyser();
+    ~vtkTAG2EAbstractModelVariationAnalyser();
 
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
         assert("RequestData must be implemented in a subclass");
     }
 
-    vtkTAG2ECalibrationParameterCollection *ParameterCollection;
+    vtkTAG2EAbstractModel *Model;
 
 private:
-    vtkTAG2EModelBase(const vtkTAG2EModelBase& orig); // Not implemented.
-    void operator=(const vtkTAG2EModelBase&); // Not implemented.
+    vtkTAG2EAbstractModelVariationAnalyser(const vtkTAG2EAbstractModelVariationAnalyser& orig); // Not implemented.
+    void operator=(const vtkTAG2EAbstractModelVariationAnalyser&); // Not implemented.
 };
 
-#endif	/* VTKTAG2EMODELBASE_H */
+#endif	/* vtkTAG2EAbstractModelVariationAnalyser_H */
