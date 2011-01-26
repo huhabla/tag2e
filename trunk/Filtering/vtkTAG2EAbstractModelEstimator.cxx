@@ -30,25 +30,21 @@
  * GNU General Public License for more details.
  */
 
-#ifndef VTKTAG2ESIMULATEDANNEALINGFILTER_H
-#define	VTKTAG2ESIMULATEDANNEALINGFILTER_H
+#include <vtkObjectFactory.h>
+#include "vtkTAG2EAbstractModelEstimator.h"
 
-#include <vtkDataSetAlgorithm.h>
-#include <assert.h>
-#include "vtkTAG2EAbstractCalibrationParameter.h"
-#include "vtkTAG2ECalibrationParameterCollection.h"
+vtkCxxRevisionMacro(vtkTAG2EAbstractModelEstimator, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EAbstractModelEstimator);
 
-class vtkTAG2ESimulatedAnnealingFilter : public vtkDataSetAlgorithm {
-public:
-    vtkTypeRevisionMacro(vtkTAG2ESimulatedAnnealingFilter, vtkDataSetAlgorithm);
-    static vtkTAG2ESimulatedAnnealingFilter *New(); 
-protected:
-    vtkTAG2ESimulatedAnnealingFilter();
-    virtual ~vtkTAG2ESimulatedAnnealingFilter();
-private:
-    vtkTAG2ESimulatedAnnealingFilter(const vtkTAG2ESimulatedAnnealingFilter& orig);
+vtkTAG2EAbstractModelEstimator::vtkTAG2EAbstractModelEstimator()
+{
+  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(1);
+  this->Model = NULL;
+  this->ModelParameter = NULL;
+}
 
-};
-
-#endif	/* VTKTAG2ESIMULATEDANNEALINGFILTER_H */
+vtkTAG2EAbstractModelEstimator::~vtkTAG2EAbstractModelEstimator()
+{
+}
 

@@ -31,16 +31,19 @@
  */
 
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EFuzzyInferenceSchemeModel.h"
+#include "vtkTAG2EAbstractModelVariationAnalyser.h"
 
-vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceSchemeModel, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EFuzzyInferenceSchemeModel);
+vtkCxxRevisionMacro(vtkTAG2EAbstractModelVariationAnalyser, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EAbstractModelVariationAnalyser);
 
-vtkTAG2EFuzzyInferenceSchemeModel::vtkTAG2EFuzzyInferenceSchemeModel()
+vtkTAG2EAbstractModelVariationAnalyser::vtkTAG2EAbstractModelVariationAnalyser()
 {
+  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(1);
+  this->Model = NULL;
 }
 
-vtkTAG2EFuzzyInferenceSchemeModel::~vtkTAG2EFuzzyInferenceSchemeModel()
+vtkTAG2EAbstractModelVariationAnalyser::~vtkTAG2EAbstractModelVariationAnalyser()
 {
 }
 

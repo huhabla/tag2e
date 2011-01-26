@@ -31,8 +31,7 @@
  */
 
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EFuzzyInferenceSchemeCalibration.h"
+#include "vtkTAG2EAbstractCalibratableModelParameter.h"
 
-vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceSchemeCalibration, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EFuzzyInferenceSchemeCalibration);
+vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, "$Revision: 1.0 $");
 

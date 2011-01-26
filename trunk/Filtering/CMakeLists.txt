@@ -7,30 +7,36 @@
 #
 
 SET (Filtering_SRCS
-    vtkTAG2EAbstractCalibrationParameter.cxx
     vtkTAG2EImageDataN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterStehfest.cxx
     vtkTAG2EDataSetN2OFilterRoelandt.cxx
     vtkTAG2EDataSetN2OFilterBouwman.cxx
-    vtkTAG2EFuzzyInferenceSchemeCalibration.cxx
-    vtkTAG2EFuzzyInferenceScheme.cxx
-    vtkTAG2EFuzzyInferenceSchemeModel.cxx
-    vtkTAG2EModelBase.cxx
+    vtkTAG2EAbstractModel.cxx
+    vtkTAG2EAbstractCalibratableModel.cxx
+    vtkTAG2EAbstractModelParameter.cxx
+    vtkTAG2EAbstractModelEstimator.cxx
+    vtkTAG2EAbstractModelCalibrator.cxx
+    vtkTAG2EAbstractModelVariationAnalyser.cxx
+    vtkTAG2EAbstractCalibratableModelParameter.cxx
+    vtkTAG2EFuzzyInferenceModelParameter.cxx
 )
 
 SET (Filtering_H
-    vtkTAG2EAbstractCalibrationParameter.h
     vtkTAG2EFilteringWin32Header.h
     vtkTAG2EImageDataN2OFilterFreibauer.h
     vtkTAG2EDataSetN2OFilterFreibauer.h
     vtkTAG2EDataSetN2OFilterStehfest.h
     vtkTAG2EDataSetN2OFilterRoelandt.h
     vtkTAG2EDataSetN2OFilterBouwman.h
-    vtkTAG2EFuzzyInferenceSchemeCalibration.h
-    vtkTAG2EFuzzyInferenceScheme.h
-    vtkTAG2EFuzzyInferenceSchemeModel.h
-    vtkTAG2EModelBase.h
+    vtkTAG2EAbstractModel.h
+    vtkTAG2EAbstractCalibratableModel.h
+    vtkTAG2EAbstractModelParameter.h
+    vtkTAG2EAbstractModelEstimator.h
+    vtkTAG2EAbstractModelCalibrator.h
+    vtkTAG2EAbstractModelVariationAnalyser.h
+    vtkTAG2EAbstractCalibratableModelParameter.h
+    vtkTAG2EFuzzyInferenceModelParameter.h
 )
 
 # --------------------------------------------------------------------------

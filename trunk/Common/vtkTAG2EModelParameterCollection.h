@@ -30,37 +30,37 @@
  * GNU General Public License for more details.
  */
 
-#ifndef __vtkTAG2ECalibrationParameterCollection_h
-#define __vtkTAG2ECalibrationParameterCollection_h
+#ifndef __vtkTAG2EModelParameterCollection_h
+#define __vtkTAG2EModelParameterCollection_h
 
 #include <vtkCollection.h>
-#include "vtkTAG2EAbstractCalibrationParameter.h" // Needed for inline methods
+#include "vtkTAG2EAbstractModelParameter.h" // Needed for inline methods
 #include "vtkTAG2ECommonWin32Header.h"
 
-class VTK_TAG2E_COMMON_EXPORT vtkTAG2ECalibrationParameterCollection : public vtkCollection {
+class VTK_TAG2E_COMMON_EXPORT vtkTAG2EModelParameterCollection : public vtkCollection {
 public:
-    static vtkTAG2ECalibrationParameterCollection *New();
-    vtkTypeRevisionMacro(vtkTAG2ECalibrationParameterCollection, vtkCollection);
+    static vtkTAG2EModelParameterCollection *New();
+    vtkTypeRevisionMacro(vtkTAG2EModelParameterCollection, vtkCollection);
 
     // Description:
     // Add a dataarray to the list.
 
-    void AddItem(vtkTAG2EAbstractCalibrationParameter *ds) {
+    void AddItem(vtkTAG2EAbstractModelParameter *ds) {
         this->vtkCollection::AddItem(ds);
     }
 
     // Description:
     // Get the next object in the list.
 
-    vtkTAG2EAbstractCalibrationParameter *GetNextItem() {
-        return static_cast<vtkTAG2EAbstractCalibrationParameter *> (this->GetNextItemAsObject());
+    vtkTAG2EAbstractModelParameter *GetNextItem() {
+        return static_cast<vtkTAG2EAbstractModelParameter *> (this->GetNextItemAsObject());
     };
 
     // Description:
     // Get the ith object in the list.
 
-    vtkTAG2EAbstractCalibrationParameter *GetItem(int i) {
-        return static_cast<vtkTAG2EAbstractCalibrationParameter *> (this->GetItemAsObject(i));
+    vtkTAG2EAbstractModelParameter *GetItem(int i) {
+        return static_cast<vtkTAG2EAbstractModelParameter *> (this->GetItemAsObject(i));
     };
 
     //BTX
@@ -68,17 +68,17 @@ public:
     // Reentrant safe way to get an object in a collection. Just pass the
     // same cookie back and forth. 
 
-    vtkTAG2EAbstractCalibrationParameter *GetNextDataArray(vtkCollectionSimpleIterator &cookie) {
-        return static_cast<vtkTAG2EAbstractCalibrationParameter *> (this->GetNextItemAsObject(cookie));
+    vtkTAG2EAbstractModelParameter *GetNextDataArray(vtkCollectionSimpleIterator &cookie) {
+        return static_cast<vtkTAG2EAbstractModelParameter *> (this->GetNextItemAsObject(cookie));
     };
     //ETX
 
 protected:
 
-    vtkTAG2ECalibrationParameterCollection() {
+    vtkTAG2EModelParameterCollection() {
     };
 
-    ~vtkTAG2ECalibrationParameterCollection() {
+    ~vtkTAG2EModelParameterCollection() {
     };
 
 
@@ -90,8 +90,8 @@ private:
     };
 
 private:
-    vtkTAG2ECalibrationParameterCollection(const vtkTAG2ECalibrationParameterCollection&); // Not implemented.
-    void operator=(const vtkTAG2ECalibrationParameterCollection&); // Not implemented.
+    vtkTAG2EModelParameterCollection(const vtkTAG2EModelParameterCollection&); // Not implemented.
+    void operator=(const vtkTAG2EModelParameterCollection&); // Not implemented.
 };
 
 
