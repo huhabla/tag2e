@@ -66,7 +66,7 @@ public:
 protected:        
 
     vtkTAG2EFuzzyInferenceModelParameter();
-    virtual ~vtkTAG2EFuzzyInferenceModelParameter();
+    ~vtkTAG2EFuzzyInferenceModelParameter();
 private:
     vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);
     void operator=(const vtkTAG2EFuzzyInferenceModelParameter&); // Not implemented.

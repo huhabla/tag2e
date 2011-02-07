@@ -33,23 +33,19 @@
 #include the VTK and vtkGRASSBridge Python libraries
 import unittest
 
-from libvtkFilteringPython import *
-from libvtkIOPython import *
-from libvtkImagingPython import *
-from libvtkCommonPython import *
+from vtk import *
+
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 
 class vtkTAG2EDFuzzyTest(unittest.TestCase):
-    def testSmoke(self):
+    def testFuzzyXML(self):
         
-        model = vtkTAG2EFuzzyInferenceSchemeModel()
-        fisc = vtkTAG2EFuzzyInferenceSchemeCalibration()
-        coll = vtkTAG2ECalibrationParameterCollection()
-        coll.AddItem(fisc)
-        model.SetParameterCollection(coll)
+        fisc = vtkTAG2EFuzzyInferenceModelParameter()
         
-        root = vtkXMLDataElement()
+        root  = vtk.vtkXMLDataElement()
+        
+        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fss2 = vtkXMLDataElement()
         fs1 = vtkXMLDataElement()
@@ -62,6 +58,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         rval1 = vtkXMLDataElement()
         rval2 = vtkXMLDataElement()
         rval3 = vtkXMLDataElement()
+        
         responseWeights = vtkXMLDataElement()
         responseWeight1 = vtkXMLDataElement()
         responseWeight2 = vtkXMLDataElement()
@@ -114,6 +111,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss1.SetIntAttribute("numberOfFuzzySets", 3)
         fss1.SetDoubleAttribute("min", 0.0)
         fss1.SetDoubleAttribute("max", 10.0)
+        fss1.SetDoubleAttribute("standardDeviation", 1.0)
         fss1.AddNestedElement(fs1)
         fss1.AddNestedElement(fs2)
         fss1.AddNestedElement(fs3)
@@ -125,6 +123,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss2.SetIntAttribute("numberOfFuzzySets", 3)
         fss2.SetDoubleAttribute("min", 1.0)
         fss2.SetDoubleAttribute("max", 9.0)
+        fss2.SetDoubleAttribute("standardDeviation", 1.0)
         fss2.AddNestedElement(fs1)
         fss2.AddNestedElement(fs2)
         fss2.AddNestedElement(fs3)
@@ -145,11 +144,15 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         rval3.SetName("Response")
         rval3.SetIntAttribute("id", 3)
         rval3.SetIntAttribute("const", 0)
+        rval3.SetIntAttribute("const", 0)
         rval3.SetCharacterData("40.00", 5)
         rval3.SetCharacterDataWidth(0)
         
         resp.SetName("Responces")
         resp.SetIntAttribute("numberOfResponces", 3)
+        resp.SetDoubleAttribute("min", 0.0)
+        resp.SetDoubleAttribute("max", 1.0)
+        resp.SetDoubleAttribute("standardDeviation", 1.0)
         resp.AddNestedElement(rval1)
         resp.AddNestedElement(rval2)
         resp.AddNestedElement(rval3)
@@ -160,6 +163,9 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         responseWeight1.SetAttribute("name", "grass")
         responseWeight1.SetIntAttribute("active", 1)
         responseWeight1.SetIntAttribute("const", 0)
+        responseWeight1.SetDoubleAttribute("min", 0)
+        responseWeight1.SetDoubleAttribute("max", 10)
+        responseWeight1.SetDoubleAttribute("standardDeviation", 1.0)
         responseWeight1.SetCharacterData("0.150", 5)
         responseWeight1.SetCharacterDataWidth(0)
         
@@ -168,6 +174,9 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         responseWeight2.SetAttribute("name", "vegt")
         responseWeight2.SetIntAttribute("active", 1)
         responseWeight2.SetIntAttribute("const", 0)
+        responseWeight2.SetDoubleAttribute("min", 0)
+        responseWeight2.SetDoubleAttribute("max", 10)
+        responseWeight2.SetDoubleAttribute("standardDeviation", 1.0)
         responseWeight2.SetCharacterData("0.150", 5)
         responseWeight2.SetCharacterDataWidth(0)
         
@@ -178,17 +187,21 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         responseWeights.AddNestedElement(responseWeight2)
         responseWeights.SetCharacterDataWidth(0)
         
-        root.SetName("FuzzyInferenceScheme")
-        root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme")
+        fuzzyRoot.SetName("FuzzyInferenceScheme")
+        fuzzyRoot.SetAttribute("name", "N2OEmission_V20101111")
+        fuzzyRoot.SetIntAttribute("numberOfFaktors", 2)
+        fuzzyRoot.AddNestedElement(fss1)
+        fuzzyRoot.AddNestedElement(fss2)
+        fuzzyRoot.AddNestedElement(resp)
+        fuzzyRoot.SetCharacterDataWidth(0)
+        
+        root.SetName("WeightedFuzzyInferenceScheme")
+        root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
-        root.SetAttribute("name", "N2OEmission_V20101111")
-        root.SetIntAttribute("numberOfFaktors", 2)
-        root.AddNestedElement(fss1)
-        root.AddNestedElement(fss2)
-        root.AddNestedElement(resp)
+        root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
+        root.AddNestedElement(fuzzyRoot)
         root.AddNestedElement(responseWeights)
-        root.SetCharacterDataWidth(0)
+        root.SetCharacterDataWidth(0)  
         
         fisc.SetFileName("FuzzyInferenceScheme1.xml")
         fisc.GetXMLRoot().DeepCopy(root)

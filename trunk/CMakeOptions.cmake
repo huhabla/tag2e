@@ -4,6 +4,7 @@
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
 # We need vtkGRASSBridge, so no option is defined
 INCLUDE (CMake/FindvtkGRASSBridge.cmake)
+INCLUDE (${CMAKE_ROOT}/Modules/FindPythonLibs.cmake)
 
 IF (USE_VTK_FILE)
   INCLUDE (${USE_VTK_FILE})

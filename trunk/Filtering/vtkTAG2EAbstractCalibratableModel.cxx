@@ -35,3 +35,13 @@
 
 vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModel, "$Revision: 1.0 $");
 
+
+vtkTAG2EAbstractCalibratableModel::vtkTAG2EAbstractCalibratableModel()
+{
+  ;
+}
+
+vtkTAG2EAbstractCalibratableModel::~vtkTAG2EAbstractCalibratableModel()
+{
+  ;
+}

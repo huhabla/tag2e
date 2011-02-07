@@ -48,7 +48,7 @@
 class vtkTAG2EAbstractCalibratableModelParameter : public vtkTAG2EAbstractModelParameter {
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
-
+    
     //!\brief Abstract Method to change a parameter of index idx with value
     virtual void ChangeParameter(int idx, double value) = 0;
     //!\brief Abstract Method to return the number of parameter which can be calibrated
@@ -62,13 +62,9 @@ public:
 
 protected:
 
-    vtkTAG2EAbstractCalibratableModelParameter() {
-        ;
-    }
-
-    virtual ~vtkTAG2EAbstractCalibratableModelParameter() {
-        ;
-    }
+    vtkTAG2EAbstractCalibratableModelParameter();
+    ~vtkTAG2EAbstractCalibratableModelParameter();
+    
 private:
     vtkTAG2EAbstractCalibratableModelParameter(const vtkTAG2EAbstractCalibratableModelParameter& orig);
     void operator=(const vtkTAG2EAbstractCalibratableModelParameter&); // Not implemented. 
