@@ -43,6 +43,7 @@ vtkStandardNewMacro(vtkTAG2EAbstractModelParameter);
 vtkTAG2EAbstractModelParameter::vtkTAG2EAbstractModelParameter()
 {
   this->XMLRoot = vtkXMLDataElement::New();
+  this->FileName = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -50,6 +51,8 @@ vtkTAG2EAbstractModelParameter::vtkTAG2EAbstractModelParameter()
 vtkTAG2EAbstractModelParameter::~vtkTAG2EAbstractModelParameter()
 {
   this->XMLRoot->Delete();
+  if(this->FileName != NULL)
+    delete [] this->FileName;
 }
 
 //----------------------------------------------------------------------------

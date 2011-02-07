@@ -1,0 +1,37 @@
+
+<xsd:schema
+  xmlns='http://www.w3.org/2000/10/XMLSchema'
+  targetNamespace='http://tag2e.googlecode.com/files/LinearRegressionScheme'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/LinearRegressionScheme'
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<!-- This is the definition of a linear regression of type y = b_0 + b_1*x_1 + b_2*x_2, ..., b_n*x_n.
+     b_0 is the intercept and b_1 .. b_n are the coefficients-->
+
+    <xsd:element name='LinearRegressionScheme'>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref='tag2e:Intercept'  minOccurs='0' maxOccurs='1'/>
+                <xsd:element ref='tag2e:Coefficient' minOccurs='1' maxOccurs='unbounded'/>
+            </xsd:sequence>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='numberOfCoefficients' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='hasIntercept' type='xsd:boolean' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+      
+    <xsd:element name='Intercept' type="xsd:double"/>
+    
+    <!-- The name attribute of a coefficient is the name of the vtkDataArray in the data set.-->
+        
+    <xsd:element name='Coefficient'>
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:double">
+                    <xsd:attribute name="name" type='xsd:string'  use='required'/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+    
+</xsd:schema>

@@ -22,6 +22,22 @@ SET (Filtering_SRCS
     vtkTAG2EFuzzyInferenceModelParameter.cxx
 )
 
+SET (Filtering_Python_SRCS
+    vtkTAG2EImageDataN2OFilterFreibauer.cxx
+    vtkTAG2EDataSetN2OFilterFreibauer.cxx
+    vtkTAG2EDataSetN2OFilterStehfest.cxx
+    vtkTAG2EDataSetN2OFilterRoelandt.cxx
+    vtkTAG2EDataSetN2OFilterBouwman.cxx
+    vtkTAG2EAbstractModel.cxx
+    vtkTAG2EAbstractModelParameter.cxx
+    vtkTAG2EAbstractCalibratableModel.cxx
+    vtkTAG2EAbstractCalibratableModelParameter.cxx
+    vtkTAG2EAbstractModelEstimator.cxx
+    vtkTAG2EAbstractModelCalibrator.cxx
+    vtkTAG2EAbstractModelVariationAnalyser.cxx
+    vtkTAG2EFuzzyInferenceModelParameter.cxx
+)
+
 SET (Filtering_H
     vtkTAG2EFilteringWin32Header.h
     vtkTAG2EImageDataN2OFilterFreibauer.h

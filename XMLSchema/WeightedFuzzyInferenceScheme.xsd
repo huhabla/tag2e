@@ -1,9 +1,8 @@
 <xsd:schema
   xmlns='http://www.w3.org/2000/10/XMLSchema'
-  targetNamespace='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
-  xmlns:tag2e='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
+  targetNamespace='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
 
  <xsd:element name='WeightedFuzzyInferenceScheme'>
   <xsd:complexType>
@@ -36,6 +35,7 @@
    <xsd:attribute name='numberOfFuzzySets' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='min' type='xsd:double' use='required'/>
    <xsd:attribute name='max' type='xsd:double' use='required'/>
+   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
   </xsd:complexType>
  </xsd:element>
 
@@ -101,6 +101,7 @@
    <xsd:attribute name='numberOfResponces' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='min' type='xsd:double' use='required'/>
    <xsd:attribute name='max' type='xsd:double' use='required'/>
+   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
   </xsd:complexType>
  </xsd:element>
 
@@ -129,6 +130,7 @@
    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
    <xsd:attribute name='min' type='xsd:double' use='required'/>
    <xsd:attribute name='max' type='xsd:double' use='required'/>
+   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
   </xsd:complexType>
  </xsd:element>
 </xsd:schema>

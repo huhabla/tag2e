@@ -46,5 +46,6 @@ vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
 
 vtkTAG2EAbstractModel::~vtkTAG2EAbstractModel()
 {
+  ;
 }
 
