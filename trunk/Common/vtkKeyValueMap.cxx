@@ -73,4 +73,16 @@ const char* vtkKeyValueMap::GetKey(int idx) {
     count++;
   }
 }
-    
+   //----------------------------------------------------------------------------
+void vtkKeyValueMap::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+  std::map<const char*, double>::iterator it;
+  
+  for(it = this->KeyVals.begin(); it != this->KeyVals.end(); it++)
+  {
+
+      os << indent << "key: " << (*it).first << "  value: " << (*it).second << endl;
+
+  }
+}

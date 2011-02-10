@@ -30,7 +30,7 @@
    <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
     <xsd:element ref='tag2e:FuzzySet'/>
    </xsd:sequence>
-   <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
+   <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='name' type='xsd:string' use='required'/>
    <xsd:attribute name='numberOfFuzzySets' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='min' type='xsd:double' use='required'/>
@@ -124,7 +124,7 @@
 
  <xsd:element name='Weight'>
   <xsd:complexType mixed='true'>
-   <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
+   <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
    <xsd:attribute name='name' type='xsd:string' use='required'/>
    <xsd:attribute name='active' type='xsd:boolean' use='required'/>
    <xsd:attribute name='const' type='xsd:boolean' use='required'/>

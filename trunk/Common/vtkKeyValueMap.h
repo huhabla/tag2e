@@ -40,9 +40,8 @@ class VTK_TAG2E_COMMON_EXPORT vtkKeyValueMap : public vtkObject {
 public:
     vtkTypeRevisionMacro(vtkKeyValueMap, vtkObject);
 
-    void PrintSelf(ostream& os, vtkIndent indent) {
-        ;
-    }
+    void PrintSelf(ostream& os, vtkIndent indent) ;
+    
     static vtkKeyValueMap *New();
 
     void Add(const char* key, double value) {

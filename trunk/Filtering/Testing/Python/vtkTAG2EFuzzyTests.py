@@ -106,7 +106,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs3.SetCharacterDataWidth(0)
         
         fss1.SetName("Factor")
-        fss1.SetIntAttribute("id", 1)
+        fss1.SetIntAttribute("portId", 0)
         fss1.SetAttribute("name", "pH")
         fss1.SetIntAttribute("numberOfFuzzySets", 3)
         fss1.SetDoubleAttribute("min", 0.0)
@@ -118,7 +118,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss1.SetCharacterDataWidth(0)
         
         fss2.SetName("Factor")
-        fss2.SetIntAttribute("id", 2)
+        fss2.SetIntAttribute("portId", 1)
         fss2.SetAttribute("name", "nmin")
         fss2.SetIntAttribute("numberOfFuzzySets", 3)
         fss2.SetDoubleAttribute("min", 1.0)
@@ -159,7 +159,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         resp.SetCharacterDataWidth(0)
 
         responseWeight1.SetName("Weight")
-        responseWeight1.SetIntAttribute("id", 1)
+        responseWeight1.SetIntAttribute("portId", 0)
         responseWeight1.SetAttribute("name", "grass")
         responseWeight1.SetIntAttribute("active", 1)
         responseWeight1.SetIntAttribute("const", 0)
@@ -170,7 +170,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         responseWeight1.SetCharacterDataWidth(0)
         
         responseWeight2.SetName("Weight")
-        responseWeight2.SetIntAttribute("id", 2)
+        responseWeight2.SetIntAttribute("portId", 1)
         responseWeight2.SetAttribute("name", "vegt")
         responseWeight2.SetIntAttribute("active", 1)
         responseWeight2.SetIntAttribute("const", 0)
