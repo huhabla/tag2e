@@ -70,15 +70,49 @@ vtkTAG2ELinearRegressionModel::~vtkTAG2ELinearRegressionModel()
 
 //----------------------------------------------------------------------------
 int vtkTAG2ELinearRegressionModel::FillInputPortInformation(
-  int port,
+  int vtkNotUsed(port),
   vtkInformation* info)
 {
-  // port 0 must be temporal data, but port 1 can be any dataset
-  if (port==0) {
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkTemporalDataSet");
-  }
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkTemporalDataSet");
   return 1;
 }
+
+
+//----------------------------------------------------------------------------
+int vtkTAG2ELinearRegressionModel::RequestUpdateExtent(
+  vtkInformation *vtkNotUsed(request),
+  vtkInformationVector **inputVector,
+  vtkInformationVector *outputVector)
+{
+  int numInputs = this->GetNumberOfInputPorts();
+  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  
+  //cerr << "Setting UPDATE_TIME_STEPS for " << numInputs << " inputs" << endl;
+
+  // Remove any existing output UPDATE_TIME_STEPS, beacuse we will set them from 
+  // the first input
+  if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+    outInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
+
+  if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
+    {
+      int i;
+      double *timeSteps = inputVector[0]->GetInformationObject(0)->Get(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+      int numTimeSteps = inputVector[0]->GetInformationObject(0)->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+      
+      // We request for each input the same number of update timesteps as for the first input
+      for(i = 1; i < numInputs; i++)
+      {
+        //cerr << "Setting from first input numTimeSteps: "<< numTimeSteps << " for input " << i << endl;
+        inputVector[i]->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), timeSteps, numTimeSteps);
+      }
+      
+     outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), timeSteps, numTimeSteps);
+    }
+  
+  return 1;
+}
+
 
 //----------------------------------------------------------------------------
 
@@ -95,68 +129,102 @@ int vtkTAG2ELinearRegressionModel::RequestData(
 
   // Check for model parameter
   if (this->ModelParameter == NULL) {
-    vtkErrorMacro("Model parameter not set.");
+    vtkErrorMacro("Model parameter not set or invalid.");
     return -1;
   }
 
-  if (true != this->BuildCoefficientPowerMaps())
-    return -1;
-
-  // get the input and ouptut
-  vtkTemporalDataSet *input = vtkTemporalDataSet::SafeDownCast(
+  // get the first input and ouptut
+  vtkTemporalDataSet *firstInput = vtkTemporalDataSet::SafeDownCast(
     inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
     outInfo->Get(vtkDataObject::DATA_OBJECT()));
   
-  output->SetNumberOfTimeSteps(input->GetNumberOfTimeSteps());
+  output->SetNumberOfTimeSteps(firstInput->GetNumberOfTimeSteps());
   
-  // Iterate over each timestep 
-  for (timeStep = 0; timeStep < input->GetNumberOfTimeSteps(); timeStep++) {
+  // Iterate over each timestep of the first input
+  // Timesteps must be equal in the inputs.
+  for (timeStep = 0; timeStep < firstInput->GetNumberOfTimeSteps(); timeStep++) {
     int id;
     double power = 0.0;
     double coef = 0.0;
     double r = 0.0;
     int i = 0;
-
-    // Extract the datasets
-    vtkDataSet *in = vtkDataSet::SafeDownCast(input->GetTimeStep(timeStep));
-    vtkDataSet *out = in->NewInstance();
-    out->CopyStructure(in);
-
-    vtkPointData *inputData = in->GetPointData();
-
+    int port;
+    
+    // The first input is used to create the ouput
+    // It is assumed that each input has the same number of points and the same topology
+    // The number of point data arrays can/should differ
+    vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
+    vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
+    outputDataSet->CopyStructure(firstInputDataSet);
+    
+    // Result for the current time step
     vtkDataArray *result = vtkDoubleArray::New();
     result->SetNumberOfComponents(0);
-    result->SetName("result");
-    result->SetNumberOfTuples(in->GetNumberOfPoints());
+    result->SetName(this->ResultArrayName);
+    result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
     result->FillComponent(0, this->Intercept);
 
-    // For each array 
-    for (i = 0; i < this->Coefficents->GetNumberOfTuples(); i++) {
-
+     
+    // For input port and defeined array name
+    for (i = 0; i < this->InputPorts->GetNumberOfTuples(); i++) {
+      // Gather all needed information for the current input port
+      port = this->InputPorts->GetValue(i);
       const char *arrayName = this->ArrayNames->GetValue(i);
       coef = this->Coefficents->GetValue(i);
       power = this->Power->GetValue(i);
-
-      // Check if the array exists
+      
+      cerr << "Processing input port " << port << " at time step " << timeStep << endl;
+      
+      // Get the correct input port for the input
+      vtkInformation *activeInputInfo = inputVector[port]->GetInformationObject(0);
+      
+      // Check if the input port was filled with data
+      if(activeInputInfo == NULL) {
+        vtkErrorMacro(<<"No temporal dataset available at input port " << port);
+        return -1;
+      }
+      
+      vtkTemporalDataSet *activeInput = vtkTemporalDataSet::SafeDownCast(activeInputInfo->Get(vtkDataObject::DATA_OBJECT()));
+      vtkDataSet *activeInputDataSet = vtkDataSet::SafeDownCast(activeInput->GetTimeStep(timeStep));
+     
+      // Check if a dataset is present at actual time step
+      if(activeInputDataSet == NULL) {
+        vtkErrorMacro(<<"No dataset available at input port " << port << " time step " << timeStep);
+        return -1;
+      }
+      
+      // Check if the number of points and cells in the active input are identical with the first input
+      if (firstInputDataSet->GetNumberOfPoints() != activeInputDataSet->GetNumberOfPoints() ||
+          firstInputDataSet->GetNumberOfCells() != activeInputDataSet->GetNumberOfCells()) {
+        vtkErrorMacro(<< "The number of points or cells differ between the inputs.");
+        return -1;
+      }
+      
+      //TODO: Support point and cell data 
+      // Get the point data
+      vtkPointData *inputData = activeInputDataSet->GetPointData();
+      
+      // Check if the array exists in the current input
       if (!inputData->HasArray(arrayName)) {
-        vtkErrorMacro("Array " << arrayName << " is missing in input. Wrong reference in the model parameter");
+        vtkErrorMacro(<< "Array " << arrayName << " is missing in input. Wrong reference in the model parameter");
         return -1;
       }
 
       vtkDataArray *array = inputData->GetArray(arrayName);
 
       // For each point in the point data array compute the linear regression
-      for (id = 0; id < in->GetNumberOfPoints(); id++) {
+      for (id = 0; id < activeInputDataSet->GetNumberOfPoints(); id++) {
         r = result->GetTuple1(id) + coef * pow(array->GetTuple1(id), power);
         result->SetTuple1(id, r);
       }
     }
 
-    out->GetPointData()->SetScalars(result);
-    output->SetTimeStep(timeStep, out);
-    out->Delete();
+    //TODO: Support point and cell data 
+    outputDataSet->GetPointData()->SetScalars(result);
+    output->SetTimeStep(timeStep, outputDataSet);
+    outputDataSet->Delete();
     result->Delete();
   }
   
@@ -165,10 +233,25 @@ int vtkTAG2ELinearRegressionModel::RequestData(
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2ELinearRegressionModel::BuildCoefficientPowerMaps()
+void vtkTAG2ELinearRegressionModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
+{
+  this->Superclass::SetModelParameter(modelParameter);
+  
+  if (true != this->BuildLRValueArrays())
+    this->Superclass::SetModelParameter(NULL);
+  
+  double *range = this->InputPorts->GetRange();
+  // Ports from 0 ... n must be used  
+  this->SetNumberOfInputPorts((int)(range[1] + 1));
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2ELinearRegressionModel::BuildLRValueArrays()
 {
   int i;
 
+  this->InputPorts->Initialize();
   this->Coefficents->Initialize();
   this->Power->Initialize();
   this->ArrayNames->Initialize();
@@ -198,28 +281,43 @@ bool vtkTAG2ELinearRegressionModel::BuildCoefficientPowerMaps()
       double power = 0;
       int inputPort = 0;
 
-      if (element->GetAttribute("name") != NULL)
+      if (element->GetAttribute("name") != NULL) {
         arrayName = element->GetAttribute("name");
+      } else {
+        vtkErrorMacro(<<"Attribute \"name\" is missing in Coefficient element: " << i);
+        return false;
+      }
       
-      if (element->GetAttribute("power") != NULL)
+      if (element->GetAttribute("power") != NULL) {
         power = atof(element->GetAttribute("power"));
+      } else {
+        vtkErrorMacro(<<"Attribute \"power\" is missing in Coefficient element: " << i);
+        return false;
+      }
       
-      if (element->GetAttribute("portId") != NULL)
+      if (element->GetAttribute("portId") != NULL) {
         inputPort = atoi(element->GetAttribute("portId"));
+      } else {
+        vtkErrorMacro(<<"Attribute \"portId\" is missing in Coefficient element: " << i);
+        return false;
+      }
       
-      if (element->GetCharacterData() != NULL)
+      if (element->GetCharacterData() != NULL) {
         coefficient = atof(element->GetCharacterData());
-
+      } else {
+        vtkErrorMacro(<<"Character data is missing in Coefficient element: " << i);
+        return false;
+      }
+      
       this->InputPorts->InsertNextValue(inputPort);
       this->Coefficents->InsertNextValue(coefficient);
       this->Power->InsertNextValue(power);
       this->ArrayNames->InsertNextValue(arrayName);
     }
   }
-
+  
   return true;
 }
-
 
 //----------------------------------------------------------------------------
 
@@ -227,6 +325,8 @@ void vtkTAG2ELinearRegressionModel::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "Intercept: " << this->Intercept << endl;
+  os << indent << "InputPorts:" << endl;
+  this->InputPorts->PrintSelf(os, indent.GetNextIndent());
   os << indent << "Coefficient:" << endl;
   this->Coefficents->PrintSelf(os, indent.GetNextIndent());
   os << indent << "Power:" << endl;

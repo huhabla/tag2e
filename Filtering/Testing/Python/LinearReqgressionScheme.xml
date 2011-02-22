@@ -8,13 +8,22 @@
         Purpose of the document follows.
 -->
 
-<ns0:LinearRegressionScheme  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:ns0='http://tag2e.googlecode.com/files/LinearRegressionScheme'
-   xsi:schemaLocation='http://tag2e.googlecode.com/files/LinearRegressionScheme LinearReqgressionScheme.xsd' 
-   name="Freibauer" numberOfCoefficients="3" hasIntercept="true">
-    <ns0:Intercept>0.20</ns0:Intercept>
-    <ns0:Coefficient name="pH">1.456</ns0:Coefficient>
-    <ns0:Coefficient name="sand">0.34</ns0:Coefficient>
-    <ns0:Coefficient name="nrate">-0.1</ns0:Coefficient>
+<LinearRegressionScheme xmlns="http://tag2e.googlecode.com/files/LinearRegressionScheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tag2e.googlecode.com/files/LinearRegressionScheme http://tag2e.googlecode.com/files/LinearRegressionScheme.xsd" name="Test1" numberOfCoefficients="3" hasIntercept="1">
+  <Intercept>
+    0.5
+  </Intercept>
+  <Coefficient portId="0" name="data1" power="1">
+    9.0
+  </Coefficient>
+  <Coefficient portId="0" name="data1" power="2">
+    0.5
+  </Coefficient>
+  <Coefficient portId="1" name="data2" power="2">
+    2.0
+  </Coefficient>
+  <Coefficient portId="2" name="data3" power="1">
+    45.0
+  </Coefficient>
+  
+</LinearRegressionScheme>
 
-</ns0:LinearRegressionScheme>

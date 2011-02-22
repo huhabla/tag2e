@@ -40,12 +40,16 @@ vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
-  this->ModelParameterCollection = NULL;
   this->ModelParameter = NULL;
+  this->ResultArrayName = NULL;
+  this->SetResultArrayName("result");
 }
 
 vtkTAG2EAbstractModel::~vtkTAG2EAbstractModel()
 {
-  ;
+  if(this->ModelParameter)
+    this->ModelParameter->Delete();
+  if(this->ResultArrayName)
+    delete [] this->ResultArrayName;
 }
 
