@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : DataDistributionDescription.xml
+    Created on : 22. Februar 2011, 17:01
+    Author     : soeren
+    Description:
+        Purpose of the document follows.
+-->
+
+<tag2e:DataDistributionDescription  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:tag2e='http://tag2e.googlecode.com/files/DataDistributionDescription'
+   xsi:schemaLocation='http://tag2e.googlecode.com/files/DataDistributionDescription DataDistributionDescription.xsd' name="test" numberOfVariables="5">
+    <tag2e:Variable name="pH" type="rnorm">
+        <tag2e:Rnorm mean="6.5" sd="0.4"></tag2e:Rnorm>
+    </tag2e:Variable>
+    <tag2e:Variable name="temp" type="rnorm">
+        <tag2e:Rnorm mean="8" sd="2"></tag2e:Rnorm>
+    </tag2e:Variable>
+    <tag2e:Variable name="nrate" type="lrnorm">
+        <tag2e:Lrnorm meanlog="3" sdlog="0.3"></tag2e:Rnorm>
+    </tag2e:Variable>
+        <tag2e:Variable name="sand" type="rbinom">
+        <tag2e:Rbinom size="12" prob="1"></tag2e:Rnorm>
+    </tag2e:Variable>
+        <tag2e:Variable name="prec" type="rchisq">
+        <tag2e:Rchisq df="80.0"></tag2e:Rnorm>
+    </tag2e:Variable>
+</tag2e:DataDistributionDescription>

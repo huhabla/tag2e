@@ -53,6 +53,7 @@ protected:
 
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
         assert("RequestData must be implemented in a subclass");
+        return -1;
     }
 
     vtkTAG2EAbstractModel *Model;

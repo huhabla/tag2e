@@ -74,20 +74,16 @@ class vtkTAG2EAbstractModel : public vtkTemporalDataSetAlgorithm {
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractModel, vtkTemporalDataSetAlgorithm);
     static vtkTAG2EAbstractModel *New(); 
-    
-    //!\brief Set a model parameter collection so several different models can be used
-    //! to process the input data at once
-    vtkSetObjectMacro(ModelParameterCollection, vtkTAG2EModelParameterCollection);
-    //!\brief Get the model parameter collection
-    vtkGetObjectMacro(ModelParameterCollection, vtkTAG2EModelParameterCollection);
+
     //!\brief Set a single model parameter which should be used to process the input data
     vtkSetObjectMacro(ModelParameter, vtkTAG2EAbstractModelParameter);
     //!\brief Get the single model parameter
     vtkGetObjectMacro(ModelParameter, vtkTAG2EAbstractModelParameter);
-
-    vtkGetMacro(UseModelParameterCollection, int);
-    //!\brief Switch the use of the parameter collection on/off. Default is off.
-    vtkBooleanMacro(UseModelParameterCollection, int);
+    
+    //!\Brief Set the name of the result array
+    vtkSetStringMacro(ResultArrayName);
+    //!\brief Get the name of the result array
+    vtkGetStringMacro(ResultArrayName);
     
     vtkGetMacro(UseCellData, int);
     //!\brief Switch the procession of the data attached to the cells of 
@@ -98,18 +94,17 @@ protected:
     vtkTAG2EAbstractModel();
     ~vtkTAG2EAbstractModel();
     
-    vtkSetMacro(UseModelParameterCollection, int);
     vtkSetMacro(UseCellData, int);
 
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
         assert("RequestData must be implemented in a subclass");
+        return -1;
     }
 
-    vtkTAG2EModelParameterCollection *ModelParameterCollection;
     vtkTAG2EAbstractModelParameter *ModelParameter;
     
-    int UseModelParameterCollection;
     int UseCellData;
+    char *ResultArrayName;
 
 private:
     vtkTAG2EAbstractModel(const vtkTAG2EAbstractModel& orig); // Not implemented.

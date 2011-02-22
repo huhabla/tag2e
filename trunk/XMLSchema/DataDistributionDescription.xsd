@@ -1,0 +1,75 @@
+
+<xsd:schema
+  xmlns='http://www.w3.org/2000/10/XMLSchema'
+  targetNamespace='http://tag2e.googlecode.com/files/DataDistributionDescription'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/DataDistributionDescription'
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:element name='DataDistributionDescription'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:Variable'/>
+            </xsd:choice>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='numberOfVariables' type='xsd:nonNegativeInteger' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Variable'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='1' maxOccurs='1'>
+                <xsd:element ref='tag2e:Rnorm'/>
+                <xsd:element ref='tag2e:Lrnorm'/>
+                <xsd:element ref='tag2e:Runif'/>
+                <xsd:element ref='tag2e:Rbinom'/>
+                <xsd:element ref='tag2e:Rchisq'/>
+            </xsd:choice>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='type' use='required'>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="rnorm"/>
+                        <xsd:enumeration value="rlnorm"/>
+                        <xsd:enumeration value="runif"/>
+                        <xsd:enumeration value="rbinom"/>
+                        <xsd:enumeration value="rchisq"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Rnorm'>
+        <xsd:complexType>
+            <xsd:attribute name='mean' type='xsd:double' use='required'/>
+            <xsd:attribute name='sd' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Lrnorm'>
+        <xsd:complexType>
+            <xsd:attribute name='mean' type='xsd:double' use='required'/>
+            <xsd:attribute name='sd' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Runif'>
+        <xsd:complexType>
+            <xsd:attribute name='min' type='xsd:double' use='required'/>
+            <xsd:attribute name='max' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Rbinom'>
+        <xsd:complexType>
+            <xsd:attribute name='size' type='xsd:double' use='required'/>
+            <xsd:attribute name='prob' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Rchisq'>
+        <xsd:complexType>
+            <xsd:attribute name='df' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

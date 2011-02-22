@@ -50,6 +50,8 @@ public:
     
     void PrintSelf(ostream& os, vtkIndent indent) ;
     
+    virtual void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
+    
     static vtkTAG2ELinearRegressionModel *New(); 
     
 protected:
@@ -58,7 +60,9 @@ protected:
 
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
     virtual int FillInputPortInformation(int port, vtkInformation* info);
-    virtual bool BuildCoefficientPowerMaps();
+    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
+    virtual bool BuildLRValueArrays();
     
     vtkIntArray *InputPorts;
     vtkDoubleArray *Coefficents;
