@@ -37,6 +37,7 @@
 
 class vtkDataArrayCollection;
 class vtkTemporalDataSetSource;
+class vtkRInterface;
 
 class vtkTAG2EModelMonteCarloVariationAnalyser : public vtkTAG2EAbstractModelVariationAnalyser {
 public:
@@ -62,6 +63,7 @@ protected:
     virtual vtkDataArray *GenerateRandomValueArray(int numRandomValues, const char *df, double param1, double param2);
     
     int NumberOfRandomValues;
+    vtkRInterface *RInterface;
 
 private:
     vtkTAG2EModelMonteCarloVariationAnalyser(const vtkTAG2EModelMonteCarloVariationAnalyser& orig); // Not implemented.
