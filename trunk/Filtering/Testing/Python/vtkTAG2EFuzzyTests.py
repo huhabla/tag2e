@@ -203,14 +203,14 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         root.AddNestedElement(responseWeights)
         root.SetCharacterDataWidth(0)  
         
-        fisc.SetFileName("FuzzyInferenceScheme1.xml")
+        fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
         fisc.GetXMLRoot().DeepCopy(root)
         fisc.Write()
         # Read it again
         fisc.Read();
         # Change the name
         fisc.GetXMLRoot().SetAttribute("name", "CH4Emission_V20101111") 
-        fisc.SetFileName("FuzzyInferenceScheme2.xml")
+        fisc.SetFileName("/tmp/FuzzyInferenceScheme2.xml")
         fisc.Write()
         
   

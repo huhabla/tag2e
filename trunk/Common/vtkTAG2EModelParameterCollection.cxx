@@ -1,5 +1,5 @@
 /*=========================================================================
-/*
+ *
  *  Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
  *
  * Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de

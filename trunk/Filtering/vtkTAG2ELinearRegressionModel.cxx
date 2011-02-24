@@ -114,6 +114,7 @@ int vtkTAG2ELinearRegressionModel::RequestUpdateExtent(
 }
 
 
+
 //----------------------------------------------------------------------------
 
 int vtkTAG2ELinearRegressionModel::RequestData(
@@ -157,7 +158,7 @@ int vtkTAG2ELinearRegressionModel::RequestData(
     // The number of point data arrays can/should differ
     vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
     vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
-    outputDataSet->CopyStructure(firstInputDataSet);
+    outputDataSet->DeepCopy(firstInputDataSet);
     
     // Result for the current time step
     vtkDataArray *result = vtkDoubleArray::New();
@@ -222,7 +223,8 @@ int vtkTAG2ELinearRegressionModel::RequestData(
     }
 
     //TODO: Support point and cell data 
-    outputDataSet->GetPointData()->SetScalars(result);
+    outputDataSet->GetPointData()->AddArray(result);
+    outputDataSet->GetPointData()->SetActiveScalars(result->GetName());
     output->SetTimeStep(timeStep, outputDataSet);
     outputDataSet->Delete();
     result->Delete();
@@ -259,7 +261,7 @@ bool vtkTAG2ELinearRegressionModel::BuildLRValueArrays()
   vtkXMLDataElement *root = this->ModelParameter->GetXMLRoot();
 
   // Check for correct 
-  if (strncmp(root->GetName(), "LinearRegressionScheme", 22) != 0) {
+  if (strncasecmp(root->GetName(), "LinearRegressionScheme", 22) != 0) {
     vtkErrorMacro("The model parameter does not contain a valid linear regression scheme");
     return false;
   }
@@ -275,7 +277,7 @@ bool vtkTAG2ELinearRegressionModel::BuildLRValueArrays()
     vtkXMLDataElement *element = root->GetNestedElement(i);
 
     // Check for Coefficient elements
-    if (strncmp(element->GetName(), "Coefficient", 11) == 0) {
+    if (strncasecmp(element->GetName(), "Coefficient", 11) == 0) {
       const char* arrayName = NULL;
       double coefficient = 0;
       double power = 0;

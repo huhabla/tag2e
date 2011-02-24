@@ -123,7 +123,7 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
   N2Oemission->FillComponent(0, 0);
 
   int i, cat;
-  double n, sc, sn, cr, cl, s, n2o;
+  double n, n2o;
   int num;
   vtkDataSetAttributes *data = NULL;
 
