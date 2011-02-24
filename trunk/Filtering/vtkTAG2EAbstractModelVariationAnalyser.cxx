@@ -51,12 +51,13 @@ vtkTAG2EAbstractModelVariationAnalyser::vtkTAG2EAbstractModelVariationAnalyser()
   this->SetNumberOfOutputPorts(1);
   this->Model = NULL;
   this->DataDistributionDescription = NULL;
-  
+
   this->TimeSteps = NULL;
   this->NumberOfTimeSteps = 1; // We generate only a single time step as default
   this->MaxNumberOfIterations = 1; // This is the number of 
-  
-  this->VariableName = vtkStringArray::New();;
+
+  this->VariableName = vtkStringArray::New();
+  ;
   this->VariableDistributionType = vtkIntArray::New();
   this->DistributionParameter = vtkDoubleArray::New();
   this->DistributionParameter->SetNumberOfComponents(2);
@@ -66,11 +67,11 @@ vtkTAG2EAbstractModelVariationAnalyser::vtkTAG2EAbstractModelVariationAnalyser()
 
 vtkTAG2EAbstractModelVariationAnalyser::~vtkTAG2EAbstractModelVariationAnalyser()
 {
-  if(this->Model)
+  if (this->Model)
     this->Model->Delete();
-  if(this->DataDistributionDescription)
+  if (this->DataDistributionDescription)
     this->DataDistributionDescription->Delete();
-  
+
   this->VariableDistributionType->Delete();
   this->VariableName->Delete();
   this->DistributionParameter->Delete();
@@ -82,55 +83,43 @@ int vtkTAG2EAbstractModelVariationAnalyser::RequestUpdateExtent(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
-{  
-  if(this->TimeSteps)
-  {
+{
+  if (this->TimeSteps) {
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
     // Remove any existing output UPDATE_TIME_STEPS
     if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
       outInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
-    
-    // Set the generated time steps
-    if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-      {
-       outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
-      }
+
+    // Set the generated time steps, its the same as TIME_STEPS
+    if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())) {
+      outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
+    }
   }
-  
+
   return 1;
 }
 
 //-----------------------------------------------------------------------
+
 int vtkTAG2EAbstractModelVariationAnalyser::RequestInformation(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
   int i;
-  
+
   this->TimeSteps = new double[this->NumberOfTimeSteps];
-  
-  if(this->TimeSteps)
-  {
+
+  if (this->TimeSteps) {
     // Generate the time steps
-    for(i = 0; i < this->NumberOfTimeSteps; i++)
-      this->TimeSteps[i] = (double)i;
-    
-    double range[2] = {0,1};
-    
+    for (i = 0; i < this->NumberOfTimeSteps; i++)
+      this->TimeSteps[i] = (double) i;
+
+    double range[2] = {0, 1};
+
     vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
-    // Remove any existing output UPDATE_TIME_STEPS
-    if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-      outInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
-    
-    // Set the generated time steps
-    if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-      {
-       outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
-      }
-    
     // Set the time stept and range for the first input.
     outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
     outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), range, 2);
@@ -170,91 +159,160 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
       if (variable->GetAttribute("name") != NULL) {
         variableName = variable->GetAttribute("name");
       } else {
-        vtkErrorMacro(<<"Attribute \"name\" is missing in Variable element: " << i);
+        vtkErrorMacro( << "Attribute \"name\" is missing in Variable element: " << i);
         return false;
       }
-      
+
       if (variable->GetAttribute("type") != NULL) {
-        
+
         typeName = variable->GetAttribute("type");
-        
-        if(strncasecmp(typeName, "norm", 4) == 0)
-        {
+
+        if (strncasecmp(typeName, "norm", 4) == 0) {
           dfType = TAG2E_R_DF_NORM;
           vtkXMLDataElement *df = variable->GetNestedElement(0);
-          if(df) {
-            param1 = atof(df->GetAttribute("mean"));
-            param2 = atof(df->GetAttribute("sd"));
+          if (df) {
+            if (strncasecmp(df->GetName(), "Norm", 4) != 0) {
+              vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("mean") != NULL) {
+              param1 = atof(df->GetAttribute("mean"));
+            } else {
+              vtkErrorMacro( << "Attribute \"mean\" is missing in Norm element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("sd") != NULL) {
+              param2 = atof(df->GetAttribute("sd"));
+            } else {
+              vtkErrorMacro( << "Attribute \"sd\" is missing in Norm element: " << i);
+              return false;
+            }
           } else {
-            vtkErrorMacro(<<"Element \"norm\" is missing in Variable element: " << i);
-            return false;
-          }
-        }
-        
-        if(strncasecmp(typeName, "lnorm", 5) == 0)
-        {
-          dfType = TAG2E_R_DF_LNORM;
-          vtkXMLDataElement *df = variable->GetNestedElement(0);
-          if(df) {
-              param1 = atof(df->GetAttribute("meanlog"));
-              param2 = atof(df->GetAttribute("sdlog"));
-          } else {
-            vtkErrorMacro(<<"Element \"lnorm\" is missing in Variable element: " << i);
-            return false;
-          }
-        }
-        
-        if(strncasecmp(typeName, "unif", 4) == 0)
-        {
-          dfType = TAG2E_R_DF_UNIF;
-          vtkXMLDataElement *df = variable->GetNestedElement(0);
-          if(df) {
-            param1 = atof(df->GetAttribute("min"));
-            param2 = atof(df->GetAttribute("max"));
-          } else {
-            vtkErrorMacro(<<"Element \"unif\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: " << i);
             return false;
           }
         }
 
-        if(strncasecmp(typeName, "binom", 5) == 0)
-        {
+        if (strncasecmp(typeName, "lnorm", 5) == 0) {
+          dfType = TAG2E_R_DF_LNORM;
+          vtkXMLDataElement *df = variable->GetNestedElement(0);
+
+          if (df) {
+            if (strncasecmp(df->GetName(), "Lnorm", 5) != 0) {
+              vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("meanlog") != NULL) {
+              param1 = atof(df->GetAttribute("meanlog"));
+            } else {
+              vtkErrorMacro( << "Attribute \"meanlog\" is missing in Lnorm element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("sdlog") != NULL) {
+              param2 = atof(df->GetAttribute("sdlog"));
+            } else {
+              vtkErrorMacro( << "Attribute \"sdlog\" is missing in Lnorm element: " << i);
+              return false;
+            }
+          } else {
+            vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: " << i);
+            return false;
+          }
+        }
+
+        if (strncasecmp(typeName, "unif", 4) == 0) {
+          dfType = TAG2E_R_DF_UNIF;
+          vtkXMLDataElement *df = variable->GetNestedElement(0);
+
+          if (df) {
+            if (strncasecmp(df->GetName(), "Unif", 4) != 0) {
+              vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("min") != NULL) {
+              param1 = atof(df->GetAttribute("min"));
+            } else {
+              vtkErrorMacro( << "Attribute \"min\" is missing in Unif element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("max") != NULL) {
+              param2 = atof(df->GetAttribute("max"));
+            } else {
+              vtkErrorMacro( << "Attribute \"max\" is missing in Unif element: " << i);
+              return false;
+            }
+          } else {
+            vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: " << i);
+            return false;
+          }
+        }
+
+        if (strncasecmp(typeName, "binom", 5) == 0) {
           dfType = TAG2E_R_DF_BINOM;
           vtkXMLDataElement *df = variable->GetNestedElement(0);
-          if(df) {
-            param1 = atof(df->GetAttribute("size"));
-            param2 = atof(df->GetAttribute("prob"));
+          
+          if (df) {
+            if (strncasecmp(df->GetName(), "Binom", 5) != 0) {
+              vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("size") != NULL) {
+              param1 = atof(df->GetAttribute("size"));
+            } else {
+              vtkErrorMacro( << "Attribute \"size\" is missing in Binom element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("prob") != NULL) {
+              param2 = atof(df->GetAttribute("prob"));
+            } else {
+              vtkErrorMacro( << "Attribute \"prob\" is missing in Binom element: " << i);
+              return false;
+            }
           } else {
-            vtkErrorMacro(<<"Element \"binom\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: " << i);
             return false;
           }
         }
-                
-        if(strncasecmp(typeName, "chisq", 5) == 0)
-        {
+
+        if (strncasecmp(typeName, "chisq", 5) == 0) {
           dfType = TAG2E_R_DF_CHISQ;
           vtkXMLDataElement *df = variable->GetNestedElement(0);
-          if(df) {
-            param1 = atof(df->GetAttribute("df"));
-            param2 = atof(df->GetAttribute("ncp"));
+          
+          if (df) {
+            if (strncasecmp(df->GetName(), "Chisq", 5) != 0) {
+              vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("df") != NULL) {
+              param1 = atof(df->GetAttribute("df"));
+            } else {
+              vtkErrorMacro( << "Attribute \"df\" is missing in Chisq element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("ncp") != NULL) {
+              param2 = atof(df->GetAttribute("ncp"));
+            } else {
+              vtkErrorMacro( << "Attribute \"ncp\" is missing in Chisq element: " << i);
+              return false;
+            }
           } else {
-            vtkErrorMacro(<<"Element \"chisq\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: " << i);
             return false;
           }
         }
-        
+
       } else {
-        vtkErrorMacro(<<"Attribute \"type\" is missing in Variable element: " << i);
+        vtkErrorMacro( << "Attribute \"type\" is missing in Variable element: " << i);
         return false;
       }
 
-      cerr << "Insert variable name " << variableName << " of type " << dfType << " and values " << param1 << " " << param2 << endl;
+      vtkDebugMacro(<< "Insert variable name " << variableName << " of type " << dfType << " and values " << param1 << " " << param2);
 
       this->VariableName->InsertNextValue(variableName);
       this->VariableDistributionType->InsertNextValue(dfType);
       this->DistributionParameter->InsertNextTuple2(param1, param2);
     }
-  }  
-  
+  }
+
   return true;
 }

@@ -56,6 +56,9 @@ vtkTAG2EModelMonteCarloVariationAnalyser::vtkTAG2EModelMonteCarloVariationAnalys
 {
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
+  
+  this->RInterface = vtkRInterface::New();
+  
 }
 
 //----------------------------------------------------------------------------
@@ -135,9 +138,9 @@ vtkTemporalDataSetSource *vtkTAG2EModelMonteCarloVariationAnalyser::GenerateMode
   vtkIdList *ids = vtkIdList::New();
 
   // Generate uniform distributed point coordinates
-  vtkDataArray *xcoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "runif", -1000.0, 1000.0);
-  vtkDataArray *ycoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "runif", -1000.0, 1000.0);
-  vtkDataArray *zcoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "runif", -1000.0, 1000.0);
+  vtkDataArray *xcoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "rnorm", 0.0, 1.0);
+  vtkDataArray *ycoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "rnorm", 0.0, 1.0);
+  vtkDataArray *zcoor = this->GenerateRandomValueArray(this->NumberOfRandomValues, "rnorm", 0.0, 1.0);
 
   for(j = 0; j < this->NumberOfRandomValues; j++)
   {
@@ -197,19 +200,16 @@ vtkDataArray *vtkTAG2EModelMonteCarloVariationAnalyser::GenerateRandomValueArray
 {
   vtkDataArray *array  = NULL;
   char buff[1024];
-  vtkRInterface *riface = vtkRInterface::New(); // This is a singleton, so we can call it as often as we want :)
   
   snprintf(buff, 1024, "x = %s(%i, %g, %g)", df, numRandomValues, param1, param2);
-  cerr << buff << endl;
+  
+  vtkDebugMacro( << "Running R-script" << buff);
   
   // Generate the random values
-  riface->EvalRscript((const char*)buff, true);
+  this->RInterface->EvalRscript((const char*)buff, true);
   // Read the random values from R
-  array = riface->AssignRVariableToVTKDataArray("x");
+  array = this->RInterface->AssignRVariableToVTKDataArray("x");
   
-  //for(int i = 0; i < array->GetNumberOfTuples(); i++)
-  //  cout << array->GetTuple1(i) << endl;
-    
   return array;
 }
 
