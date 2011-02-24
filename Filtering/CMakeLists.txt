@@ -21,6 +21,7 @@ SET (Filtering_SRCS
     vtkTAG2EAbstractCalibratableModelParameter.cxx
     vtkTAG2EFuzzyInferenceModelParameter.cxx
     vtkTAG2ELinearRegressionModel.cxx
+    vtkTAG2EModelMonteCarloVariationAnalyser.cxx
 )
 
 SET (Filtering_H
@@ -39,6 +40,7 @@ SET (Filtering_H
     vtkTAG2EAbstractCalibratableModelParameter.h
     vtkTAG2EFuzzyInferenceModelParameter.h
     vtkTAG2ELinearRegressionModel.h
+    vtkTAG2EModelMonteCarloVariationAnalyser.h
 )
 
 # --------------------------------------------------------------------------

@@ -114,7 +114,7 @@ class vtkTAG2EDLinearRegressionModelTestSimple(unittest.TestCase):
         root.AddNestedElement(coefficient)
         root.SetCharacterDataWidth(0)  
         
-        self.lrs.SetFileName("LinearRegressionSchemeTest1.xml")
+        self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest1.xml")
         self.lrs.GetXMLRoot().DeepCopy(root)
         self.lrs.Write()
         
@@ -279,7 +279,7 @@ class vtkTAG2EDLinearRegressionModelTestComplex(unittest.TestCase):
         root.AddNestedElement(coefficient3)
         root.SetCharacterDataWidth(0)  
         
-        self.lrs.SetFileName("LinearRegressionSchemeTest2.xml")
+        self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest2.xml")
         self.lrs.GetXMLRoot().DeepCopy(root)
         self.lrs.Write()
         
@@ -468,7 +468,7 @@ class vtkTAG2EDLinearRegressionModelTestComplexInterpol(unittest.TestCase):
         root.AddNestedElement(coefficient3)
         root.SetCharacterDataWidth(0)  
         
-        self.lrs.SetFileName("LinearRegressionSchemeTest2.xml")
+        self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest3.xml")
         self.lrs.GetXMLRoot().DeepCopy(root)
         self.lrs.Write()
         
@@ -569,12 +569,12 @@ class vtkTAG2EDLinearRegressionParameter(unittest.TestCase):
         root.AddNestedElement(coefficient4)
         root.SetCharacterDataWidth(0)  
         
-        lrs.SetFileName("LinearRegressionSchemeFreibauer1.xml")
+        lrs.SetFileName("/tmp/LinearRegressionSchemeFreibauer1.xml")
         lrs.GetXMLRoot().DeepCopy(root)
         lrs.Write()
         # Read it again
         lrs.Read();
-        lrs.SetFileName("LinearRegressionSchemeFreibauer2.xml")
+        lrs.SetFileName("/tmp/LinearRegressionSchemeFreibauer2.xml")
         lrs.Write()
         
 if __name__ == '__main__':

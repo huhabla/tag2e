@@ -36,7 +36,19 @@
 #include <vtkTemporalDataSetAlgorithm.h>
 #include <assert.h>
 #include "vtkTAG2EAbstractModel.h"
-#include "vtkTAG2EModelParameterCollection.h"
+
+
+// The supported distribution functions (df) which are used to create 
+// random number variables 
+#define TAG2E_R_DF_NORM 0
+#define TAG2E_R_DF_LNORM 1
+#define TAG2E_R_DF_UNIF 2
+#define TAG2E_R_DF_BINOM 3
+#define TAG2E_R_DF_CHISQ 4
+
+class vtkStringArray;
+class vtkIntArray;
+class vtkDoubleArray;
 
 class vtkTAG2EAbstractModelVariationAnalyser : public vtkTemporalDataSetAlgorithm {
 public:
@@ -46,18 +58,42 @@ public:
     //!\brief Set the model which should be analyzed
     vtkSetObjectMacro(Model, vtkTAG2EAbstractModel);
     vtkGetObjectMacro(Model, vtkTAG2EAbstractModel);
+    
+    //!\brief Set the data distribution description which should be used for analyze
+    vtkSetObjectMacro(DataDistributionDescription, vtkTAG2EAbstractModelParameter);
+    vtkGetObjectMacro(DataDistributionDescription, vtkTAG2EAbstractModelParameter);
 
+    vtkGetMacro(MaxNumberOfIterations, int);
+    
 protected:
     vtkTAG2EAbstractModelVariationAnalyser();
     ~vtkTAG2EAbstractModelVariationAnalyser();
 
+    vtkGetMacro(NumberOfTimeSteps, int);
+    vtkSetMacro(NumberOfTimeSteps, int);
+    vtkSetMacro(MaxNumberOfIterations, int);
+    
+    virtual int RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
+    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
-        assert("RequestData must be implemented in a subclass");
+        this->BuildDataDistributionDescriptionArrays();
+        vtkErrorMacro(<<"RequestData must be implemented in a subclass");
         return -1;
     }
+    
+    virtual bool BuildDataDistributionDescriptionArrays();
 
     vtkTAG2EAbstractModel *Model;
+    vtkTAG2EAbstractModelParameter *DataDistributionDescription;
+    
+    vtkStringArray *VariableName;
+    vtkIntArray *VariableDistributionType;
+    vtkDoubleArray *DistributionParameter;
 
+    int NumberOfTimeSteps;
+    int MaxNumberOfIterations;
+    double *TimeSteps;
+    
 private:
     vtkTAG2EAbstractModelVariationAnalyser(const vtkTAG2EAbstractModelVariationAnalyser& orig); // Not implemented.
     void operator=(const vtkTAG2EAbstractModelVariationAnalyser&); // Not implemented.

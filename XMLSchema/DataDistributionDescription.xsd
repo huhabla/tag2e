@@ -5,71 +5,87 @@
   xmlns:tag2e='http://tag2e.googlecode.com/files/DataDistributionDescription'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+<!-- This XML scheme describes the data distribution of input variables of models
+     using R distribution functions and its parameter. -->
     <xsd:element name='DataDistributionDescription'>
         <xsd:complexType>
             <xsd:choice minOccurs='1' maxOccurs='unbounded'>
                 <xsd:element ref='tag2e:Variable'/>
             </xsd:choice>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
-            <xsd:attribute name='numberOfVariables' type='xsd:nonNegativeInteger' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
     <xsd:element name='Variable'>
+        <!-- The distribution functions below are supported. In case more are added
+             this file and the C++ code in vtkTAG2EAbstractModelVariationAnalyzer must be
+             modified.-->
         <xsd:complexType>
             <xsd:choice minOccurs='1' maxOccurs='1'>
-                <xsd:element ref='tag2e:Rnorm'/>
-                <xsd:element ref='tag2e:Lrnorm'/>
-                <xsd:element ref='tag2e:Runif'/>
-                <xsd:element ref='tag2e:Rbinom'/>
-                <xsd:element ref='tag2e:Rchisq'/>
+                <xsd:element ref='tag2e:Norm'/>
+                <xsd:element ref='tag2e:Lnorm'/>
+                <xsd:element ref='tag2e:Unif'/>
+                <xsd:element ref='tag2e:Binom'/>
+                <xsd:element ref='tag2e:Chisq'/>
             </xsd:choice>
+       <!-- The name attribute is actually the name of a point data array for which the random
+            variables are generated to analyze the model.
+            The type attribute is the name of the distribution function used in R to generate 
+            random values. The attributes in the embedded elements of Variable are the
+            specific distribution parameter in R.-->
             <xsd:attribute name='name' type='xsd:string' use='required'/>
             <xsd:attribute name='type' use='required'>
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string">
-                        <xsd:enumeration value="rnorm"/>
-                        <xsd:enumeration value="rlnorm"/>
-                        <xsd:enumeration value="runif"/>
-                        <xsd:enumeration value="rbinom"/>
-                        <xsd:enumeration value="rchisq"/>
+                        <xsd:enumeration value="norm"/>
+                        <xsd:enumeration value="lnorm"/>
+                        <xsd:enumeration value="unif"/>
+                        <xsd:enumeration value="binom"/>
+                        <xsd:enumeration value="chisq"/>
                     </xsd:restriction>
                 </xsd:simpleType>
             </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Rnorm'>
+    <xsd:element name='Norm'>
+        <!-- The Normal Distribution -->
         <xsd:complexType>
             <xsd:attribute name='mean' type='xsd:double' use='required'/>
             <xsd:attribute name='sd' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Lrnorm'>
+    <xsd:element name='Lnorm'>
+        <!-- The Log Normal Distribution -->
         <xsd:complexType>
             <xsd:attribute name='mean' type='xsd:double' use='required'/>
             <xsd:attribute name='sd' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Runif'>
+    <xsd:element name='Unif'>
+        
+        <!-- The Uniform Distribution -->
         <xsd:complexType>
             <xsd:attribute name='min' type='xsd:double' use='required'/>
             <xsd:attribute name='max' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Rbinom'>
+    <xsd:element name='Binom'>
+        <!-- The Binomial Distribution -->
         <xsd:complexType>
             <xsd:attribute name='size' type='xsd:double' use='required'/>
             <xsd:attribute name='prob' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Rchisq'>
+    <xsd:element name='Chisq'>
+        <!-- The (non-central) Chi-Squared Distribution -->
         <xsd:complexType>
             <xsd:attribute name='df' type='xsd:double' use='required'/>
+            <xsd:attribute name='ncp' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>

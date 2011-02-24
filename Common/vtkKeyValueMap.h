@@ -52,9 +52,9 @@ public:
         this->KeyVals.erase(key);
     }
 
-    const char*GetKey(int idx);
+    const char*GetKey(unsigned int idx);
 
-    double GetValue(int idx);
+    double GetValue(unsigned int idx);
 
     double GetValue(const char* key) {
         return this->KeyVals[key];

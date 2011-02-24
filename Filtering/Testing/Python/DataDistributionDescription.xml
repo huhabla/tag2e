@@ -10,20 +10,21 @@
 
 <tag2e:DataDistributionDescription  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:tag2e='http://tag2e.googlecode.com/files/DataDistributionDescription'
-   xsi:schemaLocation='http://tag2e.googlecode.com/files/DataDistributionDescription DataDistributionDescription.xsd' name="test" numberOfVariables="5">
-    <tag2e:Variable name="pH" type="rnorm">
-        <tag2e:Rnorm mean="6.5" sd="0.4"></tag2e:Rnorm>
+   xsi:schemaLocation='http://tag2e.googlecode.com/files/DataDistributionDescription DataDistributionDescription.xsd' 
+   name="test">
+    <tag2e:Variable name="pH" type="norm">
+        <tag2e:Norm mean="6.5" sd="0.4"/>
     </tag2e:Variable>
-    <tag2e:Variable name="temp" type="rnorm">
-        <tag2e:Rnorm mean="8" sd="2"></tag2e:Rnorm>
+    <tag2e:Variable name="temp" type="norm">
+        <tag2e:Norm mean="8" sd="2"/>
     </tag2e:Variable>
-    <tag2e:Variable name="nrate" type="lrnorm">
-        <tag2e:Lrnorm meanlog="3" sdlog="0.3"></tag2e:Rnorm>
+    <tag2e:Variable name="nrate" type="lnorm">
+        <tag2e:Lnorm meanlog="3" sdlog="0.3"/>
     </tag2e:Variable>
-        <tag2e:Variable name="sand" type="rbinom">
-        <tag2e:Rbinom size="12" prob="1"></tag2e:Rnorm>
+    <tag2e:Variable name="sand" type="binom">
+        <tag2e:Binom size="12" prob="1"/>
     </tag2e:Variable>
-        <tag2e:Variable name="prec" type="rchisq">
-        <tag2e:Rchisq df="80.0"></tag2e:Rnorm>
+    <tag2e:Variable name="prec" type="chisq">
+        <tag2e:Chisq df="80.0" ncp="0.0"/>
     </tag2e:Variable>
 </tag2e:DataDistributionDescription>

@@ -12,7 +12,7 @@ FIND_PATH(VTK_GRASS_BRIDGE_INCLUDE_DIR vtkGRASSInit.h
 	/usr/local/include
 	/usr/include
 	/usr/local/vtkGRASSBridge/include
-	/home/soeren/soft/vtkGRASSBridge/include
+	/home/soeren/soft/vtkGRASSBridge_VTK5.9/include
 )
 # Find the library path
 FIND_PATH(VTK_GRASS_BRIDGE_LIBRARY_DIR vtkGRASSBridgeCommon
@@ -20,6 +20,7 @@ FIND_PATH(VTK_GRASS_BRIDGE_LIBRARY_DIR vtkGRASSBridgeCommon
 	/usr/lib
 	/usr/local/vtkGRASSBridge/lib
 	/home/soeren/soft/vtkGRASSBridge/lib
+	/home/soeren/soft/vtkGRASSBridge_VTK5.9/lib
 )
 # Find all nessessary libraries
 IF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
@@ -38,6 +39,9 @@ IF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 	FIND_LIBRARY(vtkGRASSBridgeIO vtkGRASSBridgeIO	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeIOPython vtkGRASSBridgeIOPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeIOPythonD vtkGRASSBridgeIOPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeFiltering vtkGRASSBridgeFiltering	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeFilteringPython vtkGRASSBridgeFilteringPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeFilteringPythonD vtkGRASSBridgeFilteringPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 ENDIF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 
 # In case everything is ok, set the variables
@@ -49,6 +53,7 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeVector}
                         ${vtkGRASSBridgeRaster}
                         ${vtkGRASSBridgeRaster3d}
+                        ${vtkGRASSBridgeFiltering}
                         ${vtkGRASSBridgeIO}
 		)
         	SET( VTK_GRASS_BRIDGE_LIBRARIES_PYTHON
@@ -60,6 +65,8 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeRasterPythonD}
                         ${vtkGRASSBridgeRaster3dPython}
                         ${vtkGRASSBridgeRaster3dPythonD}
+                        ${vtkGRASSBridgeFilteringPython}
+                        ${vtkGRASSBridgeFilteringPythonD}
                         ${vtkGRASSBridgeIOPython}
                         ${vtkGRASSBridgeIOPythonD}
 		)

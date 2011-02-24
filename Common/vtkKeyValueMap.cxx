@@ -38,8 +38,8 @@ vtkStandardNewMacro(vtkKeyValueMap);
 
 //----------------------------------------------------------------------------
 
-double vtkKeyValueMap::GetValue(int idx) {
-  int count;
+double vtkKeyValueMap::GetValue(unsigned int idx) {
+  unsigned int count;
   std::map<const char*, double>::iterator it;
   
   if(idx >= this->KeyVals.size()) {
@@ -53,12 +53,13 @@ double vtkKeyValueMap::GetValue(int idx) {
       return (*it).second;
     count++;
   }
+  return 0.0;
 }
     
 //----------------------------------------------------------------------------
 
-const char* vtkKeyValueMap::GetKey(int idx) {
-  int count;
+const char* vtkKeyValueMap::GetKey(unsigned int idx) {
+  unsigned int count;
   std::map<const char*, double>::iterator it;
   
   if(idx >= this->KeyVals.size()) {
@@ -72,6 +73,7 @@ const char* vtkKeyValueMap::GetKey(int idx) {
       return (*it).first;
     count++;
   }
+  return NULL;
 }
    //----------------------------------------------------------------------------
 void vtkKeyValueMap::PrintSelf(ostream& os, vtkIndent indent)
