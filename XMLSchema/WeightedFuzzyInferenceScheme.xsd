@@ -1,136 +1,170 @@
+
 <xsd:schema
   xmlns='http://www.w3.org/2000/10/XMLSchema'
   targetNamespace='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
   xmlns:tag2e='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
- <xsd:element name='WeightedFuzzyInferenceScheme'>
-  <xsd:complexType>
-   <xsd:choice minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:FuzzyInferenceScheme'/>
-    <xsd:element ref='tag2e:Weights'/>
-   </xsd:choice>
-   <xsd:attribute name='name' type='xsd:string' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+    <xsd:element name='WeightedFuzzyInferenceScheme'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='0' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:FuzzyInferenceScheme'/>
+                <xsd:element ref='tag2e:Weights'/>
+            </xsd:choice>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
 
- <xsd:element name='FuzzyInferenceScheme'>
-  <xsd:complexType>
-   <xsd:choice minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:Factor'/>
-    <xsd:element ref='tag2e:Responces'/>
-   </xsd:choice>
-   <xsd:attribute name='name' type='xsd:string' use='required'/>
-   <xsd:attribute name='numberOfFaktors' type='xsd:nonNegativeInteger' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+<!-- This is the xML defintion of a fuzzy inference scheme which defines a set of rules. 
+     -->
+    <xsd:element name='FuzzyInferenceScheme'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='0' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:Factor'/>
+                <xsd:element ref='tag2e:Responces'/>
+            </xsd:choice>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='numberOfFaktors' type='xsd:nonNegativeInteger' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
 
- <xsd:element name='Factor'>
-  <xsd:complexType>
-   <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:FuzzySet'/>
-   </xsd:sequence>
-   <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='name' type='xsd:string' use='required'/>
-   <xsd:attribute name='numberOfFuzzySets' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='min' type='xsd:double' use='required'/>
-   <xsd:attribute name='max' type='xsd:double' use='required'/>
-   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+<!-- A factor is a controling variable used to estimate a depended variable.  
+     The domain of definition of a factor is intersected via a variable number of fuzzy sets
+     and ranges 
+     -->
+    <xsd:element name='Factor'>
+        <xsd:complexType>
+            <xsd:sequence minOccurs='2' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:FuzzySet'/>
+            </xsd:sequence>
+            <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='numberOfFuzzySets' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='min' type='xsd:double' use='required'/>
+            <xsd:attribute name='max' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
 
- <xsd:element name='FuzzySet'>
-  <xsd:complexType>
-   <xsd:choice minOccurs='1' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:Triangular'/>
-    <xsd:element ref='tag2e:Crisp'/>
-    <xsd:element ref='tag2e:BellShape'/>
-   </xsd:choice>
-   <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='type' use='required'>
-    <xsd:simpleType>
-      <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="Triangular"/>
-        <xsd:enumeration value="Crisp"/>
-        <xsd:enumeration value="BellShape"/>
-      </xsd:restriction>
-    </xsd:simpleType>
-  </xsd:attribute>
-   <xsd:attribute name='priority' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-   <xsd:attribute name='position' use='required'>
-    <xsd:simpleType>
-      <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="left"/>
-        <xsd:enumeration value="intermediate"/>
-        <xsd:enumeration value="right"/>
-      </xsd:restriction>
-    </xsd:simpleType>
-  </xsd:attribute>
-  </xsd:complexType>
- </xsd:element>
+    <xsd:element name='FuzzySet'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='1' maxOccurs='1'>
+                <xsd:element ref='tag2e:Triangular'/>
+                <xsd:element ref='tag2e:Crisp'/>
+                <xsd:element ref='tag2e:BellShape'/>
+            </xsd:choice>
+            <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='type' use='required'>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="Triangular"/>
+                        <xsd:enumeration value="Crisp"/>
+                        <xsd:enumeration value="BellShape"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:attribute>
+            <xsd:attribute name='priority' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+            <xsd:attribute name='position' use='required'>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="left"/>
+                        <xsd:enumeration value="intermediate"/>
+                        <xsd:enumeration value="right"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:attribute>
+        </xsd:complexType>
+    </xsd:element>
 
- <xsd:element name='Triangular'>
-  <xsd:complexType>
-   <xsd:attribute name='center' type='xsd:double' use='required'/>
-   <xsd:attribute name='slopeLeft' type='xsd:double' use='required'/>
-   <xsd:attribute name='slopeRight' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+<!-- 
+Description of a triangle shape
+    
+   /|\
+  / | \ 
+ /  |  \
+/___|___\
+l   c    r
 
- <xsd:element name='Crisp'>
-  <xsd:complexType>
-   <xsd:attribute name='reft' type='xsd:double' use='required'/>
-   <xsd:attribute name='right' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+left == c - l
+c == center
+right = r - c
 
- <xsd:element name='BellShape'>
-  <xsd:complexType>
-   <xsd:attribute name='center' type='xsd:double' use='required'/>
-   <xsd:attribute name='stddevLeft' type='xsd:double' use='required'/>
-   <xsd:attribute name='stddevRight' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+-->
 
- <xsd:element name='Responces'>
-  <xsd:complexType>
-   <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:Response'/>
-   </xsd:sequence>
-   <xsd:attribute name='numberOfResponces' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='min' type='xsd:double' use='required'/>
-   <xsd:attribute name='max' type='xsd:double' use='required'/>
-   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+    <xsd:element name='Triangular'>
+        <xsd:complexType>
+            <xsd:attribute name='center' type='xsd:double' use='required'/>
+            <xsd:attribute name='left' type='xsd:double' use='required'/>
+            <xsd:attribute name='right' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+ 
+<!--
 
- <xsd:element name='Response'>
-  <xsd:complexType mixed='true'>
-   <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+Description of the crisp shape
+ _______
+|       |
+|       |
+|       |
+l       r
 
- <xsd:element name='Weights'>
-  <xsd:complexType>
-   <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
-    <xsd:element ref='tag2e:Weight'/>
-   </xsd:sequence>
-   <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-   <xsd:attribute name='numberOfWeights' type='xsd:nonNegativeInteger' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+-->
+    <xsd:element name='Crisp'>
+        <xsd:complexType>
+            <xsd:attribute name='reft' type='xsd:double' use='required'/>
+            <xsd:attribute name='right' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
 
- <xsd:element name='Weight'>
-  <xsd:complexType mixed='true'>
-   <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
-   <xsd:attribute name='name' type='xsd:string' use='required'/>
-   <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-   <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-   <xsd:attribute name='min' type='xsd:double' use='required'/>
-   <xsd:attribute name='max' type='xsd:double' use='required'/>
-   <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
-  </xsd:complexType>
- </xsd:element>
+    <xsd:element name='BellShape'>
+        <xsd:complexType>
+            <xsd:attribute name='center' type='xsd:double' use='required'/>
+            <xsd:attribute name='stddevLeft' type='xsd:double' use='required'/>
+            <xsd:attribute name='stddevRight' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Responces'>
+        <xsd:complexType>
+            <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:Response'/>
+            </xsd:sequence>
+            <xsd:attribute name='numberOfResponces' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='min' type='xsd:double' use='required'/>
+            <xsd:attribute name='max' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Response'>
+        <xsd:complexType mixed='true'>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:double">
+                    <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
+                    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+                    <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Weights'>
+        <xsd:complexType>
+            <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:Weight'/>
+            </xsd:sequence>
+            <xsd:attribute name='active' type='xsd:boolean' use='required'/>
+            <xsd:attribute name='numberOfWeights' type='xsd:nonNegativeInteger' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Weight'>
+        <xsd:complexType mixed='true'>
+            <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+            <xsd:attribute name='active' type='xsd:boolean' use='required'/>
+            <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+            <xsd:attribute name='min' type='xsd:double' use='required'/>
+            <xsd:attribute name='max' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
 </xsd:schema>
