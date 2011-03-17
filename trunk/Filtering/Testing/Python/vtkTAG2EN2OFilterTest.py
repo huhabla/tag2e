@@ -33,10 +33,8 @@
 #include the VTK and vtkGRASSBridge Python libraries
 import unittest
 
-from libvtkFilteringPython import *
-from libvtkIOPython import *
-from libvtkImagingPython import *
-from libvtkCommonPython import *
+from vtk import *
+
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 

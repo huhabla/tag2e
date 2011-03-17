@@ -27,6 +27,7 @@
                 <xsd:element ref='tag2e:Unif'/>
                 <xsd:element ref='tag2e:Binom'/>
                 <xsd:element ref='tag2e:Chisq'/>
+                <xsd:element ref='tag2e:T'/>
             </xsd:choice>
        <!-- The name attribute is actually the name of a point data array for which the random
             variables are generated to analyze the model.
@@ -42,6 +43,7 @@
                         <xsd:enumeration value="unif"/>
                         <xsd:enumeration value="binom"/>
                         <xsd:enumeration value="chisq"/>
+                        <xsd:enumeration value="t"/>
                     </xsd:restriction>
                 </xsd:simpleType>
             </xsd:attribute>
@@ -65,7 +67,6 @@
     </xsd:element>
 
     <xsd:element name='Unif'>
-        
         <!-- The Uniform Distribution -->
         <xsd:complexType>
             <xsd:attribute name='min' type='xsd:double' use='required'/>
@@ -83,6 +84,14 @@
 
     <xsd:element name='Chisq'>
         <!-- The (non-central) Chi-Squared Distribution -->
+        <xsd:complexType>
+            <xsd:attribute name='df' type='xsd:double' use='required'/>
+            <xsd:attribute name='ncp' type='xsd:double' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name='T'>
+        <!-- The Student t Distribution -->
         <xsd:complexType>
             <xsd:attribute name='df' type='xsd:double' use='required'/>
             <xsd:attribute name='ncp' type='xsd:double' use='required'/>

@@ -37,9 +37,7 @@
 import sys
 
 #include the VTK and vtkGRASSBridge Python libraries
-from libvtkFilteringPython import *
-from libvtkImagingPython import *
-from libvtkCommonPython import *
+from vtk import *
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *

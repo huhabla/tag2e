@@ -54,7 +54,7 @@ vtkTAG2EAbstractModelVariationAnalyser::vtkTAG2EAbstractModelVariationAnalyser()
 
   this->TimeSteps = NULL;
   this->NumberOfTimeSteps = 1; // We generate only a single time step as default
-  this->MaxNumberOfIterations = 1; // This is the number of 
+  this->MaxNumberOfIterations = 1000; // This is the number of 
 
   this->VariableName = vtkStringArray::New();
   ;
@@ -301,6 +301,33 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
           }
         }
 
+        if (strncasecmp(typeName, "t", 1) == 0) {
+          dfType = TAG2E_R_DF_CHISQ;
+          vtkXMLDataElement *df = variable->GetNestedElement(0);
+          
+          if (df) {
+            if (strncasecmp(df->GetName(), "T", 5) != 0) {
+              vtkErrorMacro( << "Element \"T\" is missing in Variable element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("df") != NULL) {
+              param1 = atof(df->GetAttribute("df"));
+            } else {
+              vtkErrorMacro( << "Attribute \"df\" is missing in T element: " << i);
+              return false;
+            }
+            if (df->GetAttribute("ncp") != NULL) {
+              param2 = atof(df->GetAttribute("ncp"));
+            } else {
+              vtkErrorMacro( << "Attribute \"ncp\" is missing in T element: " << i);
+              return false;
+            }
+          } else {
+            vtkErrorMacro( << "Element \"T\" is missing in Variable element: " << i);
+            return false;
+          }
+        }
+        
       } else {
         vtkErrorMacro( << "Attribute \"type\" is missing in Variable element: " << i);
         return false;
