@@ -176,7 +176,7 @@ int vtkTAG2ELinearRegressionModel::RequestData(
       coef = this->Coefficents->GetValue(i);
       power = this->Power->GetValue(i);
       
-      cerr << "Processing input port " << port << " at time step " << timeStep << endl;
+      //cerr << "Processing input port " << port << " at time step " << timeStep << endl;
       
       // Get the correct input port for the input
       vtkInformation *activeInputInfo = inputVector[port]->GetInformationObject(0);

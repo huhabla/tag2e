@@ -37,6 +37,7 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
+from libvtkGRASSBridgeGraphicsPython import *
 
 # test a simple linear regression scheme with monte carlo analysis
 class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
@@ -111,8 +112,8 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
-        analyser.SetNumberOfRandomValues(5000)
-        analyser.SetNumberOfTimeSteps(15)
+        analyser.SetNumberOfRandomValues(50)
+        analyser.SetNumberOfTimeSteps(5)
         analyser.Update()
         
         output = analyser.GetOutput()
@@ -158,8 +159,8 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
-        analyser.SetNumberOfRandomValues(5000)
-        analyser.SetNumberOfTimeSteps(15)
+        analyser.SetNumberOfRandomValues(50)
+        analyser.SetNumberOfTimeSteps(5)
         analyser.Update()
         
         output = analyser.GetOutput()
@@ -205,8 +206,8 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
-        analyser.SetNumberOfRandomValues(5000)
-        analyser.SetNumberOfTimeSteps(15)
+        analyser.SetNumberOfRandomValues(50)
+        analyser.SetNumberOfTimeSteps(5)
         analyser.Update()
         
         output = analyser.GetOutput()
@@ -234,6 +235,8 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         #
         # When data1 == 3 and data2 == 5 and data3 == 1 then result == 127
         
+        # Start the interface
+        self.riface = vtkRInterfaceSpatial()
         
         self.lrs = vtkTAG2EAbstractModelParameter()
         
@@ -348,8 +351,10 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
-        analyser.SetNumberOfRandomValues(500000)
-        analyser.SetNumberOfTimeSteps(15)
+        analyser.SetNumberOfRandomValues(10000)
+        analyser.SetNumberOfTimeSteps(10)
+        analyser.SetMaxNumberOfIterations(20000)
+        analyser.SetBreakCriterion(0.0001)
         analyser.Update()
         
         output = analyser.GetOutput()
@@ -364,6 +369,16 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
             writer.SetInput(output.GetTimeStep(i))
             writer.Write()
             
+        print output.GetFieldData().GetArray(self.Model.GetResultArrayName())
+        print output.GetFieldData().GetArray(self.Model.GetResultArrayName()).GetRange()
+        
+        # make a statistical anlysis possible using R
+        self.riface.AssignVTKDataArrayToRVariable(output.GetFieldData().GetArray(self.Model.GetResultArrayName()), self.Model.GetResultArrayName())
+        
+        # Save the workspace for testing
+        script = "save(list = ls(all=TRUE), file = \"/home/soeren/MonteCarloTest\")"
+        print script
+        self.riface.EvalRscript(script, True)
         
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EModelMonteCarloVariationAnalyserTests)

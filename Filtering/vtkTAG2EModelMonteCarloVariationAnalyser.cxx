@@ -48,6 +48,7 @@
 #include <vtk-5.9/vtkIdList.h>
 #include "vtkTAG2EModelMonteCarloVariationAnalyser.h"
 #include "vtkTAG2ELinearRegressionModel.h"
+#include <math.h>
 
 vtkCxxRevisionMacro(vtkTAG2EModelMonteCarloVariationAnalyser, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EModelMonteCarloVariationAnalyser);
@@ -58,6 +59,9 @@ vtkTAG2EModelMonteCarloVariationAnalyser::vtkTAG2EModelMonteCarloVariationAnalys
   this->SetNumberOfOutputPorts(1);
   
   this->RInterface = vtkRInterface::New();
+  
+  this->NormalizedCumulativeSum = vtkDoubleArray::New();
+  this->BreakCriterion = 0.01; // Change of the cummultive sum
   
 }
 
@@ -87,7 +91,15 @@ int vtkTAG2EModelMonteCarloVariationAnalyser::RequestData(
     return -1;
   }
   
+  // The result distribution array 
+  vtkDoubleArray *dist = vtkDoubleArray::New();
+  dist->SetNumberOfComponents(1);
+  dist->SetName(this->Model->GetResultArrayName());
+  
+  this->NormalizedCumulativeSum->SetNumberOfValues(this->NumberOfRandomValues*this->NumberOfTimeSteps);
+  
   int iter;
+  double lastsum = 0.0;
   
   for(iter = 0; iter < this->MaxNumberOfIterations; iter++)
   {
@@ -97,15 +109,103 @@ int vtkTAG2EModelMonteCarloVariationAnalyser::RequestData(
     this->Model->SetInputConnection(first->GetOutputPort());
     this->Model->Update();
     
+    lastsum = this->ComputeNormalizedCumulativeSum(this->NormalizedCumulativeSum, dist, this->Model->GetOutput(), lastsum, iter * this->NumberOfRandomValues*this->NumberOfTimeSteps);
+    
+    if(this->CheckBreakCriterion(this->NormalizedCumulativeSum))
+    {
+      cout << "Break criteria reached at iteration " << iter << endl;
+      break;
+    }
+    
     first->Delete();
+    
+    if(iter == this->MaxNumberOfIterations - 1)
+      cout << "Break criteria not reached" << endl;
+    
   }
   
   vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
     outInfo->Get(vtkDataObject::DATA_OBJECT()));
   
   output->ShallowCopy(this->Model->GetOutput());
+  // Add the final distribution as field data array to the output
+  output->GetFieldData()->AddArray(dist);
+  
+  dist->Delete();
   
   return 1;
+}
+
+//----------------------------------------------------------------------------
+
+double vtkTAG2EModelMonteCarloVariationAnalyser::ComputeNormalizedCumulativeSum(vtkDoubleArray *sum, vtkDoubleArray *dist, vtkTemporalDataSet *modelOutput, double startsum, int startcount)
+{
+  double lastsum;
+  int i, j;
+  
+  // Read the result arrays into a single array
+  for(i = 0; i < this->NumberOfTimeSteps; i++)
+  {
+    vtkDataSet *ds = vtkDataSet::SafeDownCast(modelOutput->GetTimeStep(i));
+    vtkDataArray *result = ds->GetPointData()->GetArray(this->Model->GetResultArrayName());
+    
+    for(j = 0; j < this->NumberOfRandomValues; j++)
+    {
+      sum->SetValue(i*this->NumberOfRandomValues + j, result->GetTuple1(j));
+      dist->InsertNextTuple1(result->GetTuple1(j));
+    }
+  }
+  
+  // Compute the cumulative sum
+  for(i = 0; i < sum->GetNumberOfTuples(); i++)
+  {
+    if(i == 0)
+      sum->SetValue(i, sum->GetValue(i) + startsum);
+    else
+      sum->SetValue(i, sum->GetValue(i) + sum->GetValue(i - 1));
+  }
+  // Get the last cumulative sum
+  lastsum = sum->GetValue(this->NumberOfRandomValues*this->NumberOfTimeSteps - 1);
+  
+  // Normalize the cumulative sum
+  for(i = 0; i < sum->GetNumberOfTuples(); i++)
+  {
+      sum->SetValue(i, sum->GetValue(i)/(1 + startcount + i));
+  }
+  
+  return lastsum;
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EModelMonteCarloVariationAnalyser::CheckBreakCriterion(vtkDoubleArray *sum)
+{
+  int i;
+  double tmp = 0.0;
+  double min = 0.0;
+  double max = 0.0;
+  
+  if(sum->GetNumberOfTuples() == 0)
+    return false;
+  
+  min = max = sum->GetValue(0);
+  
+  for(i = 1; i < sum->GetNumberOfTuples(); i++)
+  {
+    if(min > sum->GetValue(i))
+      min = sum->GetValue(i);
+    if(max < sum->GetValue(i))
+      max = sum->GetValue(i);
+  }
+  
+  tmp = fabs(max - min);
+  
+  cout << "Cummulative range error difference " << tmp << endl; 
+  
+  if(tmp < this->BreakCriterion)
+    return true;
+  
+  return false;
 }
 
 //----------------------------------------------------------------------------

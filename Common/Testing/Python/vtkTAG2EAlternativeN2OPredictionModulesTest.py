@@ -33,7 +33,7 @@
 
 #include the VTK and vtkGRASSBridge Python libraries
 import unittest
-from libvtkCommonPython import *
+from vtk import *
 from libvtkTAG2ECommonPython import *
 
 firstCheck = False

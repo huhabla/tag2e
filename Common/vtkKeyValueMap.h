@@ -65,7 +65,7 @@ public:
     }
 
     bool HasKey(const char* key) {
-        (this->KeyVals.find(key) != this->KeyVals.end() ? true : false);
+        return (this->KeyVals.find(key) != this->KeyVals.end() ? true : false);
     }
 
     void Clear() {
