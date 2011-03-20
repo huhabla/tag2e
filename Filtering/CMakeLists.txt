@@ -7,6 +7,7 @@
 #
 
 SET (Filtering_SRCS
+    vtkTAG2ERSpaceTimeModel.cxx
     vtkTAG2EImageDataN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterStehfest.cxx
@@ -25,6 +26,7 @@ SET (Filtering_SRCS
 )
 
 SET (Filtering_H
+    vtkTAG2ERSpaceTimeModel.h
     vtkTAG2EFilteringWin32Header.h
     vtkTAG2EImageDataN2OFilterFreibauer.h
     vtkTAG2EDataSetN2OFilterFreibauer.h
