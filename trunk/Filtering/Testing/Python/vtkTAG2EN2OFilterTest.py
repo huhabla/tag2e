@@ -40,13 +40,7 @@ from libvtkTAG2EFilteringPython import *
 
 class vtkTAG2EDImageDataN2OFilterTest(unittest.TestCase):
     def setUp(self):
-        
-        model = vtkTAG2EFuzzyInferenceSchemeModel()
-        fisc = vtkTAG2EFuzzyInferenceSchemeCalibration()
-        coll = vtkTAG2ECalibrationParameterCollection()
-        coll.AddItem(fisc)
-        model.SetParameterCollection(coll)
-        
+
         size = 55
 
         self.nrate = vtkImageData()

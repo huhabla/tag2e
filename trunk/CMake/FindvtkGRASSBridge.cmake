@@ -42,6 +42,10 @@ IF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 	FIND_LIBRARY(vtkGRASSBridgeFiltering vtkGRASSBridgeFiltering	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeFilteringPython vtkGRASSBridgeFilteringPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeFilteringPythonD vtkGRASSBridgeFilteringPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeGraphics vtkGRASSBridgeGraphics	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeGraphicsPython vtkGRASSBridgeGraphicsPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	FIND_LIBRARY(vtkGRASSBridgeGraphicsPythonD vtkGRASSBridgeGraphicsPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+
 ENDIF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 
 # In case everything is ok, set the variables
@@ -51,6 +55,7 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
         	SET( VTK_GRASS_BRIDGE_LIBRARIES 
 			${vtkGRASSBridgeCommon}
                         ${vtkGRASSBridgeVector}
+                        ${vtkGRASSBridgeGraphics}
                         ${vtkGRASSBridgeRaster}
                         ${vtkGRASSBridgeRaster3d}
                         ${vtkGRASSBridgeFiltering}
@@ -69,6 +74,9 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeFilteringPythonD}
                         ${vtkGRASSBridgeIOPython}
                         ${vtkGRASSBridgeIOPythonD}
+                        ${vtkGRASSBridgeGraphicsPython}
+                        ${vtkGRASSBridgeGraphicsPythonD}
+
 		)
 	ENDIF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 ENDIF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
@@ -90,4 +98,7 @@ MARK_AS_ADVANCED(
     vtkGRASSBridgeIO
     vtkGRASSBridgeIOPython
     vtkGRASSBridgeIOPythonD
+    vtkGRASSBridgeGraphics
+    vtkGRASSBridgeGraphicsPython
+    vtkGRASSBridgeGraphicsPythonD
 )

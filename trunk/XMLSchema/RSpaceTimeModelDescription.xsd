@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<xsd:schema
+  xmlns='http://www.w3.org/2000/10/XMLSchema'
+  targetNamespace='http://tag2e.googlecode.com/files/RSpaceTimeModelDescription'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/RSpaceTimeModelDescription'
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<!-- This XML scheme describes . -->
+    <xsd:element name='RSpaceTimeModelDescription'>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref='tag2e:InputArrays' minOccurs='0' maxOccurs='unbounded'/>
+                <xsd:element ref='tag2e:OutputArrays' minOccurs='0' maxOccurs='unbounded'/>
+                <xsd:element name='RScript' type="xsd:string" minOccurs='1' maxOccurs='unbounded'/>
+            </xsd:sequence>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- -->
+    <xsd:element name='InputArrays'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+                <xsd:element name='ArrayName' type="xsd:string"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- -->
+    <xsd:element name='OutputArrays'>
+        <xsd:complexType>
+            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+                <xsd:element name='ArrayName' type="xsd:string"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>
