@@ -40,7 +40,7 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-# test a simple linear regression scheme
+# Test the abstract class of correct xml functionality
 class vtkTAG2EAbstractModelVariationAnalyzerTests(unittest.TestCase):
        
     def setUp(self):

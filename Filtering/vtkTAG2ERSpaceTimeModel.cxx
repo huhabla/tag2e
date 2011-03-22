@@ -154,7 +154,8 @@ vtkTAG2ERSpaceTimeModel::RequestData(
     }
 
     // Parse the XML content
-    this->BuildArrays();
+    if(this->BuildArrays() == false)
+      return -1;
 
     // get the first input and ouptut
     vtkTemporalDataSet *Input = vtkTemporalDataSet::SafeDownCast(
@@ -176,8 +177,8 @@ vtkTAG2ERSpaceTimeModel::RequestData(
         vtkDataSetAttributes *data = InputDataSet->GetPointData();
 
         double time = timeValues[timeStep];
-        cout << "Attach time " << time << endl;
-        timeSteps->InsertNextValue(time);
+        //cout << "Attach time " << time << endl;
+        timeSteps->SetValue(timeStep, time);
 
         for(array = 0; array < this->InputArrayNames->GetNumberOfValues(); array++)
         {
@@ -224,7 +225,7 @@ vtkTAG2ERSpaceTimeModel::RequestData(
         OutputDataSet->CopyStructure(InputDataSet);
 
         // For each output array
-        for(array = 0; array < collection->GetNumberOfItems(); array++) {
+        for(array = 0; array < (unsigned int)collection->GetNumberOfItems(); array++) {
             vtkDataArray *resultArray  = collection->GetItem(array);
             vtkDataArray *outArray = resultArray->NewInstance();
             outArray->SetName(resultArray->GetName());
@@ -260,14 +261,15 @@ vtkTAG2ERSpaceTimeModel::RequestData(
 bool
 vtkTAG2ERSpaceTimeModel::BuildArrays()
 {
-    int i;
+    int i = 0;
     this->InputArrayNames->Initialize();
     this->OutputArrayNames->Initialize();
 
     vtkXMLDataElement *root = this->ModelParameter->GetXMLRoot();
 
     // Check for correct
-    if (strncasecmp(root->GetName(), "RSpaceTimeModelScheme", 21) != 0)
+    
+    if (strncasecmp(root->GetName(), "RSpaceTimeModelDescription", strlen("RSpaceTimeModelDescription")) != 0)
     {
         vtkErrorMacro("The model parameter does not contain a valid R space time scheme");
         return false;
@@ -279,7 +281,7 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
     }
     else
     {
-        vtkErrorMacro( << "Attribute \"name\" is missing in RSpaceTimeModelScheme element: " << i);
+        vtkErrorMacro( << "Attribute \"name\" is missing in RSpaceTimeModelScheme element");
         return false;
     }
 
@@ -293,6 +295,7 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
     }
     else
     {
+      cout << rscript->GetCharacterData() << endl;
         this->SetRString(rscript->GetCharacterData());
     }
 
@@ -302,12 +305,12 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
     {
         for (i = 0; i < inputs->GetNumberOfNestedElements(); i++)
         {
-            vtkXMLDataElement *element = root->GetNestedElement(i);
+            vtkXMLDataElement *element = inputs->GetNestedElement(i);
             // Check for Coefficient elements
-            if (strncasecmp(element->GetName(), "ArrayName", 9) == 0)
+            if (strncasecmp(element->GetName(), "ArrayName", strlen("ArrayName")) == 0)
             {
                 this->InputArrayNames->InsertNextValue(element->GetCharacterData());
-                cout << "Input array " << element->GetCharacterData() << endl;
+                //cout << "Input array " << element->GetCharacterData() << endl;
             }
         }
     }
@@ -318,12 +321,12 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
     {
         for (i = 0; i < outputs->GetNumberOfNestedElements(); i++)
         {
-            vtkXMLDataElement *element = root->GetNestedElement(i);
+            vtkXMLDataElement *element = outputs->GetNestedElement(i);
             // Check for Coefficient elements
-            if (strncasecmp(element->GetName(), "ArrayName", 9) == 0)
+            if (strncasecmp(element->GetName(), "ArrayName", strlen("ArrayName")) == 0)
             {
                 this->OutputArrayNames->InsertNextValue(element->GetCharacterData());
-                cout << "Output array " << element->GetCharacterData() << endl;
+                //cout << "Output array " << element->GetCharacterData() << endl;
             }
         }
     }

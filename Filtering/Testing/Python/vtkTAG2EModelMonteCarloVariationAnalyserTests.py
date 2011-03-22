@@ -354,7 +354,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         analyser.SetNumberOfRandomValues(10000)
         analyser.SetNumberOfTimeSteps(10)
         analyser.SetMaxNumberOfIterations(20000)
-        analyser.SetBreakCriterion(0.0001)
+        analyser.SetBreakCriterion(0.001)
         analyser.Update()
         
         output = analyser.GetOutput()
