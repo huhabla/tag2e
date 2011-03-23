@@ -58,29 +58,31 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   
   cout << this->Scheme.name << endl;
   cout << this->Scheme.InferenceScheme.name << endl;
-  
+    
   for(i = 0; i < this->Scheme.InferenceScheme.Factors.size(); i++) {
-    cout << " " << this->Scheme.InferenceScheme.Factors[i].name << endl;
-    cout << " " << this->Scheme.InferenceScheme.Factors[i].min << endl;
-    cout << " " << this->Scheme.InferenceScheme.Factors[i].max << endl;
-    for(j = 0; j < this->Scheme.InferenceScheme.Factors[i].Sets.size(); j++) {
-      cout << "  " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].constant << endl;
-      cout << "  " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].position << endl;
-      cout << "  " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].priority << endl;
-      cout << "  " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].type << endl;
-      if(this->Scheme.InferenceScheme.Factors[i].Sets[j].type == FUZZY_SET_TYPE_TRIANGULAR) {
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].Triangular.center << endl;
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].Triangular.left << endl;
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].Triangular.right << endl;
+    FuzzyFactor &Factor = this->Scheme.InferenceScheme.Factors[i];
+    cout << " " << Factor.name << endl;
+    cout << " " << Factor.min << endl;
+    cout << " " << Factor.max << endl;
+    for(j = 0; j < Factor.Sets.size(); j++) {
+      FuzzySet &Set = Factor.Sets[j];
+      cout << "  " <<  Set.constant << endl;
+      cout << "  " <<  Set.position << endl;
+      cout << "  " <<  Set.priority << endl;
+      cout << "  " <<  Set.type << endl;
+      if(Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+        cout << "   " <<  Set.Triangular.center << endl;
+        cout << "   " <<  Set.Triangular.left << endl;
+        cout << "   " <<  Set.Triangular.right << endl;
       }
-      if(this->Scheme.InferenceScheme.Factors[i].Sets[j].type == FUZZY_SET_TYPE_CRISP) {
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].Crisp.left << endl;
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].Crisp.right << endl;
+      if(Set.type == FUZZY_SET_TYPE_CRISP) {
+        cout << "   " <<  Set.Crisp.left << endl;
+        cout << "   " <<  Set.Crisp.right << endl;
       }
-      if(this->Scheme.InferenceScheme.Factors[i].Sets[j].type == FUZZY_SET_TYPE_BELL_SHAPE) {
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].BellShape.center << endl;
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].BellShape.sdLeft << endl;
-        cout << "   " <<  this->Scheme.InferenceScheme.Factors[i].Sets[j].BellShape.sdRight << endl;
+      if(Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
+        cout << "   " <<  Set.BellShape.center << endl;
+        cout << "   " <<  Set.BellShape.sdLeft << endl;
+        cout << "   " <<  Set.BellShape.sdRight << endl;
       }
     }
   }
@@ -89,21 +91,23 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   cout << this->Scheme.InferenceScheme.Responses.max << endl;
   
   for(i = 0; i < this->Scheme.InferenceScheme.Responses.Responses.size(); i++) {
-    cout << " " << this->Scheme.InferenceScheme.Responses.Responses[i].constant << endl;
-    cout << " " << this->Scheme.InferenceScheme.Responses.Responses[i].sd << endl;
-    cout << " " << this->Scheme.InferenceScheme.Responses.Responses[i].value << endl;
+    FuzzyResponse &Response = this->Scheme.InferenceScheme.Responses.Responses[i];
+    cout << " " << Response.constant << endl;
+    cout << " " << Response.sd << endl;
+    cout << " " << Response.value << endl;
   }
   
   cout << this->Scheme.Weights.active << endl;
   
   for(i = 0; i < this->Scheme.Weights.Weights.size(); i++) {
-    cout << " " << this->Scheme.Weights.Weights[i].active << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].constant << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].max << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].min << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].name << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].portId << endl;
-    cout << " " << this->Scheme.Weights.Weights[i].value << endl;
+    FuzzyWeight &Weight = this->Scheme.Weights.Weights[i];
+    cout << " " << Weight.active << endl;
+    cout << " " << Weight.constant << endl;
+    cout << " " << Weight.max << endl;
+    cout << " " << Weight.min << endl;
+    cout << " " << Weight.name << endl;
+    cout << " " << Weight.portId << endl;
+    cout << " " << Weight.value << endl;
   }
   return true;
 }
