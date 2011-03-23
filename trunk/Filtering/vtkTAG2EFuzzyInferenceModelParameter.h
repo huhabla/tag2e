@@ -37,8 +37,102 @@
 #include <vtkXMLDataElement.h>
 #include <assert.h>
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
+#include <vector>
+#include <map>
 
-class vtkKeyValueMap;
+#define FUZZY_SET_POISITION_LEFT 0
+#define FUZZY_SET_POISITION_INT 1
+#define FUZZY_SET_POISITION_RIGHT 2
+#define FUZZY_SET_TYPE_TRIANGULAR 0
+#define FUZZY_SET_TYPE_CRISP 1
+#define FUZZY_SET_TYPE_BELL_SHAPE 2
+
+class FuzzyShapeTriangular{
+public:
+    double center;
+    double left;
+    double right;
+};
+
+class FuzzyShapeCrisp{
+public:
+    double left;
+    double right;
+};
+
+class FuzzyShapeBell{
+public:
+    double center;
+    double sdLeft;
+    double sdRight;
+};
+
+class FuzzySet {
+public:
+    unsigned int type;
+    unsigned int priority;
+    unsigned int position;
+    bool constant;
+    FuzzyShapeTriangular Triangular;
+    FuzzyShapeCrisp Crisp;
+    FuzzyShapeBell BellShape;
+};
+
+class FuzzyFactor {
+public:
+    int portId;
+    std::string name;
+    double min;
+    double max;
+    std::vector<FuzzySet> Sets;
+};
+
+class FuzzyResponse{
+public:
+    bool constant;
+    double value;
+    double sd;
+};
+
+class FuzzyResponses{
+public:
+    double min;
+    double max;
+    std::vector<FuzzyResponse> Responses;
+};
+
+class FuzzyInferenceScheme {
+public:
+    std::string name;
+    std::vector<FuzzyFactor> Factors;
+    FuzzyResponses Responses;
+};
+
+class FuzzyWeight{
+public:
+    int portId;
+    std::string name;
+    bool active;
+    bool constant;
+    double value;
+    double min;
+    double max;
+};
+
+class FuzzyWeights{
+public:
+    bool active;
+    std::vector<FuzzyWeight> Weights;
+};
+
+class WightedFuzzyInferenceScheme {
+public:
+    std::string name;
+    FuzzyInferenceScheme InferenceScheme;
+    FuzzyWeights Weights;
+};
+
+class vtkXMLDataElement;
 
 class vtkTAG2EFuzzyInferenceModelParameter : public vtkTAG2EAbstractCalibratableModelParameter {
 public:
@@ -49,27 +143,37 @@ public:
     }
     static vtkTAG2EFuzzyInferenceModelParameter *New();
     
+    //!\brief Change arbritary a model parameter
+    virtual void ChangeParameterRandomly(){;}
+    //!\brief Restore the last randomly modified model parameter 
+    virtual void RestoreParameter(){;}
     
-    //!\brief Compute the response for a specific faktor combination
-    double ComputeResponse(vtkKeyValueMap *map/*Key - Value map of factor names and factor values (char*, double)*/){;}
-
-    //!\brief Change a parameter of index idx with value
-    virtual void ChangeParameter(int idx, double value){;}
-    //!\brief Return the number of parameter which can be calibrated
-    virtual int GetNumberOfParameter(){;}
-    //!\brief Get the value of parameter with index idx
-    virtual double GetParameter(int idx){;}
-    //!\brief Get the range of the parameter of index idx
-    virtual void GetParameterRange(int idx, double range[2]){;}
-    //!\brief Get the standard deviation of the parameter of index idx
-    virtual double GetStandardDeviation(int idx){;}
+    virtual bool GenerateInternalSchemeFromXML();
+    virtual bool GenerateXMLFromInternalScheme();
+    
+    //BTX
+    WightedFuzzyInferenceScheme &GetInternalScheme(){return this->Scheme;}
+    //ETX
+    
 protected:        
 
     vtkTAG2EFuzzyInferenceModelParameter();
     ~vtkTAG2EFuzzyInferenceModelParameter();
+    
+    bool ParseFactors(vtkXMLDataElement *FuzzyInferenceScheme);
+    bool ParseResponses(vtkXMLDataElement *FuzzyInferenceScheme);
+    bool ParseFuzzyInferenceScheme(vtkXMLDataElement *FuzzyInferenceScheme);
+    bool ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor);
+    bool ParseWeights(vtkXMLDataElement *Weights);
+    
+    // BTX
+    WightedFuzzyInferenceScheme Scheme;
+    // ETX
+    
 private:
     vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);
     void operator=(const vtkTAG2EFuzzyInferenceModelParameter&); // Not implemented.
 };
+
 
 #endif	/* vtkTAG2EFuzzyInferenceModelParameter_H */
