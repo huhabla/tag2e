@@ -24,7 +24,6 @@
                 <xsd:element ref='tag2e:Responces'/>
             </xsd:choice>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
-            <xsd:attribute name='numberOfFaktors' type='xsd:nonNegativeInteger' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
@@ -39,7 +38,6 @@
             </xsd:sequence>
             <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
-            <xsd:attribute name='numberOfFuzzySets' type='xsd:nonNegativeInteger' use='required'/>
             <xsd:attribute name='min' type='xsd:double' use='required'/>
             <xsd:attribute name='max' type='xsd:double' use='required'/>
         </xsd:complexType>
@@ -52,7 +50,6 @@
                 <xsd:element ref='tag2e:Crisp'/>
                 <xsd:element ref='tag2e:BellShape'/>
             </xsd:choice>
-            <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
             <xsd:attribute name='type' use='required'>
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string">
@@ -119,8 +116,8 @@ l       r
     <xsd:element name='BellShape'>
         <xsd:complexType>
             <xsd:attribute name='center' type='xsd:double' use='required'/>
-            <xsd:attribute name='stddevLeft' type='xsd:double' use='required'/>
-            <xsd:attribute name='stddevRight' type='xsd:double' use='required'/>
+            <xsd:attribute name='sdLeft' type='xsd:double' use='required'/>
+            <xsd:attribute name='sdRight' type='xsd:double' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
@@ -129,7 +126,6 @@ l       r
             <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
                 <xsd:element ref='tag2e:Response'/>
             </xsd:sequence>
-            <xsd:attribute name='numberOfResponces' type='xsd:nonNegativeInteger' use='required'/>
             <xsd:attribute name='min' type='xsd:double' use='required'/>
             <xsd:attribute name='max' type='xsd:double' use='required'/>
         </xsd:complexType>
@@ -139,9 +135,8 @@ l       r
         <xsd:complexType mixed='true'>
             <xsd:simpleContent>
                 <xsd:extension base="xsd:double">
-                    <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
                     <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-                    <xsd:attribute name='standardDeviation' type='xsd:double' use='required'/>
+                    <xsd:attribute name='sd' type='xsd:double' use='required'/>
                 </xsd:extension>
             </xsd:simpleContent>
         </xsd:complexType>
@@ -153,7 +148,6 @@ l       r
                 <xsd:element ref='tag2e:Weight'/>
             </xsd:sequence>
             <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-            <xsd:attribute name='numberOfWeights' type='xsd:nonNegativeInteger' use='required'/>
         </xsd:complexType>
     </xsd:element>
 

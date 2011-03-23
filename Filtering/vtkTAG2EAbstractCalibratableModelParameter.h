@@ -49,16 +49,10 @@ class vtkTAG2EAbstractCalibratableModelParameter : public vtkTAG2EAbstractModelP
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
     
-    //!\brief Abstract Method to change a parameter of index idx with value
-    virtual void ChangeParameter(int idx, double value) = 0;
-    //!\brief Abstract Method to return the number of parameter which can be calibrated
-    virtual int GetNumberOfParameter() = 0;
-    //!\brief Abstract Method to get the value of parameter with index idx
-    virtual double GetParameter(int idx) = 0;
-    //!\brief Abstract Method to get the range of the parameter of index idx
-    virtual void GetParameterRange(int idx, double range[2]) = 0;
-    //!\brief Abstract Method to get the standard deviation of the parameter of index idx
-    virtual double GetStandardDeviation(int idx) = 0;
+    //!\brief Abstract Method to change arbritary a model parameter
+    virtual void ChangeParameterRandomly() = 0;
+    //!\brief Abstract Restore the last randomly modified model parameter 
+    virtual void RestoreParameter() = 0;
 
 protected:
 
