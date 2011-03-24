@@ -47,6 +47,8 @@
 #define FUZZY_SET_TYPE_CRISP 1
 #define FUZZY_SET_TYPE_BELL_SHAPE 2
 
+// The documentation of the following trivial classes
+// is located in the WeightedFuzzyInferenceScheme.xsd
 class FuzzyShapeTriangular{
 public:
     double center;
@@ -125,10 +127,10 @@ public:
     std::vector<FuzzyWeight> Weights;
 };
 
-class WightedFuzzyInferenceScheme {
+class WeightedFuzzyInferenceScheme {
 public:
     std::string name;
-    FuzzyInferenceScheme InferenceScheme;
+    FuzzyInferenceScheme FIS;
     FuzzyWeights Weights;
 };
 
@@ -152,7 +154,7 @@ public:
     virtual bool GenerateXMLFromInternalScheme();
     
     //BTX
-    WightedFuzzyInferenceScheme &GetInternalScheme(){return this->Scheme;}
+    WeightedFuzzyInferenceScheme &GetInternalScheme(){return this->WFIS;}
     //ETX
     
 protected:        
@@ -167,7 +169,7 @@ protected:
     bool ParseWeights(vtkXMLDataElement *Weights);
     
     // BTX
-    WightedFuzzyInferenceScheme Scheme;
+    WeightedFuzzyInferenceScheme WFIS;
     // ETX
     
 private:
