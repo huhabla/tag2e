@@ -37,11 +37,71 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
+from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeCommonPython import *
 
 class vtkTAG2EDFuzzyTest(unittest.TestCase):
+  
+    def setUp(self):
+        
+        # Create the point data
+        xext = 50
+        yext = 50
+        num = xext*yext
+                
+        data1 = vtkDoubleArray()
+        data1.SetNumberOfTuples(num)
+        data1.SetName("data1")
+        data2 = vtkDoubleArray()
+        data2.SetNumberOfTuples(num)
+        data2.SetName("data2")
+        data3 = vtkDoubleArray()
+        data3.SetNumberOfTuples(num)
+        data3.SetName("data3")
+        
+        # Point ids for poly vertex cell
+        ids = vtkIdList()
+        points = vtkPoints()
+        
+        count = 0
+        for i in range(xext):
+            for j in range(yext):
+                points.InsertNextPoint(i, j, 0)
+                data1.SetValue(count, i)
+                data2.SetValue(count, j)
+                data3.SetValue(count, i*j)
+                ids.InsertNextId(count)
+                count += 1
+
+        ds = vtkPolyData()
+        ds.Allocate(xext,yext)
+        ds.GetPointData().SetScalars(data1)
+        ds.GetPointData().AddArray(data2)
+        ds.GetPointData().AddArray(data3)
+        ds.SetPoints(points)    
+        ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
+        
+        # Create the temporal data
+
+        # We have 10 time steps!
+        time = 10
+        
+        # Generate the time steps
+        timesteps = vtkDoubleArray()
+        timesteps.SetNumberOfTuples(time)
+        timesteps.SetNumberOfComponents(1)
+        for i in range(time):
+            timesteps.SetValue(i, 3600*24*i)
+
+        # Create the spatio-temporal source
+        self.timesource = vtkTemporalDataSetSource()
+        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
+        for i in range(time):
+            self.timesource.SetInput(i, ds)
+        self.timesource.Update()
+        
     def testFuzzyXML(self):
         
-        fisc = vtkTAG2EFuzzyInferenceModelParameter()
         
         root  = vtk.vtkXMLDataElement()
         
@@ -143,7 +203,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         rval3.SetCharacterData("40.00", 5)
         rval3.SetCharacterDataWidth(0)
         
-        resp.SetName("Responces")
+        resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0.0)
         resp.SetDoubleAttribute("max", 1.0)
         resp.AddNestedElement(rval1)
@@ -178,7 +238,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         responseWeights.SetCharacterDataWidth(0)
         
         fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.SetAttribute("name", "N2OEmission_V20101111")
+        fuzzyRoot.SetAttribute("name", "test")
         fuzzyRoot.SetIntAttribute("numberOfFaktors", 2)
         fuzzyRoot.AddNestedElement(fss1)
         fuzzyRoot.AddNestedElement(fss2)
@@ -186,6 +246,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fuzzyRoot.SetCharacterDataWidth(0)
         
         root.SetName("WeightedFuzzyInferenceScheme")
+        root.SetAttribute("name", "N2OEmission_V20101111")
         root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
@@ -193,6 +254,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         root.AddNestedElement(responseWeights)
         root.SetCharacterDataWidth(0)  
         
+        fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
         fisc.GetXMLRoot().DeepCopy(root)
         fisc.Write()
@@ -205,6 +267,11 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         fisc.GenerateInternalSchemeFromXML()
         fisc.GenerateXMLFromInternalScheme()
+
+        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model.SetModelParameter(fisc)
+        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.Update()
         
   
 if __name__ == '__main__':

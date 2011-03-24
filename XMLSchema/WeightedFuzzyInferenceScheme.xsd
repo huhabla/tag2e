@@ -21,7 +21,7 @@
         <xsd:complexType>
             <xsd:choice minOccurs='0' maxOccurs='unbounded'>
                 <xsd:element ref='tag2e:Factor'/>
-                <xsd:element ref='tag2e:Responces'/>
+                <xsd:element ref='tag2e:Responses'/>
             </xsd:choice>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
         </xsd:complexType>
@@ -121,7 +121,7 @@ l       r
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Responces'>
+    <xsd:element name='Responses'>
         <xsd:complexType>
             <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
                 <xsd:element ref='tag2e:Response'/>
