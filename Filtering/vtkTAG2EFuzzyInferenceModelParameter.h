@@ -105,14 +105,12 @@ public:
 
 class FuzzyInferenceScheme {
 public:
-    std::string name;
     std::vector<FuzzyFactor> Factors;
     FuzzyResponses Responses;
 };
 
 class FuzzyWeight{
 public:
-    int portId;
     std::string name;
     bool active;
     bool constant;
@@ -121,17 +119,11 @@ public:
     double max;
 };
 
-class FuzzyWeights{
-public:
-    bool active;
-    std::vector<FuzzyWeight> Weights;
-};
-
 class WeightedFuzzyInferenceScheme {
 public:
     std::string name;
     FuzzyInferenceScheme FIS;
-    FuzzyWeights Weights;
+    FuzzyWeight Weight;
 };
 
 class vtkXMLDataElement;
@@ -153,6 +145,9 @@ public:
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
     
+    vtkGetMacro(NumberOfRules, int);
+    vtkGetMacro(NumberOfFactors, int);
+    
     //BTX
     WeightedFuzzyInferenceScheme &GetInternalScheme(){return this->WFIS;}
     //ETX
@@ -171,6 +166,9 @@ protected:
     // BTX
     WeightedFuzzyInferenceScheme WFIS;
     // ETX
+    
+    int NumberOfRules;
+    int NumberOfFactors;
     
 private:
     vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);

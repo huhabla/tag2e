@@ -49,15 +49,16 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         yext = 50
         num = xext*yext
                 
-        data1 = vtkDoubleArray()
-        data1.SetNumberOfTuples(num)
-        data1.SetName("data1")
-        data2 = vtkDoubleArray()
-        data2.SetNumberOfTuples(num)
-        data2.SetName("data2")
-        data3 = vtkDoubleArray()
-        data3.SetNumberOfTuples(num)
-        data3.SetName("data3")
+        pH = vtkDoubleArray()
+        pH.SetNumberOfTuples(num)
+        pH.SetName("pH")
+        pH.FillComponent(0, 5)
+        
+        nmin = vtkDoubleArray()
+        nmin.SetNumberOfTuples(num)
+        nmin.SetName("nmin")
+        nmin.FillComponent(0, 75)
+        
         
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -67,17 +68,13 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         for i in range(xext):
             for j in range(yext):
                 points.InsertNextPoint(i, j, 0)
-                data1.SetValue(count, i)
-                data2.SetValue(count, j)
-                data3.SetValue(count, i*j)
                 ids.InsertNextId(count)
                 count += 1
 
         ds = vtkPolyData()
         ds.Allocate(xext,yext)
-        ds.GetPointData().SetScalars(data1)
-        ds.GetPointData().AddArray(data2)
-        ds.GetPointData().AddArray(data3)
+        ds.GetPointData().SetScalars(pH)
+        ds.GetPointData().AddArray(nmin)
         ds.SetPoints(points)    
         ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
         
@@ -100,8 +97,11 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             self.timesource.SetInput(i, ds)
         self.timesource.Update()
         
-    def testFuzzyXML(self):
+    def test1Self(self):
+        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model.TestFISComputation()
         
+    def test2FuzzyXML(self):
         
         root  = vtk.vtkXMLDataElement()
         
@@ -119,24 +119,37 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         rval2 = vtkXMLDataElement()
         rval3 = vtkXMLDataElement()
         
-        responseWeights = vtkXMLDataElement()
-        responseWeight1 = vtkXMLDataElement()
-        responseWeight2 = vtkXMLDataElement()
+        weight = vtkXMLDataElement()
+        
+# Triangular test shape layout
+# ____        ____
+#     \  /\  /
+#      \/  \/
+#      /\  /\
+#     /  \/  \
+# 0  0.3 0.5 0.7  1
+#
+# - 1 - - 2 - - 3 - 
+#
+# 1: left = 2222 center = 0.3 right = 0.2
+# 2: left = 0.2  center = 0.5 right = 0.2
+# 3: left = 0.2  center = 0.7 right = 2222
+#       
         
         tr1.SetName("Triangular")
-        tr1.SetDoubleAttribute("center", 5.0)
-        tr1.SetDoubleAttribute("left", 0.0)
-        tr1.SetDoubleAttribute("right", 10.0)
+        tr1.SetDoubleAttribute("center", 0.3)
+        tr1.SetDoubleAttribute("left",   2222)
+        tr1.SetDoubleAttribute("right",  0.2)
         
         tr2.SetName("Triangular")
-        tr2.SetDoubleAttribute("center", 0.0)
-        tr2.SetDoubleAttribute("left", -4.0)
-        tr2.SetDoubleAttribute("right", 4.0)
+        tr2.SetDoubleAttribute("center", 0.5)
+        tr2.SetDoubleAttribute("left",   0.2)
+        tr2.SetDoubleAttribute("right",  0.2)
         
         tr3.SetName("Triangular")
-        tr3.SetDoubleAttribute("center", 5.0)
-        tr3.SetDoubleAttribute("left", 10.0)
-        tr3.SetDoubleAttribute("right", 0.0)
+        tr3.SetDoubleAttribute("center",  0.7)
+        tr3.SetDoubleAttribute("left",    0.2)
+        tr3.SetDoubleAttribute("right",   2222)
         
         fs1.SetName("FuzzySet")
         fs1.SetIntAttribute("id", 1)
@@ -145,7 +158,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs1.SetIntAttribute("const", 0)
         fs1.SetAttribute("position", "left")
         fs1.AddNestedElement(tr1)
-        fs1.SetCharacterDataWidth(0)
         
         fs2.SetName("FuzzySet")
         fs2.SetIntAttribute("id", 2)
@@ -154,7 +166,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs2.SetIntAttribute("const", 0)
         fs2.SetAttribute("position", "intermediate")
         fs2.AddNestedElement(tr2)
-        fs2.SetCharacterDataWidth(0)
         
         fs3.SetName("FuzzySet")
         fs3.SetIntAttribute("id", 3)
@@ -163,8 +174,8 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs3.SetIntAttribute("const", 0)
         fs3.SetAttribute("position", "right")
         fs3.AddNestedElement(tr3)
-        fs3.SetCharacterDataWidth(0)
         
+        # Two factors 
         fss1.SetName("Factor")
         fss1.SetIntAttribute("portId", 0)
         fss1.SetAttribute("name", "pH")
@@ -173,77 +184,50 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss1.AddNestedElement(fs1)
         fss1.AddNestedElement(fs2)
         fss1.AddNestedElement(fs3)
-        fss1.SetCharacterDataWidth(0)
         
         fss2.SetName("Factor")
-        fss2.SetIntAttribute("portId", 1)
+        fss2.SetIntAttribute("portId", 0)
         fss2.SetAttribute("name", "nmin")
-        fss2.SetDoubleAttribute("min", 1.0)
-        fss2.SetDoubleAttribute("max", 9.0)
+        fss2.SetDoubleAttribute("min", 0.0)
+        fss2.SetDoubleAttribute("max", 150)
         fss2.AddNestedElement(fs1)
         fss2.AddNestedElement(fs2)
         fss2.AddNestedElement(fs3)
-        fss2.SetCharacterDataWidth(0)
         
         rval1.SetName("Response")
         rval1.SetIntAttribute("const", 0)
         rval1.SetIntAttribute("sd", 1)
         rval1.SetCharacterData("120.00", 6)
-        rval1.SetCharacterDataWidth(0)
         
         rval2.SetName("Response")
         rval2.SetIntAttribute("const", 0)
         rval2.SetIntAttribute("sd", 2)
         rval2.SetCharacterData("80.00", 5)
-        rval2.SetCharacterDataWidth(0)
         
         rval3.SetName("Response")
         rval3.SetIntAttribute("const", 0)
         rval3.SetIntAttribute("sd", 3)
         rval3.SetCharacterData("40.00", 5)
-        rval3.SetCharacterDataWidth(0)
         
         resp.SetName("Responses")
-        resp.SetDoubleAttribute("min", 0.0)
-        resp.SetDoubleAttribute("max", 1.0)
+        resp.SetDoubleAttribute("min", 40.0)
+        resp.SetDoubleAttribute("max", 120.0)
         resp.AddNestedElement(rval1)
         resp.AddNestedElement(rval2)
         resp.AddNestedElement(rval3)
-        resp.SetCharacterDataWidth(0)
-
-        responseWeight1.SetName("Weight")
-        responseWeight1.SetIntAttribute("portId", 0)
-        responseWeight1.SetAttribute("name", "grass")
-        responseWeight1.SetIntAttribute("active", 1)
-        responseWeight1.SetIntAttribute("const", 0)
-        responseWeight1.SetDoubleAttribute("min", 0)
-        responseWeight1.SetDoubleAttribute("max", 10)
-        responseWeight1.SetCharacterData("0.150", 5)
-        responseWeight1.SetCharacterDataWidth(0)
-        
-        responseWeight2.SetName("Weight")
-        responseWeight2.SetIntAttribute("portId", 1)
-        responseWeight2.SetAttribute("name", "vegt")
-        responseWeight2.SetIntAttribute("active", 1)
-        responseWeight2.SetIntAttribute("const", 0)
-        responseWeight2.SetDoubleAttribute("min", 0)
-        responseWeight2.SetDoubleAttribute("max", 10)
-        responseWeight2.SetCharacterData("0.150", 5)
-        responseWeight2.SetCharacterDataWidth(0)
-        
-        responseWeights.SetName("Weights")
-        responseWeights.SetIntAttribute("active", 1)
-        responseWeights.AddNestedElement(responseWeight1)
-        responseWeights.AddNestedElement(responseWeight2)
-        responseWeights.SetCharacterDataWidth(0)
-        
+                
         fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.SetAttribute("name", "test")
-        fuzzyRoot.SetIntAttribute("numberOfFaktors", 2)
         fuzzyRoot.AddNestedElement(fss1)
         fuzzyRoot.AddNestedElement(fss2)
         fuzzyRoot.AddNestedElement(resp)
-        fuzzyRoot.SetCharacterDataWidth(0)
+        
+        weight.SetName("Weight")
+        weight.SetAttribute("name", "grass")
+        weight.SetIntAttribute("active", 1)
+        weight.SetIntAttribute("const", 0)
+        weight.SetDoubleAttribute("min", 0)
+        weight.SetDoubleAttribute("max", 10)
+        weight.SetCharacterData("1.0", 5)
         
         root.SetName("WeightedFuzzyInferenceScheme")
         root.SetAttribute("name", "N2OEmission_V20101111")
@@ -251,8 +235,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
         root.AddNestedElement(fuzzyRoot)
-        root.AddNestedElement(responseWeights)
-        root.SetCharacterDataWidth(0)  
+        root.AddNestedElement(weight)
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
@@ -265,14 +248,15 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fisc.SetFileName("/tmp/FuzzyInferenceScheme2.xml")
         fisc.Write()
         
-        fisc.GenerateInternalSchemeFromXML()
-        fisc.GenerateXMLFromInternalScheme()
-
         model = vtkTAG2EWeightedFuzzyInferenceModel()
         model.SetModelParameter(fisc)
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.Update()
-        
+                
+        writer = vtkPolyDataWriter()
+        writer.SetFileName("/tmp/test1_FIS_result.vtk")
+        writer.SetInput(model.GetOutput().GetTimeStep(0))
+        writer.Write()
   
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)

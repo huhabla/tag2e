@@ -7,9 +7,9 @@
 
     <xsd:element name='WeightedFuzzyInferenceScheme'>
         <xsd:complexType>
-            <xsd:choice minOccurs='0' maxOccurs='unbounded'>
+            <xsd:choice minOccurs='0' maxOccurs='1'>
                 <xsd:element ref='tag2e:FuzzyInferenceScheme'/>
-                <xsd:element ref='tag2e:Weights'/>
+                <xsd:element ref='tag2e:Weight'/>
             </xsd:choice>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
         </xsd:complexType>
@@ -23,7 +23,6 @@
                 <xsd:element ref='tag2e:Factor'/>
                 <xsd:element ref='tag2e:Responses'/>
             </xsd:choice>
-            <xsd:attribute name='name' type='xsd:string' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
@@ -142,23 +141,17 @@ l       r
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Weights'>
-        <xsd:complexType>
-            <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
-                <xsd:element ref='tag2e:Weight'/>
-            </xsd:sequence>
-            <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-        </xsd:complexType>
-    </xsd:element>
-
     <xsd:element name='Weight'>
         <xsd:complexType mixed='true'>
-            <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
-            <xsd:attribute name='name' type='xsd:string' use='required'/>
-            <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-            <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-            <xsd:attribute name='min' type='xsd:double' use='required'/>
-            <xsd:attribute name='max' type='xsd:double' use='required'/>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:double">
+                    <xsd:attribute name='name' type='xsd:string' use='required'/>
+                    <xsd:attribute name='active' type='xsd:boolean' use='required'/>
+                    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+                    <xsd:attribute name='min' type='xsd:double' use='required'/>
+                    <xsd:attribute name='max' type='xsd:double' use='required'/>
+                </xsd:extension>
+            </xsd:simpleContent>
         </xsd:complexType>
     </xsd:element>
 </xsd:schema>
