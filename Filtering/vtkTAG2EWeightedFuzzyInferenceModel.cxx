@@ -442,8 +442,10 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     pos = (RuleCodeMatrix[rule][d]);
     shape = WFIS.FIS.Factors[d].Sets[pos].type;
 
-    // The value of normedInput at position d is normed [0:1]. In case larger values than 10 we assume 
-    // the membership is 100%. Values larger than 10 my occure in case values are missing and 
+    // The value of normedInput at position d is normed [0:1] using its defiend max and min values. 
+    // Larger values of 1 are possible in case of the maximum was to low estimated.
+    // In case larger values than 10 we assume 
+    // the membership is 100%. Values larger than 10 may occure in case values are missing and 
     // replaced by a large default number.
     if ((normedInput[d] > 10) || (normedInput[d] < 0)) {
       dom[d] = 1;
@@ -504,6 +506,9 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     d++;
   } while (d < (numberOfFactors));
 
+  delete [] dom;
+  delete [] normedInput;
+  
   //  cout << "Deegree of fullfillment " << dof << endl;
   return dof;
 }
