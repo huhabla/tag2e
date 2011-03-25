@@ -177,7 +177,6 @@ void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractMode
 
   WeightedFuzzyInferenceScheme &WFIS = this->FuzzyModelParameter->GetInternalScheme();
 
-
   // Count the input ports and array names
   for (i = 0; i < this->FuzzyModelParameter->GetNumberOfFactors(); i++) {
     this->InputPorts->InsertValue(i, WFIS.FIS.Factors[i].portId);
@@ -197,7 +196,6 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
   vtkInformationVector *outputVector)
 {
   unsigned int timeStep;
-  double *fuzzyInput;
   int numberOfRules = 0;
   int numberOfFactors = 0;
 
@@ -239,9 +237,6 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     int i, j;
     int port;
 
-    // Input array for fuzzy logic computation
-    fuzzyInput = new double(numberOfFactors);
-
     // The first input is used to create the ouput
     // It is assumed that each input has the same number of points and the same topology
     // The number of point data arrays can/should differ
@@ -250,10 +245,11 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     outputDataSet->CopyStructure(firstInputDataSet);
 
     // Result for the current time step
-    vtkDataArray *result = vtkDoubleArray::New();
+    vtkDoubleArray *result = vtkDoubleArray::New();
     result->SetNumberOfComponents(0);
     result->SetName(this->ResultArrayName);
     result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
+    result->FillComponent(0,0.0);
 
     // This is used to store the needed arrays pointer to collect the 
     // data for fuzzy computation
@@ -305,14 +301,19 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
       Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
     }
     
-    double val;
     // Run the Fuzzy model for each point/pixel
     for (i = 0; i < firstInputDataSet->GetNumberOfPoints(); i++) {
+
+      // Input array for fuzzy logic computation
+      double *fuzzyInput = new double[numberOfFactors];
+
       for (j = 0; j < numberOfFactors; j++) {
-        fuzzyInput[j] = Data[j]->GetTuple1(i);
+        Data[j]->GetTuple(i, &fuzzyInput[j]);
       }
-      val = this->ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, WFIS);
-      result->SetTuple1(i, val);
+
+      double val = this->ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, WFIS);
+      result->SetValue(i, val);
+      delete [] fuzzyInput;
     }
 
     //TODO: Support point and cell data 
@@ -321,9 +322,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     output->SetTimeStep(timeStep, outputDataSet);
     outputDataSet->Delete();
     result->Delete();
-    delete [] fuzzyInput;
   }
-
 
   return 1;
 }
@@ -341,6 +340,20 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::ComputeRuleCodeMatrixEntries(std::vect
 {
   int col, x, length, length1, dum, inp, num, num1;
   int numberOfFactors = WFIS.FIS.Factors.size();
+
+  // Compute the rule code matrix which contains the 
+  // permutation of all factors. The matrix enries are
+  // the ids of the fuzzy set shapes.
+  // The size of the matrix is numberOfRules * numberOfFactors.
+  // Example:
+  //
+  // 2 factors with each 2 fuzzy sets == 4 Rules  
+  //
+  // The resulting matrix is of form:
+  // 0 0
+  // 0 1
+  // 1 0
+  // 1 1
 
   for (col = numberOfFactors - 1; col >= 0; col--) {
     length = 1;
@@ -423,11 +436,10 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
 {
 
   int numberOfFactors = WFIS.FIS.Factors.size();
-  int d = 0, pos, shape;
+  int d, pos, shape;
   double *dom = new double[numberOfFactors]; // Deegree of membership of a fuzzy set
-  double *normedInput = new double(numberOfFactors); // Normalized input values
+  double *normedInput = new double[numberOfFactors]; // Normalized input values
   double dof; // The resulting deegree of fullfillment for the rule
-
 
   //cout << "Normed values" << endl;
   // Norm the Input values and write the result in normedInput
@@ -436,7 +448,7 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     //cout << normedInput[d] << endl;
   }
 
-  d = 0;
+  d = 0; // counter
   dof = 1; // We need o initialize the resulting DOF with 1
   do {
     pos = (RuleCodeMatrix[rule][d]);
@@ -452,22 +464,24 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     } else {
       FuzzySet &Set = WFIS.FIS.Factors[d].Sets[pos];
       switch (shape) {
-      case FUZZY_SET_TYPE_BELL_SHAPE: //stanorm
+
+      case FUZZY_SET_TYPE_BELL_SHAPE: // gauss bell shape fuzzy numbers
         if (normedInput[d] - Set.BellShape.center <= 0) //left_side of the mean of the fuzzy number
         {
           if ((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdLeft<-4) {
-            dom[d] = 0.000001;
+            dom[d] = 0.0;
           } else {
             dom[d] = InterpolatePointInNormDist((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdLeft);
           }
         } else { //right side of the mean of the fuzzy number
           if ((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdRight > 4) {
-            dom[d] = 0.000001;
+            dom[d] = 0.0;
           } else {
             dom[d] = InterpolatePointInNormDist((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdRight);
           }
         }
         break;
+
       case FUZZY_SET_TYPE_TRIANGULAR: // triangular fuzzy numbers
         double m;
 
@@ -475,32 +489,33 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
         {
           //cout << "Is left" << endl;
           if ((Set.Triangular.left) > 1111) {
-            dom[d] = 1;
+            dom[d] = 1.0;
           } else {
-            m = 1 / Set.Triangular.left;
+            m = 1.0 / Set.Triangular.left;
             dom[d] = max(0.0, m * (normedInput[d] - Set.Triangular.center) + 1);
           }
         } else//right side of fuzzy number
         {
           //cout << "Is right" << endl;
           if (Set.Triangular.right > 1111) {
-            dom[d] = 1;
+            dom[d] = 1.0;
           } else {
-            m = -1 / Set.Triangular.right;
+            m = -1.0 / Set.Triangular.right;
             dom[d] = max(0.0, m * (normedInput[d] - Set.Triangular.center) + 1);
           }
         }
-
         break;
+
       case FUZZY_SET_TYPE_CRISP: // all or nothing the split is just in the middle between two alphas
         if (normedInput[d] >= Set.Crisp.left && normedInput[d] <= Set.Crisp.right) {
-          dom[d] = 1;
+          dom[d] = 1.0;
         } else {
-          dom[d] = 0;
+          dom[d] = 0.0;
         }
         break;
       }
     }
+
     dof *= dom[d]; // Accumulate the deegree of fullfillment
     //printf(" %f\n", dom[d]);
     d++;
@@ -535,7 +550,6 @@ double vtkTAG2EWeightedFuzzyInferenceModel::InterpolatePointInNormDist(double va
     (NormDistSamplingPoints[w2][0] -
     NormDistSamplingPoints[w1][0]) *
     (value - NormDistSamplingPoints[w1][0]);
-
 }
 
 //----------------------------------------------------------------------------

@@ -45,8 +45,8 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 500
-        yext = 500
+        xext = 1000
+        yext = 1000
         num = xext*yext
                 
         pH = vtkDoubleArray()
