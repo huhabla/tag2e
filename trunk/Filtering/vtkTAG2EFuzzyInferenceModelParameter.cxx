@@ -42,7 +42,8 @@ vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModelParameter);
 
 vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter()
 {
-  ;
+  this->NumberOfFactors = 0;
+  this->NumberOfRules = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -54,74 +55,69 @@ vtkTAG2EFuzzyInferenceModelParameter::~vtkTAG2EFuzzyInferenceModelParameter()
 
 bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
 {
-  unsigned int i, j; 
-  
+  unsigned int i, j;
+
   vtkXMLDataElement *root = vtkXMLDataElement::New();
   root->SetName("WeightedFuzzyInferenceScheme");
   root->SetAttribute("name", this->WFIS.name.c_str());
-  
+
   this->XMLRoot->DeepCopy(root);
-  
+
   cout << this->WFIS.name << endl;
-  cout << this->WFIS.FIS.name << endl;
-    
-  for(i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
+
+  for (i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
     FuzzyFactor &Factor = this->WFIS.FIS.Factors[i];
     cout << " " << Factor.name << endl;
     cout << " " << Factor.min << endl;
     cout << " " << Factor.max << endl;
-    for(j = 0; j < Factor.Sets.size(); j++) {
+    for (j = 0; j < Factor.Sets.size(); j++) {
       FuzzySet &Set = Factor.Sets[j];
-      cout << "  " <<  Set.constant << endl;
-      cout << "  " <<  Set.position << endl;
-      cout << "  " <<  Set.priority << endl;
-      cout << "  " <<  Set.type << endl;
-      if(Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
-        cout << "   " <<  Set.Triangular.center << endl;
-        cout << "   " <<  Set.Triangular.left << endl;
-        cout << "   " <<  Set.Triangular.right << endl;
+      cout << "  " << Set.constant << endl;
+      cout << "  " << Set.position << endl;
+      cout << "  " << Set.priority << endl;
+      cout << "  " << Set.type << endl;
+      if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+        cout << "   " << Set.Triangular.center << endl;
+        cout << "   " << Set.Triangular.left << endl;
+        cout << "   " << Set.Triangular.right << endl;
       }
-      if(Set.type == FUZZY_SET_TYPE_CRISP) {
-        cout << "   " <<  Set.Crisp.left << endl;
-        cout << "   " <<  Set.Crisp.right << endl;
+      if (Set.type == FUZZY_SET_TYPE_CRISP) {
+        cout << "   " << Set.Crisp.left << endl;
+        cout << "   " << Set.Crisp.right << endl;
       }
-      if(Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
-        cout << "   " <<  Set.BellShape.center << endl;
-        cout << "   " <<  Set.BellShape.sdLeft << endl;
-        cout << "   " <<  Set.BellShape.sdRight << endl;
+      if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
+        cout << "   " << Set.BellShape.center << endl;
+        cout << "   " << Set.BellShape.sdLeft << endl;
+        cout << "   " << Set.BellShape.sdRight << endl;
       }
     }
   }
-  
+
   cout << this->WFIS.FIS.Responses.min << endl;
   cout << this->WFIS.FIS.Responses.max << endl;
-  
-  for(i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
+
+  for (i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
     FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
     cout << " " << Response.constant << endl;
     cout << " " << Response.sd << endl;
     cout << " " << Response.value << endl;
   }
-  
-  cout << this->WFIS.Weights.active << endl;
-  
-  for(i = 0; i < this->WFIS.Weights.Weights.size(); i++) {
-    FuzzyWeight &Weight = this->WFIS.Weights.Weights[i];
-    cout << " " << Weight.active << endl;
-    cout << " " << Weight.constant << endl;
-    cout << " " << Weight.max << endl;
-    cout << " " << Weight.min << endl;
-    cout << " " << Weight.name << endl;
-    cout << " " << Weight.portId << endl;
-    cout << " " << Weight.value << endl;
-  }
-    
+
+  cout << " " << WFIS.Weight.active << endl;
+  cout << " " << WFIS.Weight.constant << endl;
+  cout << " " << WFIS.Weight.max << endl;
+  cout << " " << WFIS.Weight.min << endl;
+  cout << " " << WFIS.Weight.name << endl;
+  cout << " " << WFIS.Weight.value << endl;
+
+
   return true;
 }
 
 bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
 {
   vtkXMLDataElement *root = this->GetXMLRoot();
+  int i;
 
   // Check for correct name
   if (strncasecmp(root->GetName(), "WeightedFuzzyInferenceScheme", strlen("WeightedFuzzyInferenceScheme")) != 0) {
@@ -142,12 +138,6 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
   // Parse the Factors and the responses
   if (XMLFIS != NULL) {
 
-    if (XMLFIS->GetAttribute("name") != NULL) {
-      this->WFIS.FIS.name = XMLFIS->GetAttribute("name");
-    } else {
-      vtkErrorMacro( << "Attribute \"name\" is missing in FuzzyInferenceScheme element");
-      return false;
-    }
     this->ParseFactors(XMLFIS);
 
     vtkXMLDataElement *Responses = XMLFIS->FindNestedElementWithName("Responses");
@@ -156,23 +146,26 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
   }
 
   // Get the Fuzzy inference WFIS
-  vtkXMLDataElement *Weights = root->FindNestedElementWithName("Weights");
+  vtkXMLDataElement *Weight = root->FindNestedElementWithName("Weight");
 
   // Parse the Factors and the responses
-  if (Weights != NULL) {
-
-    if (Weights->GetAttribute("active") != NULL) {
-      int active = atoi(Weights->GetAttribute("active"));
-      if (active == 0)
-        this->WFIS.Weights.active = false;
-      else
-        this->WFIS.Weights.active = true;
-    } else {
-      vtkErrorMacro( << "Attribute \"active\" is missing in Weights element");
-      return false;
-    }
-    this->ParseWeights(Weights);
+  if (Weight != NULL) {
+    this->ParseWeights(Weight);
   }
+  
+  // Compute the number of rules and number of factors
+  this->NumberOfRules = WFIS.FIS.Factors[0].Sets.size();
+  this->NumberOfFactors = WFIS.FIS.Factors.size();
+
+  for (i = 0; i < this->NumberOfFactors; i++) {
+    FuzzyFactor &Factor = WFIS.FIS.Factors[i];
+    
+    if (i > 0)
+      this->NumberOfRules *= Factor.Sets.size();
+  }
+
+//  cout << "Number of Rules " << this->NumberOfRules << endl;
+//  cout << "Number of Factors " << this->NumberOfFactors << endl;
   
   cout << this->WFIS.name << endl;
 
@@ -182,6 +175,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFIS)
 {
   int i;
+  
+  this->WFIS.FIS.Factors.clear();
 
   for (i = 0; i < XMLFIS->GetNumberOfNestedElements(); i++) {
     vtkXMLDataElement *XMLFactor = XMLFIS->GetNestedElement(i);
@@ -222,8 +217,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFI
 
     this->ParseFuzzySets(Factor, XMLFactor);
 
-    cout << "Add Factor " << Factor.name << " with portId " << Factor.portId
-      << " min  " << Factor.min << " max " << Factor.max << endl;
+//    cout << "Add Factor " << Factor.name << " with portId " << Factor.portId
+//      << " min  " << Factor.min << " max " << Factor.max << endl;
 
     this->WFIS.FIS.Factors.push_back(Factor);
   }
@@ -235,6 +230,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
 {
 
   int i;
+  
+  Factor.Sets.clear();
 
   for (i = 0; i < XMLFactor->GetNumberOfNestedElements(); i++) {
     vtkXMLDataElement *XMLFuzzySet = XMLFactor->GetNestedElement(i);
@@ -315,8 +312,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-      cout << "Added Trinagular center " << Set.Triangular.center << " left "
-        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
+//      cout << "Added Trinagular center " << Set.Triangular.center << " left "
+//        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
     }
 
     if (Set.type == FUZZY_SET_TYPE_CRISP) {
@@ -340,7 +337,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-      cout << "Added Crispt left " << Set.Crisp.left << " right " << Set.Crisp.right << endl;
+//      cout << "Added Crispt left " << Set.Crisp.left << " right " << Set.Crisp.right << endl;
     }
 
 
@@ -371,12 +368,12 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-      cout << "Added BellShape center " << Set.Triangular.center << " left "
-        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
+//      cout << "Added BellShape center " << Set.Triangular.center << " left "
+//        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
     }
 
-    cout << "Add FuzzySet " << Set.type << " with priority " << Set.priority
-      << " constant  " << Set.constant << " position " << Set.position << endl;
+//    cout << "Add FuzzySet " << Set.type << " with priority " << Set.priority
+//      << " constant  " << Set.constant << " position " << Set.position << endl;
 
     // Add the FuzzySet to the Factor
     Factor.Sets.push_back(Set);
@@ -388,6 +385,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XMLResponses)
 {
   int i;
+  
+  this->WFIS.FIS.Responses.Responses.clear();
 
   if (XMLResponses->GetAttribute("min") != NULL) {
     this->WFIS.FIS.Responses.min = atof(XMLResponses->GetAttribute("min"));
@@ -412,7 +411,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XML
 
     if (XMLResponse->GetAttribute("const") != NULL) {
       constant = atoi(XMLResponse->GetAttribute("const"));
-      if(constant == 0)
+      if (constant == 0)
         Response.constant = false;
       else
         Response.constant = true;
@@ -420,118 +419,97 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XML
       vtkErrorMacro( << "Attribute \"const\" is missing in Response element: " << i);
       return false;
     }
-    
+
     if (XMLResponse->GetAttribute("sd") != NULL) {
       Response.sd = atof(XMLResponse->GetAttribute("sd"));
     } else {
       vtkErrorMacro( << "Attribute \"sd\" is missing in Response element: " << i);
       return false;
     }
-    
+
     if (XMLResponse->GetCharacterData() != NULL) {
       Response.value = atof(XMLResponse->GetCharacterData());
     } else {
       vtkErrorMacro( << "Attribute \"sd\" is missing in Response element: " << i);
       return false;
     }
-    
+
     this->WFIS.FIS.Responses.Responses.push_back(Response);
-    
-    cout << "Added Response const " << Response.constant << " sd " << Response.sd
-         << " value " << Response.value << endl;
-    
+
+//    cout << "Added Response const " << Response.constant << " sd " << Response.sd
+//      << " value " << Response.value << endl;
+
   }
-  
-  cout << "Added Responses min " << this->WFIS.FIS.Responses.min
-       << " max " << this->WFIS.FIS.Responses.max << endl;
+
+//  cout << "Added Responses min " << this->WFIS.FIS.Responses.min
+//    << " max " << this->WFIS.FIS.Responses.max << endl;
 
 
   return true;
 }
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *Weights)
+bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWeight)
 {
-
-  int i;
   int active;
 
-  if (Weights->GetAttribute("active") != NULL) {
-    active = atoi(Weights->GetAttribute("active"));
-    if(active == 0)
-      this->WFIS.Weights.active = false;
+  FuzzyWeight &Weight = this->WFIS.Weight;
+
+  int constant = 0;
+  active = 0;
+
+  if (XMLWeight->GetAttribute("const") != NULL) {
+    constant = atoi(XMLWeight->GetAttribute("const"));
+    if (constant == 0)
+      Weight.constant = false;
     else
-      this->WFIS.Weights.active = true;
+      Weight.constant = true;
   } else {
-    vtkErrorMacro( << "Attribute \"active\" is missing in Weights element");
+    vtkErrorMacro( << "Attribute \"const\" is missing in Weight element");
     return false;
   }
 
-  for (i = 0; i < Weights->GetNumberOfNestedElements(); i++) {
-    vtkXMLDataElement *XMLWeight = Weights->GetNestedElement(i);
-
-    FuzzyWeight Weight;
-
-    int constant = 0;
-    active = 0;
-
-    if (XMLWeight->GetAttribute("const") != NULL) {
-      constant = atoi(XMLWeight->GetAttribute("const"));
-      if(constant == 0)
-        Weight.constant = false;
-      else
-        Weight.constant = true;
-    } else {
-      vtkErrorMacro( << "Attribute \"const\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    if (XMLWeight->GetAttribute("active") != NULL) {
-      active = atoi(XMLWeight->GetAttribute("active"));
-      if(active == 0)
-        Weight.active = false;
-      else
-        Weight.active = true;
-    } else {
-      vtkErrorMacro( << "Attribute \"active\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    if (XMLWeight->GetAttribute("name") != NULL) {
-      Weight.name = XMLWeight->GetAttribute("name");
-    } else {
-      vtkErrorMacro( << "Attribute \"name\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    if (XMLWeight->GetAttribute("min") != NULL) {
-      Weight.min = atof(XMLWeight->GetAttribute("min"));
-    } else {
-      vtkErrorMacro( << "Attribute \"min\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    if (XMLWeight->GetAttribute("max") != NULL) {
-      Weight.max = atof(XMLWeight->GetAttribute("max"));
-    } else {
-      vtkErrorMacro( << "Attribute \"max\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    if (XMLWeight->GetCharacterData() != NULL) {
-      Weight.value = atof(XMLWeight->GetCharacterData());
-    } else {
-      vtkErrorMacro( << "Attribute \"sd\" is missing in Weight element: " << i);
-      return false;
-    }
-    
-    this->WFIS.Weights.Weights.push_back(Weight);
-    
-    cout << "Added Weight const " << Weight.constant << " name " << Weight.name
-         << " value " << Weight.value << " min " <<  Weight.min 
-         << " max " << Weight.max << " active "  << Weight.active << endl;
+  if (XMLWeight->GetAttribute("active") != NULL) {
+    active = atoi(XMLWeight->GetAttribute("active"));
+    if (active == 0)
+      Weight.active = false;
+    else
+      Weight.active = true;
+  } else {
+    vtkErrorMacro( << "Attribute \"active\" is missing in Weight element");
+    return false;
   }
-  
-  cout << "Added Weight active " << this->WFIS.Weights.active << endl;
+
+  if (XMLWeight->GetAttribute("name") != NULL) {
+    Weight.name = XMLWeight->GetAttribute("name");
+  } else {
+    vtkErrorMacro( << "Attribute \"name\" is missing in Weight element");
+    return false;
+  }
+
+  if (XMLWeight->GetAttribute("min") != NULL) {
+    Weight.min = atof(XMLWeight->GetAttribute("min"));
+  } else {
+    vtkErrorMacro( << "Attribute \"min\" is missing in Weight element");
+    return false;
+  }
+
+  if (XMLWeight->GetAttribute("max") != NULL) {
+    Weight.max = atof(XMLWeight->GetAttribute("max"));
+  } else {
+    vtkErrorMacro( << "Attribute \"max\" is missing in Weight element");
+    return false;
+  }
+
+  if (XMLWeight->GetCharacterData() != NULL) {
+    Weight.value = atof(XMLWeight->GetCharacterData());
+  } else {
+    vtkErrorMacro( << "Attribute \"sd\" is missing in Weight element");
+    return false;
+  }
+
+//  cout << "Added Weight const " << Weight.constant << " name " << Weight.name
+//    << " value " << Weight.value << " min " << Weight.min
+//    << " max " << Weight.max << " active " << Weight.active << endl;
 
 
   return true;

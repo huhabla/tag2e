@@ -40,10 +40,9 @@
 
 #include "vtkTAG2EAbstractCalibratableModel.h"
 
-class vtkDoubleArray;
+class vtkIntArray;
 class vtkStringArray;
 class vtkTAG2EFuzzyInferenceModelParameter;
-class vtkDataSetAttributes;
 class WeightedFuzzyInferenceScheme;
 
 class vtkTAG2EWeightedFuzzyInferenceModel : public vtkTAG2EAbstractCalibratableModel {
@@ -55,18 +54,28 @@ public:
      
     virtual double GetModelAssessmentFactor(){;}
     
+    void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
+    
+    // Verify the FIS comutation with simple test cases. No inputs required.
+    bool TestFISComputation();
+    
 protected:
     vtkTAG2EWeightedFuzzyInferenceModel();
     ~vtkTAG2EWeightedFuzzyInferenceModel();
     
-    virtual bool ComputeFIS(vtkDataSetAttributes *Data);
-    virtual bool ComputeRuleCodeArrayEntries(int **RuleCodeArray, int numberOfRules, WeightedFuzzyInferenceScheme &WFIS);
-
+    virtual bool ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeArray, 
+                         int numberOfRules, WeightedFuzzyInferenceScheme &WFIS);
+    virtual double ComputeDOF(double *Input, int rule, std::vector< std::vector<int> > &RuleCodeArray, WeightedFuzzyInferenceScheme &WFIS);
+    virtual double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeArray, WeightedFuzzyInferenceScheme &WFIS);
+    virtual double InterpolatePointInNormDist (double value);
+    
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
     virtual int FillInputPortInformation(int port, vtkInformation* info);
     virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         
     vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
+    vtkIntArray *InputPorts;
+    vtkStringArray *ArrayNames;
     
 private:
     vtkTAG2EWeightedFuzzyInferenceModel(const vtkTAG2EWeightedFuzzyInferenceModel& orig); // Not implemented.
