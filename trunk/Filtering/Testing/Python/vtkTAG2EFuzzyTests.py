@@ -45,8 +45,8 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 50
-        yext = 50
+        xext = 500
+        yext = 500
         num = xext*yext
                 
         pH = vtkDoubleArray()
@@ -58,7 +58,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         nmin.SetNumberOfTuples(num)
         nmin.SetName("nmin")
         nmin.FillComponent(0, 75)
-        
         
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -81,7 +80,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         # Create the temporal data
 
         # We have 10 time steps!
-        time = 10
+        time = 2
         
         # Generate the time steps
         timesteps = vtkDoubleArray()
@@ -115,9 +114,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         tr2 = vtkXMLDataElement()
         tr3 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        rval1 = vtkXMLDataElement()
-        rval2 = vtkXMLDataElement()
-        rval3 = vtkXMLDataElement()
         
         weight = vtkXMLDataElement()
         
@@ -152,7 +148,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         tr3.SetDoubleAttribute("right",   2222)
         
         fs1.SetName("FuzzySet")
-        fs1.SetIntAttribute("id", 1)
         fs1.SetAttribute("type", "Triangular")
         fs1.SetIntAttribute("priority", 0)
         fs1.SetIntAttribute("const", 0)
@@ -160,7 +155,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs1.AddNestedElement(tr1)
         
         fs2.SetName("FuzzySet")
-        fs2.SetIntAttribute("id", 2)
         fs2.SetAttribute("type", "Triangular")
         fs2.SetIntAttribute("priority", 0)
         fs2.SetIntAttribute("const", 0)
@@ -168,7 +162,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs2.AddNestedElement(tr2)
         
         fs3.SetName("FuzzySet")
-        fs3.SetIntAttribute("id", 3)
         fs3.SetAttribute("type", "Triangular")
         fs3.SetIntAttribute("priority", 0)
         fs3.SetIntAttribute("const", 0)
@@ -194,27 +187,17 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss2.AddNestedElement(fs2)
         fss2.AddNestedElement(fs3)
         
-        rval1.SetName("Response")
-        rval1.SetIntAttribute("const", 0)
-        rval1.SetIntAttribute("sd", 1)
-        rval1.SetCharacterData("120.00", 6)
-        
-        rval2.SetName("Response")
-        rval2.SetIntAttribute("const", 0)
-        rval2.SetIntAttribute("sd", 2)
-        rval2.SetCharacterData("80.00", 5)
-        
-        rval3.SetName("Response")
-        rval3.SetIntAttribute("const", 0)
-        rval3.SetIntAttribute("sd", 3)
-        rval3.SetCharacterData("40.00", 5)
-        
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 40.0)
         resp.SetDoubleAttribute("max", 120.0)
-        resp.AddNestedElement(rval1)
-        resp.AddNestedElement(rval2)
-        resp.AddNestedElement(rval3)
+        
+        for i in range(9):
+            rval1 = vtkXMLDataElement()
+            rval1.SetName("Response")
+            rval1.SetIntAttribute("const", 0)
+            rval1.SetIntAttribute("sd", 1)
+            rval1.SetCharacterData("120.00", 6)
+            resp.AddNestedElement(rval1)
                 
         fuzzyRoot.SetName("FuzzyInferenceScheme")
         fuzzyRoot.AddNestedElement(fss1)
