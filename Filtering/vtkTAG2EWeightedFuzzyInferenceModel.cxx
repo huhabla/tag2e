@@ -30,6 +30,23 @@
  * GNU General Public License for more details.
  */
 
+#include <vtkCommand.h>
+#include <vtkCompositeDataPipeline.h>
+#include <vtkDataSet.h>
+#include <vtkPointData.h>
+#include <vtkIntArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkStringArray.h>
+#include <vtkTemporalDataSet.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkDataSetAttributes.h>
+
+#include <vtkDataSetAlgorithm.h>
+#include <vtkObjectFactory.h>
+#include "vtkTAG2EWeightedFuzzyInferenceModel.h"
+#include "vtkTAG2EFuzzyInferenceModelParameter.h"
+
 #define TOLERANCE 0.000000001
 
 /* This is a static array with smapling points and associated values
@@ -68,23 +85,6 @@ static double NormDistSamplingPoints[27][2] = {
 
 // Simple maximum computation
 static double max(double x, double y);
-
-#include <vtkCommand.h>
-#include <vtkCompositeDataPipeline.h>
-#include <vtkDataSet.h>
-#include <vtkPointData.h>
-#include <vtkIntArray.h>
-#include <vtkDoubleArray.h>
-#include <vtkStringArray.h>
-#include <vtkTemporalDataSet.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkDataSetAttributes.h>
-
-#include <vtkDataSetAlgorithm.h>
-#include <vtkObjectFactory.h>
-#include "vtkTAG2EWeightedFuzzyInferenceModel.h"
-#include "vtkTAG2EFuzzyInferenceModelParameter.h"
 
 vtkCxxRevisionMacro(vtkTAG2EWeightedFuzzyInferenceModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EWeightedFuzzyInferenceModel);
@@ -157,12 +157,12 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestUpdateExtent(
 void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
 {
   int i = 0;
-  
+
   this->Superclass::SetModelParameter(modelParameter);
-  
+
   this->ArrayNames->Initialize();
   this->InputPorts->Initialize();
-  
+
   // Check if the ModelParameter is of correct type
   if (this->ModelParameter->IsA("vtkTAG2EFuzzyInferenceModelParameter")) {
     this->FuzzyModelParameter = static_cast<vtkTAG2EFuzzyInferenceModelParameter *> (this->ModelParameter);
@@ -177,16 +177,16 @@ void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractMode
 
   WeightedFuzzyInferenceScheme &WFIS = this->FuzzyModelParameter->GetInternalScheme();
 
-  
+
   // Count the input ports and array names
   for (i = 0; i < this->FuzzyModelParameter->GetNumberOfFactors(); i++) {
     this->InputPorts->InsertValue(i, WFIS.FIS.Factors[i].portId);
     this->ArrayNames->InsertValue(i, WFIS.FIS.Factors[i].name);
   }
-  
+
   double *range = this->InputPorts->GetRange();
   // Ports from 0 ... n must be used  
-  this->SetNumberOfInputPorts((int)(range[1] + 1));
+  this->SetNumberOfInputPorts((int) (range[1] + 1));
 }
 
 //----------------------------------------------------------------------------
@@ -210,18 +210,17 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     vtkErrorMacro("Model parameter not set or invalid.");
     return -1;
   }
-  
+
   WeightedFuzzyInferenceScheme &WFIS = this->FuzzyModelParameter->GetInternalScheme();
-  
+
   // Compute the number of rules and number of factors
   numberOfRules = this->FuzzyModelParameter->GetNumberOfRules();
   numberOfFactors = this->FuzzyModelParameter->GetNumberOfFactors();
-  
-  fuzzyInput = new double(numberOfFactors);
-  
+
+
   // Create the rule code matrix
-  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors)); 
-  
+  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
+
   // Compute the rule code matrix entries 
   this->ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, WFIS);
 
@@ -240,21 +239,25 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     int i, j;
     int port;
 
+    // Input array for fuzzy logic computation
+    fuzzyInput = new double(numberOfFactors);
+
     // The first input is used to create the ouput
     // It is assumed that each input has the same number of points and the same topology
     // The number of point data arrays can/should differ
     vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
     vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
-    outputDataSet->DeepCopy(firstInputDataSet);
-    
+    outputDataSet->CopyStructure(firstInputDataSet);
+
     // Result for the current time step
     vtkDataArray *result = vtkDoubleArray::New();
     result->SetNumberOfComponents(0);
     result->SetName(this->ResultArrayName);
     result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
 
-    // This is used to store the needed arrays for fuzzy computation
-    vtkDataSetAttributes *Data = vtkDataSetAttributes::New();
+    // This is used to store the needed arrays pointer to collect the 
+    // data for fuzzy computation
+    std::vector<vtkDataArray *> Data;
 
     // Get the arrays for each input port and factor
     for (i = 0; i < this->InputPorts->GetNumberOfTuples(); i++) {
@@ -291,35 +294,36 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
       // Get the point data
       vtkPointData *inputData = activeInputDataSet->GetPointData();
       // Get the array and 
-      
+
       // Check if the array exists in the current input
       if (!inputData->HasArray(this->ArrayNames->GetValue(i))) {
-        vtkErrorMacro(<< "Array " << this->ArrayNames->GetValue(i) << " is missing in input. Wrong reference in the model parameter");
+        vtkErrorMacro( << "Array " << this->ArrayNames->GetValue(i) << " is missing in input. Wrong reference in the model parameter");
         return -1;
       }
-      
-      Data->AddArray(inputData->GetArray(this->ArrayNames->GetValue(i)));
+
+      // Put the array pointer into the vector template
+      Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
     }
+    
     double val;
-    // Run the Fuzzy model
-    for(i = 0; i < firstInputDataSet->GetNumberOfPoints(); i++) {
-      for(j = 0; j < numberOfFactors; j++) {
-        fuzzyInput[j] = Data->GetArray(this->ArrayNames->GetValue(j))->GetTuple1(i);
+    // Run the Fuzzy model for each point/pixel
+    for (i = 0; i < firstInputDataSet->GetNumberOfPoints(); i++) {
+      for (j = 0; j < numberOfFactors; j++) {
+        fuzzyInput[j] = Data[j]->GetTuple1(i);
       }
       val = this->ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, WFIS);
       result->SetTuple1(i, val);
     }
 
     //TODO: Support point and cell data 
-
     outputDataSet->GetPointData()->AddArray(result);
     outputDataSet->GetPointData()->SetActiveScalars(result->GetName());
     output->SetTimeStep(timeStep, outputDataSet);
     outputDataSet->Delete();
     result->Delete();
+    delete [] fuzzyInput;
   }
-  
-  delete []  fuzzyInput;
+
 
   return 1;
 }
@@ -500,7 +504,7 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     d++;
   } while (d < (numberOfFactors));
 
-//  cout << "Deegree of fullfillment " << dof << endl;
+  //  cout << "Deegree of fullfillment " << dof << endl;
   return dof;
 }
 
@@ -628,8 +632,8 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::TestFISComputation()
   cout << "ComputeRuleCodeMatrixEntries Test" << endl;
 
   // Create the rule code matrix
-  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors)); 
-  
+  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
+
   this->ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, WFIS);
 
   for (i = 0; i < numberOfRules; i++) {
@@ -655,33 +659,33 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::TestFISComputation()
   // First test the mean
   double Input[2] = {75.0, 10.0};
   double result;
-  
+
   result = ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.25) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 1 1");
+  if (fabs(result - 0.25) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 1 1");
     return false;
   }
   result = ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.25) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 1 2");
+  if (fabs(result - 0.25) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 1 2");
     return false;
   }
   result = ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.25) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 1 3");
+  if (fabs(result - 0.25) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 1 3");
     return false;
   }
   result = ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.25) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 1 4");
+  if (fabs(result - 0.25) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 1 4");
     return false;
   }
 
   cout << "ComputeFISResult Test 1" << endl;
   result = ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
   cout << "Result = " << result << endl;
-  if(fabs(result - 2.5) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeFISResult Test 1");
+  if (fabs(result - 2.5) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeFISResult Test 1");
   }
 
   cout << "ComputeDOF Test 2 Left border" << endl;
@@ -690,27 +694,27 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::TestFISComputation()
   Input[1] = -15.0;
 
   result = ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
-  if(fabs(result - 1.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 2 1");
+  if (fabs(result - 1.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 2 1");
   }
   result = ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 2 2");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 2 2");
   }
   result = ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 2 3");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 2 3");
   }
   result = ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 2 4");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 2 4");
   }
 
   cout << "ComputeFISResult Test 2" << endl;
   result = ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
   cout << "Result = " << result << endl;
-  if(fabs(result - 1.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeFISResult Test 2");
+  if (fabs(result - 1.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeFISResult Test 2");
   }
 
   cout << "ComputeDOF Test 3 right border" << endl;
@@ -719,27 +723,27 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::TestFISComputation()
   Input[1] = 35;
 
   result = ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 3 1");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 3 1");
   }
   result = ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 3 2");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 3 2");
   }
   result = ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
-  if(fabs(result - 0.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 3 3");
+  if (fabs(result - 0.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 3 3");
   }
   result = ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
-  if(fabs(result - 1.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeDOF Test 3 4");
+  if (fabs(result - 1.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeDOF Test 3 4");
   }
 
   cout << "ComputeFISResult Test 3" << endl;
   result = ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
   cout << "Result = " << result << endl;
-  if(fabs(result - 4.0) > TOLERANCE) {
-    vtkErrorMacro(<<"Wrong result in ComputeFISResult Test 3");
+  if (fabs(result - 4.0) > TOLERANCE) {
+    vtkErrorMacro( << "Wrong result in ComputeFISResult Test 3");
   }
 
   return true;
