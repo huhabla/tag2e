@@ -215,7 +215,6 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
   numberOfRules = this->FuzzyModelParameter->GetNumberOfRules();
   numberOfFactors = this->FuzzyModelParameter->GetNumberOfFactors();
 
-
   // Create the rule code matrix
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
 
@@ -242,7 +241,8 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     // The number of point data arrays can/should differ
     vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
     vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
-    outputDataSet->CopyStructure(firstInputDataSet);
+    // outputDataSet->CopyStructure(firstInputDataSet);
+    outputDataSet->DeepCopy(firstInputDataSet);
 
     // Result for the current time step
     vtkDoubleArray *result = vtkDoubleArray::New();
@@ -288,7 +288,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
 
       //TODO: Support point and cell data 
       // Get the point data
-      vtkPointData *inputData = activeInputDataSet->GetPointData();
+      vtkDataSetAttributes *inputData = activeInputDataSet->GetPointData();
       // Get the array and 
 
       // Check if the array exists in the current input
@@ -301,6 +301,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
       Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
     }
     
+    //TODO: Support point and cell data
     // Run the Fuzzy model for each point/pixel
     for (i = 0; i < firstInputDataSet->GetNumberOfPoints(); i++) {
 
@@ -338,7 +339,7 @@ void vtkTAG2EWeightedFuzzyInferenceModel::PrintSelf(ostream& os, vtkIndent inden
 
 bool vtkTAG2EWeightedFuzzyInferenceModel::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeMatrix, int numberOfRules, WeightedFuzzyInferenceScheme &WFIS)
 {
-  int col, x, length, length1, dum, inp, num, num1;
+  int col, row, length, length1, dum, inp, num, num1;
   int numberOfFactors = WFIS.FIS.Factors.size();
 
   // Compute the rule code matrix which contains the 
@@ -373,8 +374,8 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::ComputeRuleCodeMatrixEntries(std::vect
     inp = 0;
     num = 0;
     num1 = 0;
-    for (x = 0; x < numberOfRules; x++) {
-      RuleCodeMatrix [x][col] = inp;
+    for (row = 0; row < numberOfRules; row++) {
+      RuleCodeMatrix [row][col] = inp;
       num = num + 1;
       num1 = num1 + 1;
       if (num == length) {
@@ -413,7 +414,7 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeFISResult(double *Input,
     result = result + WFIS.FIS.Responses.Responses[rule].value * dof;
   }
 
-  // Check for wrong results and apply the deegreees of fullfillment
+  // Check for wrong results and apply the deegrees of fullfillment
   if (sum_dofs == 0) {
     vtkErrorMacro( << "Sum of deegrees of fullfillments is 0. Expect wrong model results.");
     result = 0.0;
@@ -434,7 +435,6 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeFISResult(double *Input,
 double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
   int rule, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS)
 {
-
   int numberOfFactors = WFIS.FIS.Factors.size();
   int d, pos, shape;
   double *dom = new double[numberOfFactors]; // Deegree of membership of a fuzzy set
@@ -487,7 +487,6 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
 
         if (normedInput[d] - Set.Triangular.center <= 0) //left side of the fuzzy number
         {
-          //cout << "Is left" << endl;
           if ((Set.Triangular.left) > 1111) {
             dom[d] = 1.0;
           } else {
@@ -496,7 +495,6 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
           }
         } else//right side of fuzzy number
         {
-          //cout << "Is right" << endl;
           if (Set.Triangular.right > 1111) {
             dom[d] = 1.0;
           } else {
@@ -517,7 +515,6 @@ double vtkTAG2EWeightedFuzzyInferenceModel::ComputeDOF(double *Input,
     }
 
     dof *= dom[d]; // Accumulate the deegree of fullfillment
-    //printf(" %f\n", dom[d]);
     d++;
   } while (d < (numberOfFactors));
 
@@ -579,7 +576,7 @@ bool vtkTAG2EWeightedFuzzyInferenceModel::TestFISComputation()
 
   // The triangle shape has the following form
   //   ___  ___
-  //  |   ̣\/   |
+  //  |   \/   |
   //  |   /\   |
   //  0 .4 .6  1
 
