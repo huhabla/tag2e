@@ -20,18 +20,18 @@
     <!-- -->
     <xsd:element name='InputArrays'>
         <xsd:complexType>
-            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+            <xsd:sequence minOccurs='1' maxOccurs='unbounded'>
                 <xsd:element name='ArrayName' type="xsd:string"/>
-            </xsd:choice>
+            </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
 
     <!-- -->
     <xsd:element name='OutputArrays'>
         <xsd:complexType>
-            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+            <xsd:sequence minOccurs='1' maxOccurs='unbounded'>
                 <xsd:element name='ArrayName' type="xsd:string"/>
-            </xsd:choice>
+            </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
 
