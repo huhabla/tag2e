@@ -9,9 +9,9 @@
      using R distribution functions and its parameter. -->
     <xsd:element name='DataDistributionDescription'>
         <xsd:complexType>
-            <xsd:choice minOccurs='1' maxOccurs='unbounded'>
+            <xsd:sequence minOccurs='1' maxOccurs='unbounded'>
                 <xsd:element ref='tag2e:Variable'/>
-            </xsd:choice>
+            </xsd:sequence>
             <xsd:attribute name='name' type='xsd:string' use='required'/>
         </xsd:complexType>
     </xsd:element>
