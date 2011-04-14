@@ -63,38 +63,10 @@ public:
     
     // Verify the FIS comutation with simple test cases. No inputs required.
     bool TestFISComputation();
-    
+
 protected:
     vtkTAG2EWeightedFuzzyInferenceModel();
     ~vtkTAG2EWeightedFuzzyInferenceModel();
-    
-    //!\brief This method computes the rule code matrix which is used to compute the 
-    //! the deegree of membership of an input factor for each rule
-    //!\param RuleCodeMatrix The matrix of coded rules
-    //!\param numberOfRules Number of rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
-    //!\return true in case of success
-
-    virtual bool ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeMatrix, 
-                         int numberOfRules, WeightedFuzzyInferenceScheme &WFIS);
-    //!\brief Compute the deegree of fullfillment of a single point for a single rule
-    //!\param The factor input vector of a single point at a single time step
-    //!\param rule The index of a single rule (index of row in the RuleCodeMatrix)
-    //!\param RuleCodeMatrix The matrix of coded rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
-    //!\return The deegree of fullfillment of a single rule
-    virtual double ComputeDOF(double *Input, int rule, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS);
-
-    //!\brief Compute the weighted fuzzy inference scheme result for a single point  
-    //!\param The factor input vector of a single point at a single time step
-    //!\param numberOfRules Number of rules
-    //!\param RuleCodeMatrix The matrix of coded rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
-    //!\return The result of the fuzzy inference scheme computation
-    virtual double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS);
-
-   //!\brief Interpolate the y value of a standard normal distribution and position x
-    virtual double InterpolatePointInNormDist (double x);
     
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
     virtual int FillInputPortInformation(int port, vtkInformation* info);

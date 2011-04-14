@@ -34,6 +34,7 @@
 #include <vtkObjectFactory.h>
 #include "vtkTAG2EFuzzyInferenceModelParameter.h"
 #include <vtkXMLDataParser.h>
+#include "tag2eWFIS.h"
 
 vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModelParameter);

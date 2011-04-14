@@ -12,19 +12,24 @@ vtkTAG2EModelParameterCollection.cxx
 vtkKeyValueMap.cxx
 )
 
+SET (CommonNoWrap_SRCS
+tag2eWFIS.cxx
+)
+
 SET (Common_H
 vtkTAG2EAlternativeN2OPredictionModules.h
 vtkTAG2ECommonWin32Header.h
 vtkTAG2EModelParameterCollection.h
 vtkTAG2EDefines.h
 vtkKeyValueMap.h
+tag2eWFIS.h
 )
 
 # --------------------------------------------------------------------------
 # You probably do not need to modify anything below this line
 
 # Create the vtkTAG2ECommon C++ library.
-ADD_LIBRARY (vtkTAG2ECommon ${Common_SRCS}  ${Common_H})
+ADD_LIBRARY (vtkTAG2ECommon ${CommonNoWrap_SRCS} ${Common_SRCS}  ${Common_H})
 TARGET_LINK_LIBRARIES(vtkTAG2ECommon vtkCommon ${VTK_GRASS_BRIDGE_LIBRARIES})
 
 
