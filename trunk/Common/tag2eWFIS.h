@@ -14,20 +14,20 @@
 // is located in the WeightedFuzzyInferenceScheme.xsd
 class FuzzyShapeTriangular{
 public:
-    double center;
+    double center; // calibrated
     double left;
     double right;
 };
 
 class FuzzyShapeCrisp{
 public:
-    double left;
-    double right;
+    double left; // calibrated
+    double right; // calibrated
 };
 
 class FuzzyShapeBell{
 public:
-    double center;
+    double center; // calibrated
     double sdLeft;
     double sdRight;
 };
@@ -55,7 +55,7 @@ public:
 class FuzzyResponse{
 public:
     bool constant;
-    double value;
+    double value;  // calibrated
     double sd;
 };
 
@@ -77,7 +77,7 @@ public:
     std::string name;
     bool active;
     bool constant;
-    double value;
+    double value;  // calibrated
     double min;
     double max;
 };

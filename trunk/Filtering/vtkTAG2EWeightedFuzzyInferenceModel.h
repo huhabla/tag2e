@@ -54,7 +54,7 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent);
     static vtkTAG2EWeightedFuzzyInferenceModel *New(); 
      
-    virtual double GetModelAssessmentFactor(){;}
+    virtual double GetModelAssessmentFactor(){return 1.0;}
     
     //!\brief Set the model parameter which must be of type vtkTAG2EFuzzyInferenceModelParameter
     //! This XML model parameter describes the fuzzy inference scheme which is used to compute 
