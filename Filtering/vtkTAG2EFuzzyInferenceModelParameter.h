@@ -53,9 +53,9 @@ public:
     static vtkTAG2EFuzzyInferenceModelParameter *New();
     
     //!\brief Change arbritary a model parameter
-    virtual void ChangeParameterRandomly(){;}
+    virtual void ChangeParameterRandomly();
     //!\brief Restore the last randomly modified model parameter 
-    virtual void RestoreParameter(){;}
+    virtual void RestoreParameter();
     
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
@@ -77,13 +77,18 @@ protected:
     bool ParseFuzzyInferenceScheme(vtkXMLDataElement *FuzzyInferenceScheme);
     bool ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor);
     bool ParseWeights(vtkXMLDataElement *Weights);
+    bool CreateParameterIndex();
+    bool SetParameter(unsigned int index, double value);
     
     // BTX
     WeightedFuzzyInferenceScheme WFIS;
+    std::vector <unsigned int> ParameterIndex;
     // ETX
     
-    int NumberOfRules;
-    int NumberOfFactors;
+    unsigned int NumberOfRules;
+    unsigned int NumberOfFactors;
+    double ParameterValue; // This variable stores the old parameter value
+    unsigned int ParameterId; // This is the id of the last changed parameter, -1 nothing changed yet
     
 private:
     vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);

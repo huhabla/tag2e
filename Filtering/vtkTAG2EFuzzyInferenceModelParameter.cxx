@@ -35,6 +35,7 @@
 #include "vtkTAG2EFuzzyInferenceModelParameter.h"
 #include <vtkXMLDataParser.h>
 #include "tag2eWFIS.h"
+#include <sstream>
 
 vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModelParameter);
@@ -45,6 +46,9 @@ vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter()
 {
   this->NumberOfFactors = 0;
   this->NumberOfRules = 0;
+  this->ParameterId = -1;
+  this->ParameterValue = 0.0;
+  this->ParameterIndex.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -54,6 +58,8 @@ vtkTAG2EFuzzyInferenceModelParameter::~vtkTAG2EFuzzyInferenceModelParameter()
   ;
 }
 
+//----------------------------------------------------------------------------
+
 bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
 {
   unsigned int i, j;
@@ -61,64 +67,281 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   vtkXMLDataElement *root = vtkXMLDataElement::New();
   root->SetName("WeightedFuzzyInferenceScheme");
   root->SetAttribute("name", this->WFIS.name.c_str());
+  root->SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme");
+  root->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+  root->SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd");
 
-  this->XMLRoot->DeepCopy(root);
-
-  cout << this->WFIS.name << endl;
+  vtkXMLDataElement *fis = vtkXMLDataElement::New();
+  fis->SetName("FuzzyInferenceScheme");
 
   for (i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
     FuzzyFactor &Factor = this->WFIS.FIS.Factors[i];
-    cout << " " << Factor.name << endl;
-    cout << " " << Factor.min << endl;
-    cout << " " << Factor.max << endl;
+    vtkXMLDataElement *factor = vtkXMLDataElement::New();
+
+    factor->SetName("Factor");
+    factor->SetAttribute("name", Factor.name.c_str());
+    factor->SetDoubleAttribute("min", Factor.min);
+    factor->SetDoubleAttribute("max", Factor.max);
+    factor->SetIntAttribute("portId", Factor.portId);
+
     for (j = 0; j < Factor.Sets.size(); j++) {
       FuzzySet &Set = Factor.Sets[j];
-      cout << "  " << Set.constant << endl;
-      cout << "  " << Set.position << endl;
-      cout << "  " << Set.priority << endl;
-      cout << "  " << Set.type << endl;
+      vtkXMLDataElement *set = vtkXMLDataElement::New();
+
+      set->SetName("Set");
+      set->SetIntAttribute("const", (int) Set.constant);
+      set->SetIntAttribute("position", (int) Set.position);
+      set->SetIntAttribute("priority", (int) Set.priority);
+
+      if (Set.type == FUZZY_SET_TYPE_TRIANGULAR)
+        set->SetAttribute("type", "Triangular");
+      if (Set.type == FUZZY_SET_TYPE_CRISP)
+        set->SetAttribute("type", "Crisp");
+      if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE)
+        set->SetAttribute("type", "BellShape");
+
       if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
-        cout << "   " << Set.Triangular.center << endl;
-        cout << "   " << Set.Triangular.left << endl;
-        cout << "   " << Set.Triangular.right << endl;
+        vtkXMLDataElement *triangular = vtkXMLDataElement::New();
+
+        triangular->SetName("Triangular");
+        triangular->SetDoubleAttribute("center", Set.Triangular.center);
+        triangular->SetDoubleAttribute("left", Set.Triangular.left);
+        triangular->SetDoubleAttribute("right", Set.Triangular.right);
+
+        set->AddNestedElement(triangular);
+        triangular->Delete();
       }
       if (Set.type == FUZZY_SET_TYPE_CRISP) {
-        cout << "   " << Set.Crisp.left << endl;
-        cout << "   " << Set.Crisp.right << endl;
+        vtkXMLDataElement *crisp = vtkXMLDataElement::New();
+
+        crisp->SetName("Crisp");
+        crisp->SetDoubleAttribute("right", Set.Crisp.right);
+        crisp->SetDoubleAttribute("left", Set.Crisp.left);
+
+        set->AddNestedElement(crisp);
+        crisp->Delete();
       }
       if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
-        cout << "   " << Set.BellShape.center << endl;
-        cout << "   " << Set.BellShape.sdLeft << endl;
-        cout << "   " << Set.BellShape.sdRight << endl;
+        vtkXMLDataElement *bellshape = vtkXMLDataElement::New();
+
+        bellshape->SetName("BellShape");
+        bellshape->SetDoubleAttribute("center", Set.BellShape.center);
+        bellshape->SetDoubleAttribute("sdLeft", Set.BellShape.sdLeft);
+        bellshape->SetDoubleAttribute("sdRight", Set.BellShape.sdRight);
+
+        set->AddNestedElement(bellshape);
+        bellshape->Delete();
       }
+      factor->AddNestedElement(set);
+      set->Delete();
     }
+    fis->AddNestedElement(factor);
+    factor->Delete();
   }
 
-  cout << this->WFIS.FIS.Responses.min << endl;
-  cout << this->WFIS.FIS.Responses.max << endl;
+  vtkXMLDataElement *responses = vtkXMLDataElement::New();
+
+  responses->SetName("Responses");
+  responses->SetIntAttribute("min", this->WFIS.FIS.Responses.min);
+  responses->SetIntAttribute("max", this->WFIS.FIS.Responses.max);
 
   for (i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
     FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
-    cout << " " << Response.constant << endl;
-    cout << " " << Response.sd << endl;
-    cout << " " << Response.value << endl;
+    vtkXMLDataElement *response = vtkXMLDataElement::New();
+
+    response->SetName("Response");
+    response->SetIntAttribute("const", (int) Response.constant);
+    response->SetDoubleAttribute("sd", Response.sd);
+    std::ostringstream value;
+    value << Response.value;
+    response->SetCharacterData(value.str().c_str(), value.str().size());
+
+    responses->AddNestedElement(response);
+    response->Delete();
   }
 
-  cout << " " << WFIS.Weight.active << endl;
-  cout << " " << WFIS.Weight.constant << endl;
-  cout << " " << WFIS.Weight.max << endl;
-  cout << " " << WFIS.Weight.min << endl;
-  cout << " " << WFIS.Weight.name << endl;
-  cout << " " << WFIS.Weight.value << endl;
+  fis->AddNestedElement(responses);
+  root->AddNestedElement(fis);
+  responses->Delete();
+  fis->Delete();
 
+  vtkXMLDataElement *weight = vtkXMLDataElement::New();
+  weight->SetName("Weight");
+  weight->SetIntAttribute("active", (int) WFIS.Weight.active);
+  weight->SetIntAttribute("const", (int) WFIS.Weight.constant);
+  weight->SetDoubleAttribute("min", WFIS.Weight.min);
+  weight->SetDoubleAttribute("max", WFIS.Weight.max);
+  std::ostringstream value;
+  value << WFIS.Weight.value;
+  weight->SetCharacterData(value.str().c_str(), value.str().size());
+  weight->SetAttribute("name", WFIS.Weight.name.c_str());
+
+  root->AddNestedElement(weight);
+  weight->Delete();
+
+  this->XMLRoot->DeepCopy(root);
+  root->Delete();
 
   return true;
 }
 
+//----------------------------------------------------------------------------
+
+void vtkTAG2EFuzzyInferenceModelParameter::ChangeParameterRandomly()
+{
+  unsigned int i;
+
+  for (i = 0; i < this->ParameterIndex.size(); i++) {
+    this->SetParameter(i, 0.0);
+  }
+
+  return;
+}
+
+//----------------------------------------------------------------------------
+
+void vtkTAG2EFuzzyInferenceModelParameter::RestoreParameter()
+{
+  this->SetParameter(this->ParameterId, this->ParameterValue);
+
+  return;
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, double value)
+{
+  unsigned int i, j;
+  unsigned int count = 0;
+
+  for (i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
+    FuzzyFactor &Factor = this->WFIS.FIS.Factors[i];
+
+    for (j = 0; j < Factor.Sets.size(); j++) {
+      FuzzySet &Set = Factor.Sets[j];
+      // Do not set the value in case of const
+      if (Set.constant == false) {
+        if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+          if (index == count) {
+            this->ParameterValue = Set.Triangular.center;
+            this->ParameterId = count;
+            Set.Triangular.center = value;
+            cout << "Set Set.Triangular.center   " << Set.Triangular.center << endl;
+          }
+          count++;
+        }
+        if (Set.type == FUZZY_SET_TYPE_CRISP) {
+          if (index == count) {
+            this->ParameterValue = Set.Crisp.left;
+            this->ParameterId = count;
+            Set.Crisp.left = value;
+            cout << "Set Set.Crisp.left   " << Set.Crisp.left << endl;
+          }
+          count++;
+          if (index == count) {
+            this->ParameterValue = Set.Crisp.right;
+            this->ParameterId = count;
+            Set.Crisp.right = value;
+            cout << "Set Set.Crisp.right   " << Set.Crisp.right << endl;
+          }
+          count++;
+        }
+        if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
+          if (index == count) {
+            this->ParameterValue = Set.BellShape.center;
+            this->ParameterId = count;
+            Set.BellShape.center = value;
+            cout << "Set Set.BellShape.center   " << Set.BellShape.center << endl;
+          }
+          count++;
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
+    FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
+    if (index == count) {
+      this->ParameterValue = Response.value;
+      this->ParameterId = count;
+      Response.value = value;
+      cout << "Set Response.value " << Response.value << endl;
+    }
+    count++;
+  }
+
+  if (index == count) {
+    this->ParameterValue = WFIS.Weight.value;
+    this->ParameterId = count;
+    WFIS.Weight.value = value;
+    cout << "Set WFIS.Weight.value " << WFIS.Weight.value << endl;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex()
+{
+  unsigned int i, j;
+  unsigned int count = 0;
+
+  this->ParameterIndex.clear();
+
+  for (i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
+    FuzzyFactor &Factor = this->WFIS.FIS.Factors[i];
+    
+    for (j = 0; j < Factor.Sets.size(); j++) {
+      FuzzySet &Set = Factor.Sets[j];
+      
+      // Count only non-constant fuzzy sets
+      if (Set.constant == false) {
+        if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+          cout << "Set.Triangular.center   " << Set.Triangular.center << endl;
+          this->ParameterIndex.push_back(count);
+          count++;
+        }
+        if (Set.type == FUZZY_SET_TYPE_CRISP) {
+          cout << "Set.Crisp.left   " << Set.Crisp.left << endl;
+          this->ParameterIndex.push_back(count);
+          count++;
+          cout << "Set.Crisp.right   " << Set.Crisp.right << endl;
+          this->ParameterIndex.push_back(count);
+          count++;
+        }
+        if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
+          cout << "Set.BellShape.center   " << Set.BellShape.center << endl;
+          this->ParameterIndex.push_back(count);
+          count++;
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
+    FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
+    if(Response.constant == false) {
+      cout << "Response.value " << Response.value << endl;
+      this->ParameterIndex.push_back(count);
+    }
+    count++;
+  }
+
+  if(WFIS.Weight.constant == false) {
+    cout << "WFIS.Weight.value " << WFIS.Weight.value << endl;
+    this->ParameterIndex.push_back(count);
+  }
+  
+  return true;
+}
+
+//----------------------------------------------------------------------------
+
 bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
 {
   vtkXMLDataElement *root = this->GetXMLRoot();
-  int i;
+  unsigned int i;
 
   // Check for correct name
   if (strncasecmp(root->GetName(), "WeightedFuzzyInferenceScheme", strlen("WeightedFuzzyInferenceScheme")) != 0) {
@@ -153,30 +376,38 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
   if (Weight != NULL) {
     this->ParseWeights(Weight);
   }
-  
+
   // Compute the number of rules and number of factors
   this->NumberOfRules = WFIS.FIS.Factors[0].Sets.size();
   this->NumberOfFactors = WFIS.FIS.Factors.size();
 
   for (i = 0; i < this->NumberOfFactors; i++) {
     FuzzyFactor &Factor = WFIS.FIS.Factors[i];
-    
+
     if (i > 0)
       this->NumberOfRules *= Factor.Sets.size();
   }
 
-//  cout << "Number of Rules " << this->NumberOfRules << endl;
-//  cout << "Number of Factors " << this->NumberOfFactors << endl;
-  
-  cout << this->WFIS.name << endl;
+  //  cout << "Number of Rules " << this->NumberOfRules << endl;
+  //  cout << "Number of Factors " << this->NumberOfFactors << endl;
+
+  // cout << this->WFIS.name << endl;
+
+  this->CreateParameterIndex();
+
+  for (i = 0; i < this->ParameterIndex.size(); i++) {
+    std::cout << this->ParameterIndex[i] << std::endl;
+  }
 
   return true;
 }
 
+//----------------------------------------------------------------------------
+
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFIS)
 {
   int i;
-  
+
   this->WFIS.FIS.Factors.clear();
 
   for (i = 0; i < XMLFIS->GetNumberOfNestedElements(); i++) {
@@ -218,8 +449,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFI
 
     this->ParseFuzzySets(Factor, XMLFactor);
 
-//    cout << "Add Factor " << Factor.name << " with portId " << Factor.portId
-//      << " min  " << Factor.min << " max " << Factor.max << endl;
+    //    cout << "Add Factor " << Factor.name << " with portId " << Factor.portId
+    //      << " min  " << Factor.min << " max " << Factor.max << endl;
 
     this->WFIS.FIS.Factors.push_back(Factor);
   }
@@ -227,11 +458,13 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFI
   return true;
 }
 
+//----------------------------------------------------------------------------
+
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor)
 {
 
   int i;
-  
+
   Factor.Sets.clear();
 
   for (i = 0; i < XMLFactor->GetNumberOfNestedElements(); i++) {
@@ -260,7 +493,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
     }
 
     if (XMLFuzzySet->GetAttribute("const") != NULL) {
-      int val = atoi(XMLFuzzySet->GetAttribute("priority"));
+      int val = atoi(XMLFuzzySet->GetAttribute("const"));
       if (val == 0)
         Set.constant = false;
       else
@@ -313,8 +546,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-//      cout << "Added Trinagular center " << Set.Triangular.center << " left "
-//        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
+      //      cout << "Added Trinagular center " << Set.Triangular.center << " left "
+      //        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
     }
 
     if (Set.type == FUZZY_SET_TYPE_CRISP) {
@@ -338,7 +571,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-//      cout << "Added Crispt left " << Set.Crisp.left << " right " << Set.Crisp.right << endl;
+      //      cout << "Added Crispt left " << Set.Crisp.left << " right " << Set.Crisp.right << endl;
     }
 
 
@@ -369,12 +602,12 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
         return false;
       }
 
-//      cout << "Added BellShape center " << Set.Triangular.center << " left "
-//        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
+      //      cout << "Added BellShape center " << Set.Triangular.center << " left "
+      //        << Set.Triangular.left << " right " << Set.Triangular.right << endl;
     }
 
-//    cout << "Add FuzzySet " << Set.type << " with priority " << Set.priority
-//      << " constant  " << Set.constant << " position " << Set.position << endl;
+    //    cout << "Add FuzzySet " << Set.type << " with priority " << Set.priority
+    //      << " constant  " << Set.constant << " position " << Set.position << endl;
 
     // Add the FuzzySet to the Factor
     Factor.Sets.push_back(Set);
@@ -383,10 +616,12 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
   return true;
 }
 
+//----------------------------------------------------------------------------
+
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XMLResponses)
 {
   int i;
-  
+
   this->WFIS.FIS.Responses.Responses.clear();
 
   if (XMLResponses->GetAttribute("min") != NULL) {
@@ -437,17 +672,19 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XML
 
     this->WFIS.FIS.Responses.Responses.push_back(Response);
 
-//    cout << "Added Response const " << Response.constant << " sd " << Response.sd
-//      << " value " << Response.value << endl;
+    //    cout << "Added Response const " << Response.constant << " sd " << Response.sd
+    //      << " value " << Response.value << endl;
 
   }
 
-//  cout << "Added Responses min " << this->WFIS.FIS.Responses.min
-//    << " max " << this->WFIS.FIS.Responses.max << endl;
+  //  cout << "Added Responses min " << this->WFIS.FIS.Responses.min
+  //    << " max " << this->WFIS.FIS.Responses.max << endl;
 
 
   return true;
 }
+
+//----------------------------------------------------------------------------
 
 bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWeight)
 {
@@ -508,10 +745,9 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWe
     return false;
   }
 
-//  cout << "Added Weight const " << Weight.constant << " name " << Weight.name
-//    << " value " << Weight.value << " min " << Weight.min
-//    << " max " << Weight.max << " active " << Weight.active << endl;
-
+  //  cout << "Added Weight const " << Weight.constant << " name " << Weight.name
+  //    << " value " << Weight.value << " min " << Weight.min
+  //    << " max " << Weight.max << " active " << Weight.active << endl;
 
   return true;
 }
