@@ -122,6 +122,11 @@ public:
 
    //!\brief Interpolate the y value of a standard normal distribution and position x
     static double InterpolatePointInNormDist (double x);
+    
+    //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
+    static bool CheckFuzzyFactor(FuzzyFactor &Factor);
+    
+    static bool TestFISComputation();
 
 };
 

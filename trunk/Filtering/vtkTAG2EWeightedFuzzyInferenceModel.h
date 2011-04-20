@@ -41,6 +41,7 @@
 #define	vtkTAG2EWeightedFuzzyInferenceModel_H
 
 #include "vtkTAG2EAbstractCalibratableModel.h"
+#include "tag2eWFIS.h"
 
 class vtkIntArray;
 class vtkStringArray;
@@ -62,7 +63,7 @@ public:
     void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
     
     // Verify the FIS comutation with simple test cases. No inputs required.
-    bool TestFISComputation();
+    bool TestFISComputation(){return tag2eWFIS::TestFISComputation();}
 
 protected:
     vtkTAG2EWeightedFuzzyInferenceModel();

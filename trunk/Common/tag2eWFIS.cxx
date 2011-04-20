@@ -32,8 +32,10 @@
 
 #include <iostream>
 #include <math.h>
+#include <vtk-5.9/vtkSetGet.h>
 #include "tag2eWFIS.h"
 
+#define TOLERANCE 0.000000001
 
 /* This is a static array with smapling points and associated values
  * of the standard normal distribution. It is
@@ -150,11 +152,13 @@ double tag2eWFIS::ComputeFISResult(double *Input,
 
     sum_dofs = sum_dofs + dof;
     result = result + WFIS.FIS.Responses.Responses[rule].value * dof;
+    //std::cerr << "Fuzzy Parameter rule dof value and result " << std::endl;
+    //std::cerr << rule << " " << dof << " " << WFIS.FIS.Responses.Responses[rule].value << " " << result << std::endl;
   }
 
   // Check for wrong results and apply the deegrees of fullfillment
   if (sum_dofs == 0) {
-    (std::cerr << "Sum of deegrees of fullfillments is 0. Expect wrong model results.");
+    (std::cerr << "Sum of deegrees of fullfillments is 0. Expect wrong model results." << std::endl);
     result = 0.0;
   } else {
     result = result / sum_dofs;
@@ -258,7 +262,7 @@ double tag2eWFIS::ComputeDOF(double *Input,
 
   delete [] dom;
   delete [] normedInput;
-  
+
   //  cout << "Deegree of fullfillment " << dof << endl;
   return dof;
 }
@@ -289,6 +293,45 @@ double tag2eWFIS::InterpolatePointInNormDist(double value)
 
 //----------------------------------------------------------------------------
 
+bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
+{
+  unsigned int j;
+
+  for (j = 0; j < Factor.Sets.size(); j++) {
+    FuzzySet &Set = Factor.Sets[j];
+    
+    //TODO: Implement crisp and bellshape
+    if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+      // Check the senter position
+      if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
+        if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
+          std::cerr << "Wrong center in fuzyy Set " << j << " and " << j + 1 
+                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
+          return false;
+        }        
+        if (fabs(Factor.Sets[j + 1].Triangular.left - Set.Triangular.right) > TOLERANCE) {
+          std::cerr << "Triangle shapes are different between fuzzy set " << j << " and " << j + 1 << std::endl;
+          return false;
+        } 
+      }
+      if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
+        if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
+          std::cerr << "Wrong center in fuzyy Set " << j << " and " << j - 1 
+                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
+          return false;
+        }        
+        if (fabs(Factor.Sets[j - 1].Triangular.right - Set.Triangular.left) > TOLERANCE) {
+          std::cerr << "Triangle shapes are different between fuzzy set " << j << " and " << j - 1 << std::endl;
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+//----------------------------------------------------------------------------
+
 double max(double x, double y)
 {
   double w;
@@ -298,4 +341,232 @@ double max(double x, double y)
     w = x;
   }
   return w;
+}
+
+
+//----------------------------------------------------------------------------
+
+
+bool tag2eWFIS::TestFISComputation()
+{
+  // Create a simple weighted fuzzy inference scheme
+  WeightedFuzzyInferenceScheme WFIS;
+
+  WFIS.name = "Test";
+
+  FuzzyFactor F1; // nrate
+  FuzzyFactor F2; // temprature
+
+  FuzzySet F1S1;
+  FuzzySet F1S2;
+
+  FuzzySet F2S1;
+  FuzzySet F2S2;
+
+  FuzzyResponse R1;
+  FuzzyResponse R2;
+  FuzzyResponse R3;
+  FuzzyResponse R4;
+
+  // Create a factor with two triangle shape fuzzy sets
+
+  // The triangle shape has the following form
+  //   ___  ___
+  //  |   \/   |
+  //  |   /\   |
+  //  0 .4 .6  1
+
+  F1S1.type = FUZZY_SET_TYPE_TRIANGULAR;
+  F1S2.type = FUZZY_SET_TYPE_TRIANGULAR;
+
+  F1S1.constant = false;
+  F1S2.constant = false;
+
+  F1S1.position = FUZZY_SET_POISITION_LEFT;
+  F1S2.position = FUZZY_SET_POISITION_RIGHT;
+
+  F1S1.priority = 0;
+  F1S2.priority = 0;
+
+  F1S1.Triangular.left = 2222;
+  F1S1.Triangular.center = 0.4;
+  F1S1.Triangular.right = 0.2;
+
+  F1S2.Triangular.left = 0.2;
+  F1S2.Triangular.center = 0.6;
+  F1S2.Triangular.right = 2222;
+
+  // The second factor has the same shape
+  F2S1 = F1S1;
+  F2S2 = F1S2;
+
+  F1.min = 0;
+  F1.max = 150;
+  F1.name = "nrate";
+  F1.portId = 0;
+  F1.Sets.push_back(F1S1);
+  F1.Sets.push_back(F1S2);
+
+  if(!tag2eWFIS::CheckFuzzyFactor(F1))
+  {
+    return false; 
+  }
+  
+  F2.min = -15;
+  F2.max = 35;
+  F2.name = "temp";
+  F2.portId = 0;
+  F2.Sets.push_back(F2S1);
+  F2.Sets.push_back(F2S2);
+  
+  if(!tag2eWFIS::CheckFuzzyFactor(F2))
+  {
+    return false; 
+  }
+
+  R1.value = 1;
+  R2.value = 2;
+  R3.value = 3;
+  R4.value = 4;
+
+  WFIS.FIS.Responses.Responses.push_back(R1);
+  WFIS.FIS.Responses.Responses.push_back(R2);
+  WFIS.FIS.Responses.Responses.push_back(R3);
+  WFIS.FIS.Responses.Responses.push_back(R4);
+
+  WFIS.FIS.Responses.min = 1;
+  WFIS.FIS.Responses.max = 4;
+
+  WFIS.FIS.Factors.push_back(F1);
+  WFIS.FIS.Factors.push_back(F2);
+
+  WFIS.Weight.active = true;
+  WFIS.Weight.constant = false;
+  WFIS.Weight.max = 100;
+  WFIS.Weight.min = 0.001;
+  WFIS.Weight.name = "vegetables";
+  WFIS.Weight.value = 1.0;
+
+  int i, j;
+  int numberOfRules = 4;
+  int numberOfFactors = 2;
+
+  cout << "ComputeRuleCodeMatrixEntries Test" << endl;
+
+  // Create the rule code matrix
+  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
+
+  tag2eWFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, WFIS);
+
+  for (i = 0; i < numberOfRules; i++) {
+    for (j = 0; j < numberOfFactors; j++) {
+      cout << RuleCodeMatrix[i][j] << " ";
+    }
+    cout << endl;
+  }
+
+  if (RuleCodeMatrix[0][0] != 0 ||
+    RuleCodeMatrix[0][1] != 0 ||
+    RuleCodeMatrix[1][0] != 0 ||
+    RuleCodeMatrix[1][1] != 1 ||
+    RuleCodeMatrix[2][0] != 1 ||
+    RuleCodeMatrix[2][1] != 0 ||
+    RuleCodeMatrix[3][0] != 1 ||
+    RuleCodeMatrix[3][1] != 1) {
+    (std::cerr << "ComputeRuleCodeMatrixEntries failed");
+    return false;
+  }
+
+  cout << "ComputeDOF Test 1 Mean" << endl;
+  // First test the mean
+  double Input[2] = {75.0, 10.0};
+  double result;
+
+  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.25) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 1 1");
+    return false;
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.25) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 1 2");
+    return false;
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.25) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 1 3");
+    return false;
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.25) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 1 4");
+    return false;
+  }
+
+  cout << "ComputeFISResult Test 1" << endl;
+  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  cout << "Result = " << result << endl;
+  if (fabs(result - 2.5) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeFISResult Test 1");
+  }
+
+  cout << "ComputeDOF Test 2 Left border" << endl;
+
+  Input[0] = 0.0;
+  Input[1] = -15.0;
+
+  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  if (fabs(result - 1.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 2 1");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 2 2");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 2 3");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 2 4");
+  }
+
+  cout << "ComputeFISResult Test 2" << endl;
+  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  cout << "Result = " << result << endl;
+  if (fabs(result - 1.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeFISResult Test 2");
+  }
+
+  cout << "ComputeDOF Test 3 right border" << endl;
+
+  Input[0] = 150;
+  Input[1] = 35;
+
+  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 3 1");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 3 2");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  if (fabs(result - 0.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 3 3");
+  }
+  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  if (fabs(result - 1.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeDOF Test 3 4");
+  }
+
+  cout << "ComputeFISResult Test 3" << endl;
+  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  cout << "Result = " << result << endl;
+  if (fabs(result - 4.0) > TOLERANCE) {
+    (std::cerr << "Wrong result in ComputeFISResult Test 3");
+  }
+
+  return true;
 }

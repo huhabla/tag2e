@@ -53,9 +53,9 @@ public:
     static vtkTAG2EFuzzyInferenceModelParameter *New();
     
     //!\brief Change arbritary a model parameter
-    virtual void ChangeParameterRandomly();
+    virtual bool ChangeParameterRandomly(double sd);
     //!\brief Restore the last randomly modified model parameter 
-    virtual void RestoreParameter();
+    virtual bool RestoreParameter();
     
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
@@ -83,6 +83,8 @@ protected:
     // BTX
     WeightedFuzzyInferenceScheme WFIS;
     std::vector <unsigned int> ParameterIndex;
+    std::vector <double> ParameterValues;
+    std::vector < std::vector <double> > ParameterMinMax;
     // ETX
     
     unsigned int NumberOfRules;
