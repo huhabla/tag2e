@@ -45,8 +45,8 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 10
-        yext = 10
+        xext = 1
+        yext = 1
         num = xext*yext
                 
         pH = vtkDoubleArray()
@@ -100,7 +100,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         model = vtkTAG2EWeightedFuzzyInferenceModel()
         model.TestFISComputation()
         
-    def test2FuzzyXML(self):
+    def otest2FuzzyXML(self):
         
         root  = vtk.vtkXMLDataElement()
         
@@ -367,9 +367,22 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.GetXMLRoot().DeepCopy(root)
-        fisc.GenerateInternalSchemeFromXML();
-        fisc.GenerateXMLFromInternalScheme();
-        fisc.ChangeParameterRandomly()
+        fisc.GenerateInternalSchemeFromXML()
+        fisc.GenerateXMLFromInternalScheme()
+        
+        for i in range(100):
+            fisc.ChangeParameterRandomly(0.1)
+            fisc.GenerateXMLFromInternalScheme()
+            model = vtkTAG2EWeightedFuzzyInferenceModel()
+            model.SetModelParameter(fisc)
+            model.SetInputConnection(self.timesource.GetOutputPort())
+            model.Update()
+            fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
+            fisc.Write()
+            print "Iteration " + str(i)
+        
+        fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest1.xml")
+        fisc.Write()
 
   
 if __name__ == '__main__':

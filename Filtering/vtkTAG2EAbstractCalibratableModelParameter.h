@@ -50,9 +50,9 @@ public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
     
     //!\brief Abstract Method to change arbritary a model parameter
-    virtual void ChangeParameterRandomly() = 0;
+    virtual bool ChangeParameterRandomly(double sd) = 0;
     //!\brief Abstract Restore the last randomly modified model parameter 
-    virtual void RestoreParameter() = 0;
+    virtual bool RestoreParameter() = 0;
 
 protected:
 
