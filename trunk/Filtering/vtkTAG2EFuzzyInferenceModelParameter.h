@@ -51,27 +51,30 @@ public:
         ;
     }
     static vtkTAG2EFuzzyInferenceModelParameter *New();
-    
+
     //!\brief Change arbritary a model parameter
     virtual bool ChangeParameterRandomly(double sd);
     //!\brief Restore the last randomly modified model parameter 
     virtual bool RestoreParameter();
-    
+
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
-    
+
     vtkGetMacro(NumberOfRules, int);
     vtkGetMacro(NumberOfFactors, int);
-    
+
     //BTX
-    WeightedFuzzyInferenceScheme &GetInternalScheme(){return this->WFIS;}
+
+    WeightedFuzzyInferenceScheme &GetInternalScheme() {
+        return this->WFIS;
+    }
     //ETX
-    
-protected:        
+
+protected:
 
     vtkTAG2EFuzzyInferenceModelParameter();
     ~vtkTAG2EFuzzyInferenceModelParameter();
-    
+
     bool ParseFactors(vtkXMLDataElement *FuzzyInferenceScheme);
     bool ParseResponses(vtkXMLDataElement *FuzzyInferenceScheme);
     bool ParseFuzzyInferenceScheme(vtkXMLDataElement *FuzzyInferenceScheme);
@@ -81,19 +84,19 @@ protected:
     bool SetParameter(unsigned int index, double value);
     void AppendParameterState(unsigned int index, double value, double min, double max);
     void UpdateParameterState(unsigned int index, double old_value, double new_value);
-    
+
     // BTX
     WeightedFuzzyInferenceScheme WFIS;
     std::vector <unsigned int> ParameterIndex;
     std::vector <double> ParameterValues;
     std::vector < std::vector <double> > ParameterMinMax;
     // ETX
-    
+
     unsigned int NumberOfRules;
     unsigned int NumberOfFactors;
     double ParameterValue; // This variable stores the old parameter value
     unsigned int ParameterId; // This is the id of the last changed parameter, -1 nothing changed yet
-    
+
 private:
     vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);
     void operator=(const vtkTAG2EFuzzyInferenceModelParameter&); // Not implemented.

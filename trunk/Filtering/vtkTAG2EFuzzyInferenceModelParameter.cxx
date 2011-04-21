@@ -46,14 +46,16 @@ vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModelParameter);
 
 //----------------------------------------------------------------------------
 
-static int irand(int a, int e) {
+static int irand(int a, int e)
+{
     double r = e - a + 1;
     return a + (int) (r * rand() / (RAND_MAX + 1.0));
 }
 
 //----------------------------------------------------------------------------
 
-static double norm_dist(double mean, double sd) {
+static double norm_dist(double mean, double sd)
+{
     double u1, u2, x1, x2;
     u1 = (double) rand() / (double) (RAND_MAX);
     u2 = (double) rand() / (double) (RAND_MAX);
@@ -64,7 +66,8 @@ static double norm_dist(double mean, double sd) {
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter() {
+vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter()
+{
     this->NumberOfFactors = 0;
     this->NumberOfRules = 0;
     this->ParameterId = -1;
@@ -77,13 +80,15 @@ vtkTAG2EFuzzyInferenceModelParameter::vtkTAG2EFuzzyInferenceModelParameter() {
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceModelParameter::~vtkTAG2EFuzzyInferenceModelParameter() {
+vtkTAG2EFuzzyInferenceModelParameter::~vtkTAG2EFuzzyInferenceModelParameter()
+{
     ;
 }
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme() {
+bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
+{
     unsigned int i, j;
 
     vtkXMLDataElement *root = vtkXMLDataElement::New();
@@ -216,23 +221,24 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme() {
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ChangeParameterRandomly(double sd) {
+bool vtkTAG2EFuzzyInferenceModelParameter::ChangeParameterRandomly(double sd)
+{
     bool check = false;
     int count = 0;
 
     // Change a randomly selected parameter till a valid configuration is found
     while (!check) {
-        
+
         // Avoid endless loops
         count++;
         if (count > MAX_CHANGE_PARAMETER_RUNS) {
             vtkErrorMacro( << "Maximum number of parameter runs reached");
             return false;
         }
-        
+
         // Select randomly a uniform distributed index
         int index = irand(0, this->ParameterIndex.size() - 1);
-        
+
         // Get min and max values for parameter range check
         double min = this->ParameterMinMax[index][0];
         double max = this->ParameterMinMax[index][1];
@@ -265,13 +271,15 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ChangeParameterRandomly(double sd) {
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::RestoreParameter() {
+bool vtkTAG2EFuzzyInferenceModelParameter::RestoreParameter()
+{
     return this->SetParameter(this->ParameterId, this->ParameterValue);
 }
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, double value) {
+bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, double value)
+{
     unsigned int i, j;
     unsigned int count = 0;
 
@@ -291,7 +299,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
                 // Fuzzy set geometry is handled normalized internally
                 // We need to scale and normailze
                 double scale = fabs(Factor.max - Factor.min);
-                
+
                 if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
                     if (index == count) {
                         this->UpdateParameterState(index, Set.Triangular.center * scale, value);
@@ -367,10 +375,11 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EFuzzyInferenceModelParameter::UpdateParameterState(unsigned int index, double old_value, double new_value) {
+void vtkTAG2EFuzzyInferenceModelParameter::UpdateParameterState(unsigned int index, double old_value, double new_value)
+{
 
     // cout << "Index " << index << " old value " << old_value << " new value " << new_value << endl;
-    
+
     // Safe the last parameter for restauration
     this->ParameterValue = old_value;
     // Safe the last index for restauration
@@ -381,7 +390,8 @@ void vtkTAG2EFuzzyInferenceModelParameter::UpdateParameterState(unsigned int ind
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex() {
+bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex()
+{
     unsigned int i, j;
     unsigned int count = 0;
 
@@ -399,11 +409,11 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex() {
             FuzzySet &Set = Factor.Sets[j];
             // Count only non-constant fuzzy sets
             if (Set.constant == false) {
-                
+
                 // Fuzzy set geometry is handled normalized internally
                 // We need to scale and normailze
                 double scale = fabs(Factor.max - Factor.min);
-                
+
                 if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
                     this->AppendParameterState(count, Set.Triangular.center * scale, Factor.min, Factor.max);
                     count++;
@@ -426,14 +436,14 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex() {
         FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
         if (Response.constant == false) {
             this->AppendParameterState(count, Response.value, this->WFIS.FIS.Responses.min,
-                    this->WFIS.FIS.Responses.max);
+                                       this->WFIS.FIS.Responses.max);
         }
         count++;
     }
 
     if (WFIS.Weight.constant == false) {
         this->AppendParameterState(count, WFIS.Weight.value,
-                this->WFIS.Weight.min, this->WFIS.Weight.max);
+                                   this->WFIS.Weight.min, this->WFIS.Weight.max);
     }
 
     return true;
@@ -441,10 +451,11 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex() {
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EFuzzyInferenceModelParameter::AppendParameterState(unsigned int index, double value, double min, double max) {
+void vtkTAG2EFuzzyInferenceModelParameter::AppendParameterState(unsigned int index, double value, double min, double max)
+{
 
     //cout << "Index " << index << " Value " << value << endl;
-    
+
     // Save the parameter index
     this->ParameterIndex.push_back(index);
     // Save the current value of the parameter for random number generation
@@ -458,7 +469,8 @@ void vtkTAG2EFuzzyInferenceModelParameter::AppendParameterState(unsigned int ind
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML() {
+bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
+{
     vtkXMLDataElement *root = this->GetXMLRoot();
     unsigned int i;
 
@@ -520,7 +532,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML() {
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFIS) {
+bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFIS)
+{
     int i;
 
     this->WFIS.FIS.Factors.clear();
@@ -581,7 +594,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFI
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor) {
+bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor)
+{
 
     int i;
 
@@ -738,7 +752,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFuzzySets(FuzzyFactor &Factor, v
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XMLResponses) {
+bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XMLResponses)
+{
     int i;
 
     this->WFIS.FIS.Responses.Responses.clear();
@@ -805,7 +820,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseResponses(vtkXMLDataElement *XML
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWeight) {
+bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWeight)
+{
     int active;
 
     FuzzyWeight &Weight = this->WFIS.Weight;
