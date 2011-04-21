@@ -79,6 +79,8 @@ protected:
     bool ParseWeights(vtkXMLDataElement *Weights);
     bool CreateParameterIndex();
     bool SetParameter(unsigned int index, double value);
+    void AppendParameterState(unsigned int index, double value, double min, double max);
+    void UpdateParameterState(unsigned int index, double old_value, double new_value);
     
     // BTX
     WeightedFuzzyInferenceScheme WFIS;

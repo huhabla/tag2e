@@ -12,6 +12,8 @@
 
 // The documentation of the following trivial classes
 // is located in the WeightedFuzzyInferenceScheme.xsd
+// These classes describe the internal represenation of 
+// the XML weighted fuzzy inference definition
 class FuzzyShapeTriangular{
 public:
     double center; // calibrated
@@ -92,6 +94,9 @@ public:
 /** 
  * This class contains the computation algorithms of the weighted fuzzy inference scheme
  * 
+ * 
+ * \TODO Add Rene Dechow paper reference
+ * 
  */
 class tag2eWFIS {
 public:
@@ -126,6 +131,7 @@ public:
     //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
     static bool CheckFuzzyFactor(FuzzyFactor &Factor);
     
+    //!\brief Internal unit test of all computational functions. Returns true on success.
     static bool TestFISComputation();
 
 };

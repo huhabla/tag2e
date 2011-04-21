@@ -32,7 +32,6 @@
 
 #include <iostream>
 #include <math.h>
-#include <vtk-5.9/vtkSetGet.h>
 #include "tag2eWFIS.h"
 
 #define TOLERANCE 0.000000001
@@ -183,11 +182,11 @@ double tag2eWFIS::ComputeDOF(double *Input,
   double *normedInput = new double[numberOfFactors]; // Normalized input values
   double dof; // The resulting deegree of fullfillment for the rule
 
-  //cout << "Normed values" << endl;
+  //cout << "Normed values" << std::endl;
   // Norm the Input values and write the result in normedInput
   for (d = 0; d < numberOfFactors; d++) {
     normedInput[d] = (Input[d] - WFIS.FIS.Factors[d].min) / (WFIS.FIS.Factors[d].max - WFIS.FIS.Factors[d].min);
-    //cout << normedInput[d] << endl;
+    //cout << normedInput[d] << std::endl;
   }
 
   d = 0; // counter
@@ -263,7 +262,7 @@ double tag2eWFIS::ComputeDOF(double *Input,
   delete [] dom;
   delete [] normedInput;
 
-  //  cout << "Deegree of fullfillment " << dof << endl;
+  //  std::cout << "Deegree of fullfillment " << dof << std::endl;
   return dof;
 }
 
@@ -451,7 +450,7 @@ bool tag2eWFIS::TestFISComputation()
   int numberOfRules = 4;
   int numberOfFactors = 2;
 
-  cout << "ComputeRuleCodeMatrixEntries Test" << endl;
+  std::cout << "ComputeRuleCodeMatrixEntries Test" << std::endl;
 
   // Create the rule code matrix
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
@@ -460,9 +459,9 @@ bool tag2eWFIS::TestFISComputation()
 
   for (i = 0; i < numberOfRules; i++) {
     for (j = 0; j < numberOfFactors; j++) {
-      cout << RuleCodeMatrix[i][j] << " ";
+      std::cout << RuleCodeMatrix[i][j] << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
   }
 
   if (RuleCodeMatrix[0][0] != 0 ||
@@ -477,7 +476,7 @@ bool tag2eWFIS::TestFISComputation()
     return false;
   }
 
-  cout << "ComputeDOF Test 1 Mean" << endl;
+  std::cout << "ComputeDOF Test 1 Mean" << std::endl;
   // First test the mean
   double Input[2] = {75.0, 10.0};
   double result;
@@ -503,14 +502,14 @@ bool tag2eWFIS::TestFISComputation()
     return false;
   }
 
-  cout << "ComputeFISResult Test 1" << endl;
+  std::cout << "ComputeFISResult Test 1" << std::endl;
   result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
-  cout << "Result = " << result << endl;
+  std::cout << "Result = " << result << std::endl;
   if (fabs(result - 2.5) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 1");
   }
 
-  cout << "ComputeDOF Test 2 Left border" << endl;
+  std::cout << "ComputeDOF Test 2 Left border" << std::endl;
 
   Input[0] = 0.0;
   Input[1] = -15.0;
@@ -532,14 +531,14 @@ bool tag2eWFIS::TestFISComputation()
     (std::cerr << "Wrong result in ComputeDOF Test 2 4");
   }
 
-  cout << "ComputeFISResult Test 2" << endl;
+  std::cout << "ComputeFISResult Test 2" << std::endl;
   result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
-  cout << "Result = " << result << endl;
+  std::cout << "Result = " << result << std::endl;
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 2");
   }
 
-  cout << "ComputeDOF Test 3 right border" << endl;
+  std::cout << "ComputeDOF Test 3 right border" << std::endl;
 
   Input[0] = 150;
   Input[1] = 35;
@@ -561,9 +560,9 @@ bool tag2eWFIS::TestFISComputation()
     (std::cerr << "Wrong result in ComputeDOF Test 3 4");
   }
 
-  cout << "ComputeFISResult Test 3" << endl;
+  std::cout << "ComputeFISResult Test 3" << std::endl;
   result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
-  cout << "Result = " << result << endl;
+  std::cout << "Result = " << result << std::endl;
   if (fabs(result - 4.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 3");
   }
