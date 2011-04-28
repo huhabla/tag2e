@@ -371,7 +371,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         for i in range(100):
             print "Iteration " + str(i)
-            fisc.ChangeParameterRandomly(0.1)
+            fisc.ModifyParameterRandomly(0.1)
             model = vtkTAG2EWeightedFuzzyInferenceModel()
             model.SetModelParameter(fisc)
             model.SetInputConnection(self.timesource.GetOutputPort())
@@ -379,6 +379,18 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
             fisc.Write()
         
+        fisc = vtkTAG2EFuzzyInferenceModelParameter()
+        fisc.GetXMLRoot().DeepCopy(root)
+        fisc.GenerateInternalSchemeFromXML()
+        
+        for j in range(fisc.GetNumberOfCalibratableParameter()):
+            print "Parameter " + str(j)
+            for i in range(20):
+            
+                if fisc.ModifyParameter(j, 0.1) == True:
+                    print fisc.GetParameterValue(j)
+                else:
+                    fisc.RestoreLastModifiedParameter()
 
   
 if __name__ == '__main__':

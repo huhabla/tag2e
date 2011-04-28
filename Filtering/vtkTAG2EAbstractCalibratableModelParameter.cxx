@@ -37,7 +37,7 @@ vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, "$Revision: 1.0 
 
 vtkTAG2EAbstractCalibratableModelParameter::vtkTAG2EAbstractCalibratableModelParameter()
 {
-  ;
+  this->NumberOfCalibratableParameter = 0;
 }
 
 vtkTAG2EAbstractCalibratableModelParameter::~vtkTAG2EAbstractCalibratableModelParameter()

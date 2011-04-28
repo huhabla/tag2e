@@ -125,7 +125,9 @@ public:
     //!\return The result of the fuzzy inference scheme computation
     static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS);
 
-   //!\brief Interpolate the y value of a standard normal distribution and position x
+    //!\brief Interpolate the y value of a standard normal distribution at position x
+    //!\param x the position in the standard normal distribution
+    //!\return The interpolated value
     static double InterpolatePointInNormDist (double x);
     
     //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
