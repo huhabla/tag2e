@@ -30,12 +30,17 @@
  * GNU General Public License for more details.
  */
 
+/**
+ * \brief This is the fuzzy inference model parameter class
+ * 
+ * \TODO Instead of normalized fuzzy set positions, use real values and normailze at runtime
+ */
+
 #ifndef vtkTAG2EFuzzyInferenceModelParameter_H
 #define	vtkTAG2EFuzzyInferenceModelParameter_H
 
 #include <vtkObject.h>
 #include <vtkXMLDataElement.h>
-#include <assert.h>
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 #include <vector>
 #include <map>
@@ -52,19 +57,26 @@ public:
     }
     static vtkTAG2EFuzzyInferenceModelParameter *New();
 
-    //!\brief Change arbritary a model parameter
-    virtual bool ChangeParameterRandomly(double sd);
-    //!\brief Restore the last randomly modified model parameter 
-    virtual bool RestoreParameter();
+    //!\brief Change arbritary a model parameter using a specific standard deviation
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool ModifyParameterRandomly(double sd);
+    //!\brief Change a model parameter at index using a specific standard deviation
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool ModifyParameter(int index, double sd);
+    //!\brief Return a model parameter at index. No index range check is performed.
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual double GetParameterValue(int index){return this->ParameterValues[index];};
+    //!\brief Restore the last modified model parameter 
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool RestoreLastModifiedParameter();
 
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
 
     vtkGetMacro(NumberOfRules, int);
     vtkGetMacro(NumberOfFactors, int);
-
+    
     //BTX
-
     WeightedFuzzyInferenceScheme &GetInternalScheme() {
         return this->WFIS;
     }

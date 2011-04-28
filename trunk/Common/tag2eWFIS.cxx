@@ -34,7 +34,7 @@
 #include <math.h>
 #include "tag2eWFIS.h"
 
-#define TOLERANCE 0.000000001
+#define TOLERANCE 0.00001
 
 /* This is a static array with smapling points and associated values
  * of the standard normal distribution. It is
@@ -195,10 +195,10 @@ double tag2eWFIS::ComputeDOF(double *Input,
     pos = (RuleCodeMatrix[rule][d]);
     shape = WFIS.FIS.Factors[d].Sets[pos].type;
 
-    // The value of normedInput at position d is normed [0:1] using its defiend max and min values. 
+    // The value of normedInput at position d is normed [0:1] using its defined max and min values. 
     // Larger values of 1 are possible in case of the maximum was to low estimated.
-    // In case larger values than 10 we assume 
-    // the membership is 100%. Values larger than 10 may occure in case values are missing and 
+    // In case of larger values than 10 we assume the membership is 100%. 
+    // Such values may occure in case values are missing and 
     // replaced by a large default number.
     if ((normedInput[d] > 10) || (normedInput[d] < 0)) {
       dom[d] = 1;
@@ -301,26 +301,32 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
     
     //TODO: Implement crisp and bellshape
     if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
-      // Check the senter position
+      // Check the center position
       if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzyy Set " << j << " and " << j + 1 
+          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j + 1 
                    << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
           return false;
         }        
         if (fabs(Factor.Sets[j + 1].Triangular.left - Set.Triangular.right) > TOLERANCE) {
-          std::cerr << "Triangle shapes are different between fuzzy set " << j << " and " << j + 1 << std::endl;
+          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j + 1 << std::endl;
+          return false;
+        } 
+        double value = fabs(Set.Triangular.right + Set.Triangular.center);
+        double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
+        if( diff > TOLERANCE){
+          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
           return false;
         } 
       }
       if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzyy Set " << j << " and " << j - 1 
+          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j - 1 
                    << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
           return false;
         }        
         if (fabs(Factor.Sets[j - 1].Triangular.right - Set.Triangular.left) > TOLERANCE) {
-          std::cerr << "Triangle shapes are different between fuzzy set " << j << " and " << j - 1 << std::endl;
+          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j - 1 << std::endl;
           return false;
         }
       }
@@ -342,9 +348,7 @@ double max(double x, double y)
   return w;
 }
 
-
 //----------------------------------------------------------------------------
-
 
 bool tag2eWFIS::TestFISComputation()
 {
@@ -353,6 +357,7 @@ bool tag2eWFIS::TestFISComputation()
 
   WFIS.name = "Test";
 
+  // We have 2 factors with each 2 fuzzy sets
   FuzzyFactor F1; // nrate
   FuzzyFactor F2; // temprature
 
@@ -362,6 +367,7 @@ bool tag2eWFIS::TestFISComputation()
   FuzzySet F2S1;
   FuzzySet F2S2;
 
+  // 4 rules -> 2 * 2 fuzzy sets
   FuzzyResponse R1;
   FuzzyResponse R2;
   FuzzyResponse R3;
@@ -507,6 +513,7 @@ bool tag2eWFIS::TestFISComputation()
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 2.5) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 1");
+    return false;
   }
 
   std::cout << "ComputeDOF Test 2 Left border" << std::endl;
@@ -517,18 +524,22 @@ bool tag2eWFIS::TestFISComputation()
   result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 1");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 2");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 3");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 4");
+    return false;
   }
 
   std::cout << "ComputeFISResult Test 2" << std::endl;
@@ -536,6 +547,7 @@ bool tag2eWFIS::TestFISComputation()
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 2");
+    return false;
   }
 
   std::cout << "ComputeDOF Test 3 right border" << std::endl;
@@ -546,18 +558,22 @@ bool tag2eWFIS::TestFISComputation()
   result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 1");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 2");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 3");
+    return false;
   }
   result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 4");
+    return false;
   }
 
   std::cout << "ComputeFISResult Test 3" << std::endl;
@@ -565,6 +581,7 @@ bool tag2eWFIS::TestFISComputation()
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 4.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 3");
+    return false;
   }
 
   return true;

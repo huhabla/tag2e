@@ -50,14 +50,23 @@ public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
     
     //!\brief Abstract Method to change arbritary a model parameter
-    virtual bool ChangeParameterRandomly(double sd) = 0;
-    //!\brief Abstract Restore the last randomly modified model parameter 
-    virtual bool RestoreParameter() = 0;
-
+    virtual bool ModifyParameterRandomly(double sd) = 0;
+    //!\brief Abstract Restore the last modified model parameter 
+    virtual bool RestoreLastModifiedParameter() = 0;
+    //!\brief Abstract Method to change arbritary a model parameter
+    virtual bool ModifyParameter(int index, double sd) = 0;
+    //!\brief Abstract Method to get a model parameter at index
+    virtual double GetParameterValue(int index) = 0;
+    //!\brief Return the number of calibratable parameter
+    vtkGetMacro(NumberOfCalibratableParameter, int);
+    
 protected:
+    vtkSetMacro(NumberOfCalibratableParameter, int);
 
     vtkTAG2EAbstractCalibratableModelParameter();
     ~vtkTAG2EAbstractCalibratableModelParameter();
+    
+    int NumberOfCalibratableParameter;
     
 private:
     vtkTAG2EAbstractCalibratableModelParameter(const vtkTAG2EAbstractCalibratableModelParameter& orig);
