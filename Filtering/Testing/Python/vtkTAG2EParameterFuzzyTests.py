@@ -40,66 +40,10 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-class vtkTAG2EDFuzzyTest(unittest.TestCase):
+class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
   
     def setUp(self):
-        
-        # Create the point data
-        xext = 20
-        yext = 10
-        num = xext*yext
-                
-        pH = vtkDoubleArray()
-        pH.SetNumberOfTuples(num)
-        pH.SetName("pH")
-        pH.FillComponent(0, 5)
-        
-        nmin = vtkDoubleArray()
-        nmin.SetNumberOfTuples(num)
-        nmin.SetName("nmin")
-        nmin.FillComponent(0, 75)
-        
-        # Point ids for poly vertex cell
-        ids = vtkIdList()
-        points = vtkPoints()
-        
-        count = 0
-        for i in range(xext):
-            for j in range(yext):
-                points.InsertNextPoint(i, j, 0)
-                ids.InsertNextId(count)
-                count += 1
 
-        ds = vtkPolyData()
-        ds.Allocate(xext,yext)
-        ds.GetPointData().SetScalars(pH)
-        ds.GetPointData().AddArray(nmin)
-        ds.SetPoints(points)    
-        ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
-        
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 2
-        
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, ds)
-        self.timesource.Update()
-        
-        self._BuildXML()
-        
-    def _BuildXML(self):
-        
         self.root  = vtk.vtkXMLDataElement()
         
         fuzzyRoot = vtkXMLDataElement()
@@ -216,30 +160,37 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
         self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
-        
-    def test1Self(self):
-        """Performe the self test"""
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
-        model.TestFISComputation()
+        self.root.AddNestedElement(weight)        
         
     def test2FuzzyXML(self):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
+        fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
+        fisc.GetXMLRoot().DeepCopy(self.root)
+        fisc.Write()
+        # Read it again
+        fisc.Read();
+        # Change the name
+        fisc.GetXMLRoot().SetAttribute("name", "CH4Emission_V20101111") 
+        fisc.SetFileName("/tmp/FuzzyInferenceScheme2.xml")
+        fisc.Write()
+        fisc.GenerateInternalSchemeFromXML();
+        fisc.GenerateXMLFromInternalScheme();
+        fisc.SetFileName("/tmp/FuzzyInferenceScheme3.xml")
+        fisc.Write()
+             
+    def test3FuzzyParameter(self):
+        
+        fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.GetXMLRoot().DeepCopy(self.root)
         fisc.GenerateInternalSchemeFromXML();
-
-        for i in range(10000):
-            print "Iteration " + str(i)
-            fisc.ModifyParameterRandomly(0.1)
-            model = vtkTAG2EWeightedFuzzyInferenceModel()
-            model.SetModelParameter(fisc)
-            model.SetInputConnection(self.timesource.GetOutputPort())
-            model.Update()
-            fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
-            fisc.Write()
-            
+        
+        for j in range(fisc.GetNumberOfCalibratableParameter()):
+            print "Modify Parameter " + str(j)
+            for i in range(10):
+                fisc.ModifyParameter(j, 0.1*(j + 1)/2)
+                print fisc.GetParameterValue(j)
   
 if __name__ == '__main__':
-    suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDParameterFuzzyTest)
     unittest.TextTestRunner(verbosity=2).run(suite1) 

@@ -73,6 +73,10 @@ static double NormDistSamplingPoints[27][2] = {
 
 // Simple maximum computation
 static double max(double x, double y);
+//!\brief Interpolate the y value of a standard normal distribution at position x
+//!\param x the position in the standard normal distribution
+//!\return The interpolated value
+static double InterpolatePointInNormDist (double x);
 
 //----------------------------------------------------------------------------
 
@@ -268,7 +272,81 @@ double tag2eWFIS::ComputeDOF(double *Input,
 
 //----------------------------------------------------------------------------
 
-double tag2eWFIS::InterpolatePointInNormDist(double value)
+bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
+{
+  unsigned int j;
+
+  for (j = 0; j < Factor.Sets.size(); j++) {
+    FuzzySet &Set = Factor.Sets[j];
+    
+    //TODO: Implement crisp and bellshape
+    if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
+      
+      if(Set.Triangular.center > 1){
+          std::cerr << "Center is larger then 1: " << Set.Triangular.center << std::endl;
+          return false;
+        }        
+      
+      if(Set.Triangular.center < 0){
+          std::cerr << "Center is lower then 0: " << Set.Triangular.center << std::endl;
+          return false;
+        }        
+      
+      // Check the center position
+      if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
+        if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
+          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j + 1 
+                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
+          return false;
+        }  
+        if (fabs(Factor.Sets[j + 1].Triangular.left - Set.Triangular.right) > TOLERANCE) {
+          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j + 1 << std::endl;
+          return false;
+        } 
+        double value = fabs(Set.Triangular.right + Set.Triangular.center);
+        double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
+        if( diff > TOLERANCE){
+          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          return false;
+        } 
+      }
+      
+      if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
+        if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
+          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j - 1 
+                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
+          return false;
+        }        
+        if (fabs(Factor.Sets[j - 1].Triangular.right - Set.Triangular.left) > TOLERANCE) {
+          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j - 1 << std::endl;
+          return false;
+        } 
+        double value = fabs(Set.Triangular.center - Set.Triangular.left);
+        double diff = fabs(Factor.Sets[j - 1].Triangular.center - value);
+        if( diff > TOLERANCE){
+          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j - 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          return false;
+        } 
+      }
+    }
+  }
+
+  return true;
+}
+//----------------------------------------------------------------------------
+
+double max(double x, double y)
+{
+  if (x < y) {
+    return y;
+  } 
+  
+  return x;
+}
+
+//----------------------------------------------------------------------------
+
+double InterpolatePointInNormDist(double value)
 {
   int w1 = 0, w2 = 26, w3 = 0;
   double dummy;
@@ -288,64 +366,6 @@ double tag2eWFIS::InterpolatePointInNormDist(double value)
     (NormDistSamplingPoints[w2][0] -
     NormDistSamplingPoints[w1][0]) *
     (value - NormDistSamplingPoints[w1][0]);
-}
-
-//----------------------------------------------------------------------------
-
-bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
-{
-  unsigned int j;
-
-  for (j = 0; j < Factor.Sets.size(); j++) {
-    FuzzySet &Set = Factor.Sets[j];
-    
-    //TODO: Implement crisp and bellshape
-    if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
-      // Check the center position
-      if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
-        if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j + 1 
-                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
-          return false;
-        }        
-        if (fabs(Factor.Sets[j + 1].Triangular.left - Set.Triangular.right) > TOLERANCE) {
-          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j + 1 << std::endl;
-          return false;
-        } 
-        double value = fabs(Set.Triangular.right + Set.Triangular.center);
-        double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
-        if( diff > TOLERANCE){
-          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
-          return false;
-        } 
-      }
-      if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
-        if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j - 1 
-                   << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
-          return false;
-        }        
-        if (fabs(Factor.Sets[j - 1].Triangular.right - Set.Triangular.left) > TOLERANCE) {
-          std::cerr << "Triangle shapes are different between fuzzy sets " << j << " and " << j - 1 << std::endl;
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-}
-//----------------------------------------------------------------------------
-
-double max(double x, double y)
-{
-  double w;
-  if (x < y) {
-    w = y;
-  } else {
-    w = x;
-  }
-  return w;
 }
 
 //----------------------------------------------------------------------------

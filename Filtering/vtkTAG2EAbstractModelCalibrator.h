@@ -51,6 +51,10 @@
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 
+class vtkDataSet;
+class vtkTemporalDataSet;
+class vtkDataArray;
+
 class vtkTAG2EAbstractModelCalibrator : public vtkTemporalDataSetAlgorithm {
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractModelCalibrator, vtkTemporalDataSetAlgorithm);
@@ -76,6 +80,17 @@ public:
     //!\brief Get the name of the result array in the model output
     vtkGetStringMacro(ModelResultArrayName);
     
+    //!\brief Compare two data arrays using the normative least squares algorithm
+    //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
+    static double CompareTemporalDataSets(vtkTemporalDataSet *tds, 
+                                           const char *ModelResultArrayName, 
+                                           const char *MeasuredDataArrayname, 
+                                           bool usePointData, bool verbose);
+    
+    static double ArithmeticMean(vtkDataArray *data);
+    static double StandardDeviation(vtkDataArray *data);
+    static double Variance(vtkDataArray *data);
+
 protected:
     vtkTAG2EAbstractModelCalibrator();
     ~vtkTAG2EAbstractModelCalibrator();
@@ -84,7 +99,7 @@ protected:
         assert("RequestData must be implemented in a subclass");
         return -1;
     }
-
+    
     vtkTAG2EAbstractCalibratableModel *Model;
     vtkTAG2EAbstractCalibratableModelParameter *ModelParameter;
     
