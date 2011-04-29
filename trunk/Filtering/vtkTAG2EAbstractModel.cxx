@@ -36,6 +36,8 @@
 vtkCxxRevisionMacro(vtkTAG2EAbstractModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EAbstractModel);
 
+//----------------------------------------------------------------------------
+
 vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
 {
   this->SetNumberOfInputPorts(1);
@@ -44,6 +46,8 @@ vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
   this->ResultArrayName = NULL;
   this->SetResultArrayName("result");
 }
+
+//----------------------------------------------------------------------------
 
 vtkTAG2EAbstractModel::~vtkTAG2EAbstractModel()
 {

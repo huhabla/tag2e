@@ -239,9 +239,6 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameterRandomly(double sd)
 
     // Change the Parameter
     check = this->ModifyParameter(index, sd);
-    // Revert the change in case the modified parametrer result in wrong fuzzy sets
-    if (check == false)
-      this->RestoreLastModifiedParameter();
   }
 
   this->GenerateXMLFromInternalScheme();
@@ -266,25 +263,34 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameter(int index, double sd)
   // The new parameter value 
   value = value + rvalue*range;
 
-  // The generated value must be in range, otherwise a new value is selected
+  // The generated value must be in range
   if (value < min || value > max) {
+    vtkDebugMacro(<< "Parameter " << index << " Value " << value << " is out of range [" << min << ":" << max << "]");
     return false;
   }
 
   // Set the Parameter
-  return this->SetParameter(index, value);
+  bool check = this->SetParameter(index, value);
+  
+  // Revert the change in case the modified parametrer result in wrong fuzzy sets
+  if (check == false)
+    this->RestoreLastModifiedParameter();
+  
+  return check;
 }
 
 //----------------------------------------------------------------------------
 
 bool vtkTAG2EFuzzyInferenceModelParameter::RestoreLastModifiedParameter()
 {
-  vtkWarningMacro(<< "Restor last parameter " << this->ParameterId << " to " << this->ParameterValue);
+  vtkDebugMacro(<< "Restor last parameter " << this->ParameterId << " to " << this->ParameterValue);
   double value = this->ParameterValue;
   bool check = this->SetParameter(this->ParameterId, this->ParameterValue);
   // Make sure the correct last parameter value is set
   this->ParameterValue = value;
-  cout << "Old value " << this->ParameterValue << endl;
+  
+  this->GenerateXMLFromInternalScheme();
+  
   return check;
 }
 
@@ -368,7 +374,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
 
   for (i = 0; i < this->WFIS.FIS.Responses.Responses.size(); i++) {
     FuzzyResponse &Response = this->WFIS.FIS.Responses.Responses[i];
-    if (index == count) {
+    if (index == count && Response.constant == false) {
       this->UpdateParameterState(index, Response.value, value);
       Response.value = value;
       return true;
@@ -376,7 +382,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
     count++;
   }
 
-  if (index == count) {
+  if (index == count && WFIS.Weight.constant == false) {
     this->UpdateParameterState(index, WFIS.Weight.value, value);
     WFIS.Weight.value = value;
     return true;
@@ -390,7 +396,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
 void vtkTAG2EFuzzyInferenceModelParameter::UpdateParameterState(unsigned int index, double old_value, double new_value)
 {
 
-  cout << "Index " << index << " old value " << old_value << " new value " << new_value << endl;
+  vtkDebugMacro(<< "Index " << index << " old value " << old_value << " new value " << new_value);
 
   // Safe the last parameter for restauration
   this->ParameterValue = old_value;
@@ -423,7 +429,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex()
       if (Set.constant == false) {
 
         // Fuzzy set geometry is handled normalized internally
-        // We need to scale and normailze
+        // We need to scale and normalize
         double scale = fabs(Factor.max - Factor.min);
 
         if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
@@ -466,7 +472,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex()
 void vtkTAG2EFuzzyInferenceModelParameter::AppendParameterState(unsigned int index, double value, double min, double max)
 {
 
-  //cout << "Index " << index << " Value " << value << endl;
+  vtkDebugMacro( << "Index " << index << " Value " << value << endl);
 
   // Save the parameter index
   this->ParameterIndex.push_back(index);

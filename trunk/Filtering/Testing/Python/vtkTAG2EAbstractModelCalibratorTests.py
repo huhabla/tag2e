@@ -40,24 +40,22 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-class vtkTAG2EDFuzzyTest(unittest.TestCase):
+class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
   
     def setUp(self):
         
         # Create the point data
-        xext = 20
-        yext = 10
+        xext = 7
+        yext = 1
         num = xext*yext
                 
-        pH = vtkDoubleArray()
-        pH.SetNumberOfTuples(num)
-        pH.SetName("pH")
-        pH.FillComponent(0, 5)
+        self.model = vtkDoubleArray()
+        self.model.SetNumberOfTuples(num)
+        self.model.SetName("model")
         
-        nmin = vtkDoubleArray()
-        nmin.SetNumberOfTuples(num)
-        nmin.SetName("nmin")
-        nmin.FillComponent(0, 75)
+        self.measure = vtkDoubleArray()
+        self.measure.SetNumberOfTuples(num)
+        self.measure.SetName("measure")
         
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -68,19 +66,21 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             for j in range(yext):
                 points.InsertNextPoint(i, j, 0)
                 ids.InsertNextId(count)
+                self.model.SetValue(count, count + 1)
+                self.measure.SetValue(count, count + 1)
                 count += 1
 
-        ds = vtkPolyData()
-        ds.Allocate(xext,yext)
-        ds.GetPointData().SetScalars(pH)
-        ds.GetPointData().AddArray(nmin)
-        ds.SetPoints(points)    
-        ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
+        self.ds = vtkPolyData()
+        self.ds.Allocate(xext,yext)
+        self.ds.GetPointData().SetScalars(self.model)
+        self.ds.GetPointData().AddArray(self.measure)
+        self.ds.SetPoints(points)    
+        self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
         
         # Create the temporal data
 
         # We have 10 time steps!
-        time = 2
+        time = 1
         
         # Generate the time steps
         timesteps = vtkDoubleArray()
@@ -93,7 +93,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         self.timesource = vtkTemporalDataSetSource()
         self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
         for i in range(time):
-            self.timesource.SetInput(i, ds)
+            self.timesource.SetInput(i, self.ds)
         self.timesource.Update()
         
         self._BuildXML()
@@ -104,46 +104,37 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
-        fss2 = vtkXMLDataElement()
         fs1 = vtkXMLDataElement()
         fs2 = vtkXMLDataElement()
-        fs3 = vtkXMLDataElement()
         tr1 = vtkXMLDataElement()
         tr2 = vtkXMLDataElement()
-        tr3 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
         
         weight = vtkXMLDataElement()
         
 # Triangular test shape layout
-# ____        ____
-#     \  /\  /
-#      \/  \/
-#      /\  /\
-#     /  \/  \
-# 0  0.3 0.5 0.7  1
+# ____    ____
+#     \  /
+#      \/ 
+#      /\ 
+#     /  \
+#0  .4 .5 .6  1
 #
-# - 1 - - 2 - - 3 - 
+# - 1 -  - 3 - 
 #
-# 1: left = 2222 center = 0.3 right = 0.2
-# 2: left = 0.2  center = 0.5 right = 0.2
-# 3: left = 0.2  center = 0.7 right = 2222
+# 1: left = 2222 center = 0.3 right = 0.4
+# 2: left = 0.4  center = 0.7 right = 2222
 #       
         
         tr1.SetName("Triangular")
         tr1.SetDoubleAttribute("center", 0.3)
         tr1.SetDoubleAttribute("left",   2222)
-        tr1.SetDoubleAttribute("right",  0.2)
-        
+        tr1.SetDoubleAttribute("right",  0.4)
+                
         tr2.SetName("Triangular")
-        tr2.SetDoubleAttribute("center", 0.5)
-        tr2.SetDoubleAttribute("left",   0.2)
-        tr2.SetDoubleAttribute("right",  0.2)
-        
-        tr3.SetName("Triangular")
-        tr3.SetDoubleAttribute("center",  0.7)
-        tr3.SetDoubleAttribute("left",    0.2)
-        tr3.SetDoubleAttribute("right",   2222)
+        tr2.SetDoubleAttribute("center",  0.7)
+        tr2.SetDoubleAttribute("left",    0.4)
+        tr2.SetDoubleAttribute("right",   2222)
         
         fs1.SetName("FuzzySet")
         fs1.SetAttribute("type", "Triangular")
@@ -156,56 +147,45 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fs2.SetAttribute("type", "Triangular")
         fs2.SetIntAttribute("priority", 0)
         fs2.SetIntAttribute("const", 0)
-        fs2.SetAttribute("position", "intermediate")
+        fs2.SetAttribute("position", "right")
         fs2.AddNestedElement(tr2)
-        
-        fs3.SetName("FuzzySet")
-        fs3.SetAttribute("type", "Triangular")
-        fs3.SetIntAttribute("priority", 0)
-        fs3.SetIntAttribute("const", 0)
-        fs3.SetAttribute("position", "right")
-        fs3.AddNestedElement(tr3)
         
         # Two factors 
         fss1.SetName("Factor")
         fss1.SetIntAttribute("portId", 0)
-        fss1.SetAttribute("name", "pH")
-        fss1.SetDoubleAttribute("min", 0.0)
-        fss1.SetDoubleAttribute("max", 10.0)
+        fss1.SetAttribute("name", "model")
+        fss1.SetDoubleAttribute("min", 1.0)
+        fss1.SetDoubleAttribute("max", 7.0)
         fss1.AddNestedElement(fs1)
         fss1.AddNestedElement(fs2)
-        fss1.AddNestedElement(fs3)
-        
-        fss2.SetName("Factor")
-        fss2.SetIntAttribute("portId", 0)
-        fss2.SetAttribute("name", "nmin")
-        fss2.SetDoubleAttribute("min", 0.0)
-        fss2.SetDoubleAttribute("max", 150)
-        fss2.AddNestedElement(fs1)
-        fss2.AddNestedElement(fs2)
-        fss2.AddNestedElement(fs3)
-        
+                
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)
-        resp.SetDoubleAttribute("max", 160)
+        resp.SetDoubleAttribute("max", 20)
         
-        for i in range(9):
-            rval1 = vtkXMLDataElement()
-            rval1.SetName("Response")
-            rval1.SetIntAttribute("const", 0)
-            rval1.SetIntAttribute("sd", 1)
-            rval1.SetCharacterData(str(i * 20), 6)
-            resp.AddNestedElement(rval1)
+        rval1 = vtkXMLDataElement()
+        rval1.SetName("Response")
+        rval1.SetIntAttribute("const", 0)
+        rval1.SetIntAttribute("sd", 1)
+        rval1.SetCharacterData(str(5), 6)
+                
+        rval2 = vtkXMLDataElement()
+        rval2.SetName("Response")
+        rval2.SetIntAttribute("const", 0)
+        rval2.SetIntAttribute("sd", 1)
+        rval2.SetCharacterData(str(5), 6)
+        
+        resp.AddNestedElement(rval1)
+        resp.AddNestedElement(rval2)
                 
         fuzzyRoot.SetName("FuzzyInferenceScheme")
         fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(fss2)
         fuzzyRoot.AddNestedElement(resp)
         
         weight.SetName("Weight")
         weight.SetAttribute("name", "grass")
         weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 0)
+        weight.SetIntAttribute("const", 1)
         weight.SetDoubleAttribute("min", 0)
         weight.SetDoubleAttribute("max", 10)
         weight.SetCharacterData("1", 1)
@@ -218,28 +198,84 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         self.root.AddNestedElement(fuzzyRoot)
         self.root.AddNestedElement(weight)
         
-    def test1Self(self):
-        """Performe the self test"""
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
-        model.TestFISComputation()
         
-    def test2FuzzyXML(self):
+    def test1(self):
         
+        print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.model)
+        print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.measure)
+        
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.model)
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.measure)
+        
+        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.model)
+        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.measure)
+        
+        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), "model", "measure", 1, 1)
+        
+    def test2(self):
+        # Set up the parameter and the model
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.GetXMLRoot().DeepCopy(self.root)
         fisc.GenerateInternalSchemeFromXML();
 
+        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetModelParameter(fisc)
+        model.Update()
+        
+        firstError = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
+        
+        count = 0
+        
         for i in range(10000):
-            print "Iteration " + str(i)
-            fisc.ModifyParameterRandomly(0.1)
-            model = vtkTAG2EWeightedFuzzyInferenceModel()
-            model.SetModelParameter(fisc)
-            model.SetInputConnection(self.timesource.GetOutputPort())
-            model.Update()
-            fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
-            fisc.Write()
+            if (i + 1) % 1000 == 1:
+                print "Iteration " + str(i)          
             
+            fisc.ModifyParameterRandomly(0.001) 
+            model = vtkTAG2EWeightedFuzzyInferenceModel()
+            model.SetInputConnection(self.timesource.GetOutputPort())
+            model.SetModelParameter(fisc)
+            model.Update()
+            
+            # Measure the difference
+            if i == 0:
+                oldError = firstError
+                
+            Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
+              
+            # print "Error " + str(Error)
+            diff = oldError - Error
+            
+            # The error must be reduced
+            if diff < 0.000001:
+                fisc.RestoreLastModifiedParameter()
+            else:
+                oldError = Error
+                print "Old Error " + str(oldError) + "Error " + str(Error) + " Diff " + str(diff)
+                "Accept a worse result ... "
+                if (i) % 500 == 1:
+                    oldError = oldError * 10
+                    print "New error " + str(oldError)
+            
+            count += 1
+        
+            if Error < 0.01:
+                break
+                
+        print "Finished after " + str(count) + " Iterations"
+        
+        fisc.SetFileName("/tmp/vtkTAG2EAbstractModelCalibratorTestsFinal.xml")
+        fisc.Write()
+        
+        # Show the result
+        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetModelParameter(fisc)
+        model.Update()
+            
+        Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 1)
+              
   
 if __name__ == '__main__':
-    suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EAbstractModelCalibratorTests)
     unittest.TextTestRunner(verbosity=2).run(suite1) 
