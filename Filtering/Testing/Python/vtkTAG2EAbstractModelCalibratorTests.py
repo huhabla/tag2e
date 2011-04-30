@@ -1,3 +1,4 @@
+import math
 #!/usr/bin/env python
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
@@ -32,6 +33,8 @@
 
 #include the VTK and vtkGRASSBridge Python libraries
 import unittest
+import random
+import math
 
 from vtk import *
 
@@ -45,7 +48,7 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 7
+        xext = 100
         yext = 1
         num = xext*yext
                 
@@ -66,6 +69,7 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
             for j in range(yext):
                 points.InsertNextPoint(i, j, 0)
                 ids.InsertNextId(count)
+                # Data range [1:100] -> linear function x
                 self.model.SetValue(count, count + 1)
                 self.measure.SetValue(count, count + 1)
                 count += 1
@@ -118,23 +122,23 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
 #      \/ 
 #      /\ 
 #     /  \
-#0  .4 .5 .6  1
+#0  30 50 70  100
 #
 # - 1 -  - 3 - 
 #
-# 1: left = 2222 center = 0.3 right = 0.4
-# 2: left = 0.4  center = 0.7 right = 2222
+# 1: left = 101 center = 30 right = 40
+# 2: left = 40  center = 70 right = 101
 #       
         
         tr1.SetName("Triangular")
-        tr1.SetDoubleAttribute("center", 0.3)
-        tr1.SetDoubleAttribute("left",   2222)
-        tr1.SetDoubleAttribute("right",  0.4)
+        tr1.SetDoubleAttribute("center", 30)
+        tr1.SetDoubleAttribute("left",   101)
+        tr1.SetDoubleAttribute("right",  40)
                 
         tr2.SetName("Triangular")
-        tr2.SetDoubleAttribute("center",  0.7)
-        tr2.SetDoubleAttribute("left",    0.4)
-        tr2.SetDoubleAttribute("right",   2222)
+        tr2.SetDoubleAttribute("center",  70)
+        tr2.SetDoubleAttribute("left",    40)
+        tr2.SetDoubleAttribute("right",   101)
         
         fs1.SetName("FuzzySet")
         fs1.SetAttribute("type", "Triangular")
@@ -154,14 +158,14 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         fss1.SetName("Factor")
         fss1.SetIntAttribute("portId", 0)
         fss1.SetAttribute("name", "model")
-        fss1.SetDoubleAttribute("min", 1.0)
-        fss1.SetDoubleAttribute("max", 7.0)
+        fss1.SetDoubleAttribute("min", 0.0)
+        fss1.SetDoubleAttribute("max", 100.0)
         fss1.AddNestedElement(fs1)
         fss1.AddNestedElement(fs2)
                 
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)
-        resp.SetDoubleAttribute("max", 20)
+        resp.SetDoubleAttribute("max", 120)
         
         rval1 = vtkXMLDataElement()
         rval1.SetName("Response")
@@ -191,7 +195,7 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         weight.SetCharacterData("1", 1)
         
         self.root.SetName("WeightedFuzzyInferenceScheme")
-        self.root.SetAttribute("name", "N2OEmission_V20101111")
+        self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
@@ -226,14 +230,13 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         firstError = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
         
         count = 0
+        maxFactor = 100
         
-        for i in range(10000):
-            if (i + 1) % 1000 == 1:
-                print "Iteration " + str(i)          
+        for i in range(5000):
+            if (i + 1) % 100 == 1:
+                print "######### Iteration " + str(i) + " #########"          
             
-            fisc.ModifyParameterRandomly(0.001) 
-            model = vtkTAG2EWeightedFuzzyInferenceModel()
-            model.SetInputConnection(self.timesource.GetOutputPort())
+            fisc.ModifyParameterRandomly(0.1) 
             model.SetModelParameter(fisc)
             model.Update()
             
@@ -244,22 +247,28 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
             Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
               
             # print "Error " + str(Error)
-            diff = oldError - Error
+            diff = Error - oldError
             
-            # The error must be reduced
-            if diff < 0.000001:
-                fisc.RestoreLastModifiedParameter()
-            else:
+            # Accept the new parameter
+            if diff <= 0:
                 oldError = Error
-                print "Old Error " + str(oldError) + "Error " + str(Error) + " Diff " + str(diff)
-                "Accept a worse result ... "
-                if (i) % 500 == 1:
-                    oldError = oldError * 10
-                    print "New error " + str(oldError)
-            
+            else:
+                # Create a random number
+                r = random.uniform(1.0, 0.0)
+                pa = math.exp(-1.0*diff/maxFactor)
+                if pa > 1:
+                    pa = 1
+                
+                # restore the last parameter if the random variable is larger then the error
+                if r < pa:
+                    fisc.RestoreLastModifiedParameter()
+                else:
+                    print "Not restored"
+                    print "diff ", diff, "Pa ", pa, " R ", r
+
             count += 1
         
-            if Error < 0.01:
+            if Error < 0.001:
                 break
                 
         print "Finished after " + str(count) + " Iterations"

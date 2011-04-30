@@ -49,66 +49,123 @@ class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
         fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fss2 = vtkXMLDataElement()
-        fs1 = vtkXMLDataElement()
-        fs2 = vtkXMLDataElement()
-        fs3 = vtkXMLDataElement()
-        tr1 = vtkXMLDataElement()
-        tr2 = vtkXMLDataElement()
-        tr3 = vtkXMLDataElement()
+        fs11 = vtkXMLDataElement()
+        fs12 = vtkXMLDataElement()
+        fs13 = vtkXMLDataElement()
+        tr11 = vtkXMLDataElement()
+        tr12 = vtkXMLDataElement()
+        tr13 = vtkXMLDataElement()
+        fs21 = vtkXMLDataElement()
+        fs22 = vtkXMLDataElement()
+        fs23 = vtkXMLDataElement()
+        tr21 = vtkXMLDataElement()
+        tr22 = vtkXMLDataElement()
+        tr23 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
         
         weight = vtkXMLDataElement()
         
-# Triangular test shape layout
+# Triangular test shape layout first Factor 0.0 - 10.0
 # ____        ____
 #     \  /\  /
 #      \/  \/
 #      /\  /\
 #     /  \/  \
-# 0  0.3 0.5 0.7  1
+# 0   3   5   7  10
 #
 # - 1 - - 2 - - 3 - 
 #
-# 1: left = 2222 center = 0.3 right = 0.2
-# 2: left = 0.2  center = 0.5 right = 0.2
-# 3: left = 0.2  center = 0.7 right = 2222
+# 1: left = 11 center = 3 right = 2
+# 2: left = 2  center = 5 right = 2
+# 3: left = 2  center = 7 right = 11
 #       
+               
+# Triangular test shape layout second Factor 0.0 - 150
+# ____        ____
+#     \  /\  /
+#      \/  \/
+#      /\  /\
+#     /  \/  \
+# 0  50  75  100  150
+#
+# - 1 - - 2 - - 3 - 
+#
+# 1: left = 151 center = 50 right = 25
+# 2: left = 25  center = 75 right = 25
+# 3: left = 25  center = 100 right = 151
+#        
+        tr11.SetName("Triangular")
+        tr11.SetDoubleAttribute("center", 3)
+        tr11.SetDoubleAttribute("left",   11)
+        tr11.SetDoubleAttribute("right",  2)
         
-        tr1.SetName("Triangular")
-        tr1.SetDoubleAttribute("center", 0.3)
-        tr1.SetDoubleAttribute("left",   2222)
-        tr1.SetDoubleAttribute("right",  0.2)
+        tr12.SetName("Triangular")
+        tr12.SetDoubleAttribute("center", 5)
+        tr12.SetDoubleAttribute("left",   2)
+        tr12.SetDoubleAttribute("right",  2)
         
-        tr2.SetName("Triangular")
-        tr2.SetDoubleAttribute("center", 0.5)
-        tr2.SetDoubleAttribute("left",   0.2)
-        tr2.SetDoubleAttribute("right",  0.2)
+        tr13.SetName("Triangular")
+        tr13.SetDoubleAttribute("center",  7)
+        tr13.SetDoubleAttribute("left",    2)
+        tr13.SetDoubleAttribute("right",   11)
         
-        tr3.SetName("Triangular")
-        tr3.SetDoubleAttribute("center",  0.7)
-        tr3.SetDoubleAttribute("left",    0.2)
-        tr3.SetDoubleAttribute("right",   2222)
         
-        fs1.SetName("FuzzySet")
-        fs1.SetAttribute("type", "Triangular")
-        fs1.SetIntAttribute("priority", 0)
-        fs1.SetIntAttribute("const", 0)
-        fs1.SetAttribute("position", "left")
-        fs1.AddNestedElement(tr1)
+        tr21.SetName("Triangular")
+        tr21.SetDoubleAttribute("center", 50)
+        tr21.SetDoubleAttribute("left",   151)
+        tr21.SetDoubleAttribute("right",  25)
         
-        fs2.SetName("FuzzySet")
-        fs2.SetAttribute("type", "Triangular")
-        fs2.SetIntAttribute("priority", 0)
-        fs2.SetIntAttribute("const", 0)
-        fs2.SetAttribute("position", "intermediate")
-        fs2.AddNestedElement(tr2)
+        tr22.SetName("Triangular")
+        tr22.SetDoubleAttribute("center", 75)
+        tr22.SetDoubleAttribute("left",   25)
+        tr22.SetDoubleAttribute("right",  25)
         
-        fs3.SetName("FuzzySet")
-        fs3.SetAttribute("type", "Triangular")
-        fs3.SetIntAttribute("priority", 0)
-        fs3.SetIntAttribute("const", 0)
-        fs3.SetAttribute("position", "right")
-        fs3.AddNestedElement(tr3)
+        tr23.SetName("Triangular")
+        tr23.SetDoubleAttribute("center",  100)
+        tr23.SetDoubleAttribute("left",    25)
+        tr23.SetDoubleAttribute("right",   151)
+        
+        fs11.SetName("FuzzySet")
+        fs11.SetAttribute("type", "Triangular")
+        fs11.SetIntAttribute("priority", 0)
+        fs11.SetIntAttribute("const", 0)
+        fs11.SetAttribute("position", "left")
+        fs11.AddNestedElement(tr11)
+        
+        fs12.SetName("FuzzySet")
+        fs12.SetAttribute("type", "Triangular")
+        fs12.SetIntAttribute("priority", 0)
+        fs12.SetIntAttribute("const", 0)
+        fs12.SetAttribute("position", "intermediate")
+        fs12.AddNestedElement(tr12)
+        
+        fs13.SetName("FuzzySet")
+        fs13.SetAttribute("type", "Triangular")
+        fs13.SetIntAttribute("priority", 0)
+        fs13.SetIntAttribute("const", 0)
+        fs13.SetAttribute("position", "right")
+        fs13.AddNestedElement(tr13)
+        
+        fs21.SetName("FuzzySet")
+        fs21.SetAttribute("type", "Triangular")
+        fs21.SetIntAttribute("priority", 0)
+        fs21.SetIntAttribute("const", 0)
+        fs21.SetAttribute("position", "left")
+        fs21.AddNestedElement(tr21)
+        
+        fs22.SetName("FuzzySet")
+        fs22.SetAttribute("type", "Triangular")
+        fs22.SetIntAttribute("priority", 0)
+        fs22.SetIntAttribute("const", 0)
+        fs22.SetAttribute("position", "intermediate")
+        fs22.AddNestedElement(tr22)
+        
+        fs23.SetName("FuzzySet")
+        fs23.SetAttribute("type", "Triangular")
+        fs23.SetIntAttribute("priority", 0)
+        fs23.SetIntAttribute("const", 0)
+        fs23.SetAttribute("position", "right")
+        fs23.AddNestedElement(tr23)
         
         # Two factors 
         fss1.SetName("Factor")
@@ -116,18 +173,18 @@ class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
         fss1.SetAttribute("name", "pH")
         fss1.SetDoubleAttribute("min", 0.0)
         fss1.SetDoubleAttribute("max", 10.0)
-        fss1.AddNestedElement(fs1)
-        fss1.AddNestedElement(fs2)
-        fss1.AddNestedElement(fs3)
+        fss1.AddNestedElement(fs11)
+        fss1.AddNestedElement(fs12)
+        fss1.AddNestedElement(fs13)
         
         fss2.SetName("Factor")
         fss2.SetIntAttribute("portId", 0)
         fss2.SetAttribute("name", "nmin")
         fss2.SetDoubleAttribute("min", 0.0)
         fss2.SetDoubleAttribute("max", 150)
-        fss2.AddNestedElement(fs1)
-        fss2.AddNestedElement(fs2)
-        fss2.AddNestedElement(fs3)
+        fss2.AddNestedElement(fs21)
+        fss2.AddNestedElement(fs22)
+        fss2.AddNestedElement(fs23)
         
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)

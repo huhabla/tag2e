@@ -136,9 +136,15 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         vtkXMLDataElement *triangular = vtkXMLDataElement::New();
 
         triangular->SetName("Triangular");
-        triangular->SetDoubleAttribute("center", Set.Triangular.center);
-        triangular->SetDoubleAttribute("left", Set.Triangular.left);
-        triangular->SetDoubleAttribute("right", Set.Triangular.right);
+        std::ostringstream value1;
+        std::ostringstream value2;
+        std::ostringstream value3;
+        value1 << setprecision(15) << Set.Triangular.center;
+        triangular->SetAttribute("center", value1.str().c_str());
+        value2 << setprecision(15) << Set.Triangular.left;
+        triangular->SetAttribute("left",   value2.str().c_str());
+        value3 << setprecision(15) << Set.Triangular.right;
+        triangular->SetAttribute("right",  value3.str().c_str());
 
         set->AddNestedElement(triangular);
         triangular->Delete();
@@ -147,8 +153,12 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         vtkXMLDataElement *crisp = vtkXMLDataElement::New();
 
         crisp->SetName("Crisp");
-        crisp->SetDoubleAttribute("right", Set.Crisp.right);
-        crisp->SetDoubleAttribute("left", Set.Crisp.left);
+        std::ostringstream value1;
+        std::ostringstream value2;
+        value1 << setprecision(15) << Set.Crisp.right;
+        crisp->SetAttribute("right", value1.str().c_str());
+        value2 << setprecision(15) << Set.Crisp.left;
+        crisp->SetAttribute("left", value2.str().c_str());
 
         set->AddNestedElement(crisp);
         crisp->Delete();
@@ -157,9 +167,15 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         vtkXMLDataElement *bellshape = vtkXMLDataElement::New();
 
         bellshape->SetName("BellShape");
-        bellshape->SetDoubleAttribute("center", Set.BellShape.center);
-        bellshape->SetDoubleAttribute("sdLeft", Set.BellShape.sdLeft);
-        bellshape->SetDoubleAttribute("sdRight", Set.BellShape.sdRight);
+        std::ostringstream value1;
+        std::ostringstream value2;
+        std::ostringstream value3;
+        value1 << setprecision(15) << Set.BellShape.center;
+        bellshape->SetAttribute("center", value1.str().c_str());
+        value2 << setprecision(15) << Set.BellShape.sdLeft;
+        bellshape->SetAttribute("sdLeft", value2.str().c_str());
+        value3 << setprecision(15) << Set.BellShape.sdRight;
+        bellshape->SetAttribute("sdRight", value3.str().c_str());
 
         set->AddNestedElement(bellshape);
         bellshape->Delete();
@@ -185,7 +201,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
     response->SetIntAttribute("const", (int) Response.constant);
     response->SetDoubleAttribute("sd", Response.sd);
     std::ostringstream value;
-    value << Response.value;
+    value << setprecision(15) << Response.value;
     response->SetCharacterData(value.str().c_str(), value.str().size());
 
     responses->AddNestedElement(response);
@@ -204,7 +220,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   weight->SetDoubleAttribute("min", WFIS.Weight.min);
   weight->SetDoubleAttribute("max", WFIS.Weight.max);
   std::ostringstream value;
-  value << WFIS.Weight.value;
+  value << setprecision(15) << WFIS.Weight.value;
   weight->SetCharacterData(value.str().c_str(), value.str().size());
   weight->SetAttribute("name", WFIS.Weight.name.c_str());
 
@@ -283,7 +299,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameter(int index, double sd)
 
 bool vtkTAG2EFuzzyInferenceModelParameter::RestoreLastModifiedParameter()
 {
-  vtkDebugMacro(<< "Restor last parameter " << this->ParameterId << " to " << this->ParameterValue);
+  vtkDebugMacro(<< "Restore last parameter " << this->ParameterId << " to " << this->ParameterValue);
   double value = this->ParameterValue;
   bool check = this->SetParameter(this->ParameterId, this->ParameterValue);
   // Make sure the correct last parameter value is set
@@ -304,37 +320,29 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
   for (i = 0; i < this->WFIS.FIS.Factors.size(); i++) {
     FuzzyFactor &Factor = this->WFIS.FIS.Factors[i];
 
-    // Important:
-    // The fuzzy set position values are stored internally as normalized values,
-    // but scaled to real values for random number generation. This might be a bit confusing
-    // and can be a source of errors
-
     for (j = 0; j < Factor.Sets.size(); j++) {
       FuzzySet &Set = Factor.Sets[j];
 
       // Const values are not counted
       if (Set.constant == false) {
-        // Fuzzy set geometry is handled normalized internally
-        // We need to scale and normailze
-        double scale = fabs(Factor.max - Factor.min);
 
         if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
           if (index == count) {
-            this->UpdateParameterState(index, Set.Triangular.center * scale, value);
+            this->UpdateParameterState(index, Set.Triangular.center , value);
             // Assign the value
-            Set.Triangular.center = value / scale;
+            Set.Triangular.center = value;
 
             // This is the distance between the old and new center
-            double dx = (value - this->ParameterValue) / scale;
+            double dx = (value - this->ParameterValue);
 
-            // We need to change the size of the left slope of the right nighbouring triangle
+            // We need to change the size of the left slope of the right neighbouring triangle
             // and the right slope of the current triangle 
             // The size of booth triangle must be identical
             if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
               Factor.Sets[j + 1].Triangular.left -= dx;
               Set.Triangular.right -= dx;
             }
-            // We need to change the size of the right slope of the left nighbouring triangle
+            // We need to change the size of the right slope of the left neighbouring triangle
             // and the left slope of the current triangle 
             // The size of booth triangle must be identical
             if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
@@ -348,22 +356,22 @@ bool vtkTAG2EFuzzyInferenceModelParameter::SetParameter(unsigned int index, doub
         }
         if (Set.type == FUZZY_SET_TYPE_CRISP) {
           if (index == count) {
-            this->UpdateParameterState(index, Set.Crisp.left * scale, value);
-            Set.Crisp.left = value / scale;
+            this->UpdateParameterState(index, Set.Crisp.left, value);
+            Set.Crisp.left = value;
             return tag2eWFIS::CheckFuzzyFactor(Factor);
           }
           count++;
           if (index == count) {
-            this->UpdateParameterState(index, Set.Crisp.right * scale, value);
-            Set.Crisp.right = value / scale;
+            this->UpdateParameterState(index, Set.Crisp.right, value);
+            Set.Crisp.right = value;
             return tag2eWFIS::CheckFuzzyFactor(Factor);
           }
           count++;
         }
         if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
           if (index == count) {
-            this->UpdateParameterState(index, Set.BellShape.center * scale, value);
-            Set.BellShape.center = value / scale;
+            this->UpdateParameterState(index, Set.BellShape.center, value);
+            Set.BellShape.center = value;
             return tag2eWFIS::CheckFuzzyFactor(Factor);
           }
           count++;
@@ -428,22 +436,18 @@ bool vtkTAG2EFuzzyInferenceModelParameter::CreateParameterIndex()
       // Count only non-constant fuzzy sets
       if (Set.constant == false) {
 
-        // Fuzzy set geometry is handled normalized internally
-        // We need to scale and normalize
-        double scale = fabs(Factor.max - Factor.min);
-
         if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
-          this->AppendParameterState(count, Set.Triangular.center * scale, Factor.min, Factor.max);
+          this->AppendParameterState(count, Set.Triangular.center, Factor.min, Factor.max);
           count++;
         }
         if (Set.type == FUZZY_SET_TYPE_CRISP) {
-          this->AppendParameterState(count, Set.Crisp.left * scale, Factor.min, Factor.max);
+          this->AppendParameterState(count, Set.Crisp.left, Factor.min, Factor.max);
           count++;
-          this->AppendParameterState(count, Set.Crisp.right * scale, Factor.min, Factor.max);
+          this->AppendParameterState(count, Set.Crisp.right, Factor.min, Factor.max);
           count++;
         }
         if (Set.type == FUZZY_SET_TYPE_BELL_SHAPE) {
-          this->AppendParameterState(count, Set.BellShape.center * scale, Factor.min, Factor.max);
+          this->AppendParameterState(count, Set.BellShape.center, Factor.min, Factor.max);
           count++;
         }
       }

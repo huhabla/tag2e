@@ -155,8 +155,8 @@ double tag2eWFIS::ComputeFISResult(double *Input,
 
     sum_dofs = sum_dofs + dof;
     result = result + WFIS.FIS.Responses.Responses[rule].value * dof;
-    //std::cerr << "Fuzzy Parameter rule dof value and result " << std::endl;
-    //std::cerr << rule << " " << dof << " " << WFIS.FIS.Responses.Responses[rule].value << " " << result << std::endl;
+    //std::cout << "Fuzzy Parameter rule dof value and result " << std::endl;
+    //std::cout << rule << " " << dof << " " << WFIS.FIS.Responses.Responses[rule].value << " " << result << std::endl;
   }
 
   // Check for wrong results and apply the deegrees of fullfillment
@@ -183,74 +183,68 @@ double tag2eWFIS::ComputeDOF(double *Input,
   int numberOfFactors = WFIS.FIS.Factors.size();
   int d, pos, shape;
   double *dom = new double[numberOfFactors]; // Deegree of membership of a fuzzy set
-  double *normedInput = new double[numberOfFactors]; // Normalized input values
   double dof; // The resulting deegree of fullfillment for the rule
-
-  //cout << "Normed values" << std::endl;
-  // Norm the Input values and write the result in normedInput
-  for (d = 0; d < numberOfFactors; d++) {
-    normedInput[d] = (Input[d] - WFIS.FIS.Factors[d].min) / (WFIS.FIS.Factors[d].max - WFIS.FIS.Factors[d].min);
-    //cout << normedInput[d] << std::endl;
-  }
 
   d = 0; // counter
   dof = 1; // We need o initialize the resulting DOF with 1
   do {
     pos = (RuleCodeMatrix[rule][d]);
     shape = WFIS.FIS.Factors[d].Sets[pos].type;
+    FuzzyFactor &Factor = WFIS.FIS.Factors[d];
 
-    // The value of normedInput at position d is normed [0:1] using its defined max and min values. 
-    // Larger values of 1 are possible in case of the maximum was to low estimated.
-    // In case of larger values than 10 we assume the membership is 100%. 
-    // Such values may occure in case values are missing and 
-    // replaced by a large default number.
-    if ((normedInput[d] > 10) || (normedInput[d] < 0)) {
+    //std::cout << "Factor " << d << " Input " << Input[d] << " Rule " << rule << std::endl;
+        
+    if ((Input[d] > Factor.max) || (Input[d] < Factor.min)) {
       dom[d] = 1;
     } else {
       FuzzySet &Set = WFIS.FIS.Factors[d].Sets[pos];
       switch (shape) {
 
+      // ATTENTION: The bellshape implementation must be updated to 
+      // compute mormalized input values for bellshape interpolation
       case FUZZY_SET_TYPE_BELL_SHAPE: // gauss bell shape fuzzy numbers
-        if (normedInput[d] - Set.BellShape.center <= 0) //left_side of the mean of the fuzzy number
+        if (Input[d] - Set.BellShape.center <= Factor.min) //left_side of the mean of the fuzzy number
         {
-          if ((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdLeft<-4) {
+          if ((Input[d] - Set.BellShape.center) / Set.BellShape.sdLeft<-4) {
             dom[d] = 0.0;
           } else {
-            dom[d] = InterpolatePointInNormDist((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdLeft);
+            dom[d] = InterpolatePointInNormDist((Input[d] - Set.BellShape.center) / Set.BellShape.sdLeft);
           }
         } else { //right side of the mean of the fuzzy number
-          if ((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdRight > 4) {
+          if ((Input[d] - Set.BellShape.center) / Set.BellShape.sdRight > 4) {
             dom[d] = 0.0;
           } else {
-            dom[d] = InterpolatePointInNormDist((normedInput[d] - Set.BellShape.center) / Set.BellShape.sdRight);
+            dom[d] = InterpolatePointInNormDist((Input[d] - Set.BellShape.center) / Set.BellShape.sdRight);
           }
         }
         break;
 
       case FUZZY_SET_TYPE_TRIANGULAR: // triangular fuzzy numbers
         double m;
-
-        if (normedInput[d] - Set.Triangular.center <= 0) //left side of the fuzzy number
+        
+        if (Input[d] - Set.Triangular.center <= 0) //left side of the fuzzy number
         {
-          if ((Set.Triangular.left) > 1111) {
+          if ((Set.Triangular.left) > fabs(Factor.max - Factor.min)) {
             dom[d] = 1.0;
           } else {
             m = 1.0 / Set.Triangular.left;
-            dom[d] = max(0.0, m * (normedInput[d] - Set.Triangular.center) + 1);
+            dom[d] = max(0.0, m * (Input[d] - Set.Triangular.center) + 1);
           }
+          //std::cout << "Left side dom " << dom[d] << std::endl;
         } else//right side of fuzzy number
         {
-          if (Set.Triangular.right > 1111) {
+          if (Set.Triangular.right > fabs(Factor.max - Factor.min)) {
             dom[d] = 1.0;
           } else {
             m = -1.0 / Set.Triangular.right;
-            dom[d] = max(0.0, m * (normedInput[d] - Set.Triangular.center) + 1);
+            dom[d] = max(0.0, m * (Input[d] - Set.Triangular.center) + 1);
           }
+          //std::cout << "Right side dom " << dom[d] << std::endl;
         }
         break;
 
       case FUZZY_SET_TYPE_CRISP: // all or nothing the split is just in the middle between two alphas
-        if (normedInput[d] >= Set.Crisp.left && normedInput[d] <= Set.Crisp.right) {
+        if (Input[d] >= Set.Crisp.left && Input[d] <= Set.Crisp.right) {
           dom[d] = 1.0;
         } else {
           dom[d] = 0.0;
@@ -264,9 +258,8 @@ double tag2eWFIS::ComputeDOF(double *Input,
   } while (d < (numberOfFactors));
 
   delete [] dom;
-  delete [] normedInput;
 
-  //  std::cout << "Deegree of fullfillment " << dof << std::endl;
+  //std::cout << "Deegree of fullfillment " << dof << std::endl;
   return dof;
 }
 
@@ -282,20 +275,20 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
     //TODO: Implement crisp and bellshape
     if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
       
-      if(Set.Triangular.center > 1){
-          std::cerr << "Center is larger then 1: " << Set.Triangular.center << std::endl;
+      if(Set.Triangular.center > Factor.max){
+          std::cerr << "Center is larger then max:" << Factor.max << " < " << Set.Triangular.center << std::endl;
           return false;
         }        
       
-      if(Set.Triangular.center < 0){
-          std::cerr << "Center is lower then 0: " << Set.Triangular.center << std::endl;
+      if(Set.Triangular.center < Factor.min){
+          std::cerr << "Center is lower then min:" << Factor.min << " > " << Set.Triangular.center << std::endl;
           return false;
         }        
       
       // Check the center position
       if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j + 1 
+          std::cerr << "Wrong center in fuzzy Sets " << j << " > " << j + 1 
                    << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
           return false;
         }  
@@ -306,14 +299,14 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
         double value = fabs(Set.Triangular.right + Set.Triangular.center);
         double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
         if( diff > TOLERANCE){
-          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
-          return false;
+          std::cerr << "WARNIG: Triangle shapes of fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          return true;
         } 
       }
       
       if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
-          std::cerr << "Wrong center in fuzzy Sets " << j << " and " << j - 1 
+          std::cerr << "Wrong center in fuzzy Sets " << j << " < " << j - 1 
                    << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
           return false;
         }        
@@ -324,8 +317,8 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
         double value = fabs(Set.Triangular.center - Set.Triangular.left);
         double diff = fabs(Factor.Sets[j - 1].Triangular.center - value);
         if( diff > TOLERANCE){
-          std::cerr << "Triangle shapes fuzzy sets " << j << " and " << j - 1 << " are incorrect positioned, difference: " << diff << std::endl;
-          return false;
+          std::cerr << "WARNING: Triangle shapes of fuzzy sets " << j << " and " << j - 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          return true;
         } 
       }
     }
@@ -395,17 +388,27 @@ bool tag2eWFIS::TestFISComputation()
 
   // Create a factor with two triangle shape fuzzy sets
 
-  // The triangle shape has the following form
+  // The triangle shape of nrate has the following form
+  // nrate min = 0.0 max = 150.0
   //   ___  ___
   //  |   \/   |
   //  |   /\   |
-  //  0 .4 .6  1
+  //  0 60 90  150
 
+  // Create a factor with two triangle shape fuzzy sets
+
+  // The triangle shape of temp has the following form
+  // temp min = -15 max = 35
+  //   ___  ___
+  //  |   \/   |
+  //  |   /\   |
+  // -15 5  15 35
+  
   F1S1.type = FUZZY_SET_TYPE_TRIANGULAR;
   F1S2.type = FUZZY_SET_TYPE_TRIANGULAR;
 
-  F1S1.constant = false;
-  F1S2.constant = false;
+  F1S1.constant = true;
+  F1S2.constant = true;
 
   F1S1.position = FUZZY_SET_POISITION_LEFT;
   F1S2.position = FUZZY_SET_POISITION_RIGHT;
@@ -413,17 +416,33 @@ bool tag2eWFIS::TestFISComputation()
   F1S1.priority = 0;
   F1S2.priority = 0;
 
-  F1S1.Triangular.left = 2222;
-  F1S1.Triangular.center = 0.4;
-  F1S1.Triangular.right = 0.2;
+  F2S1.type = FUZZY_SET_TYPE_TRIANGULAR;
+  F2S2.type = FUZZY_SET_TYPE_TRIANGULAR;
 
-  F1S2.Triangular.left = 0.2;
-  F1S2.Triangular.center = 0.6;
-  F1S2.Triangular.right = 2222;
+  F2S1.constant = true;
+  F2S2.constant = true;
 
-  // The second factor has the same shape
-  F2S1 = F1S1;
-  F2S2 = F1S2;
+  F2S1.position = FUZZY_SET_POISITION_LEFT;
+  F2S2.position = FUZZY_SET_POISITION_RIGHT;
+
+  F2S1.priority = 0;
+  F2S2.priority = 0;
+  
+  F1S1.Triangular.left = 151;
+  F1S1.Triangular.center = 60;
+  F1S1.Triangular.right = 30;
+
+  F1S2.Triangular.left = 30;
+  F1S2.Triangular.center = 90;
+  F1S2.Triangular.right = 151;
+
+  F2S1.Triangular.left = 51;
+  F2S1.Triangular.center = 5;
+  F2S1.Triangular.right = 10;
+
+  F2S2.Triangular.left = 10;
+  F2S2.Triangular.center = 15;
+  F2S2.Triangular.right = 51;
 
   F1.min = 0;
   F1.max = 150;
