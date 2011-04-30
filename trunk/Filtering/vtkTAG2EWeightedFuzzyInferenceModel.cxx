@@ -148,6 +148,8 @@ void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractMode
   double *range = this->InputPorts->GetRange();
   // Ports from 0 ... n must be used  
   this->SetNumberOfInputPorts((int) (range[1] + 1));
+  
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
