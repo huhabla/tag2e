@@ -218,72 +218,75 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         
     def test2(self):
         # Set up the parameter and the model
-        fisc = vtkTAG2EFuzzyInferenceModelParameter()
-        fisc.GetXMLRoot().DeepCopy(self.root)
-        fisc.GenerateInternalSchemeFromXML();
+        parameter = vtkTAG2EFuzzyInferenceModelParameter()
+        parameter.GetXMLRoot().DeepCopy(self.root)
+        parameter.GenerateInternalSchemeFromXML();
 
         model = vtkTAG2EWeightedFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
-        model.SetModelParameter(fisc)
+
+        MetropolisCalibrator(model, parameter, 20000, 100, 0.0001, "result", "measure")
+
+
+
+def MetropolisCalibrator(model, parameter, maxiter, maxFactor, errorBreak, modelArray, measureArray):
+
+    model.SetModelParameter(parameter)
+    model.Update()
+
+    firstError = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), modelArray, measureArray, 1, 0)
+
+    count = 0
+
+    for i in range(maxiter):
+        if (i + 1) % 100 == 1:
+            print "######### Iteration " + str(i) + " #########"
+
+        parameter.ModifyParameterRandomly(0.1)
+        model.SetModelParameter(parameter)
         model.Update()
-        
-        firstError = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
-        
-        count = 0
-        maxFactor = 100
-        
-        for i in range(5000):
-            if (i + 1) % 100 == 1:
-                print "######### Iteration " + str(i) + " #########"          
-            
-            fisc.ModifyParameterRandomly(0.1) 
-            model.SetModelParameter(fisc)
-            model.Update()
-            
-            # Measure the difference
-            if i == 0:
-                oldError = firstError
-                
-            Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 0)
-              
-            # print "Error " + str(Error)
-            diff = Error - oldError
-            
-            # Accept the new parameter
-            if diff <= 0:
-                oldError = Error
+
+        if i == 0:
+            oldError = firstError
+
+        # Measure the difference between old and new error
+        Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), modelArray, measureArray, 1, 0)
+
+        diff = Error - oldError
+
+        # Accept the new parameter
+        if diff <= 0:
+            print "Iteration ", count, "Error ", Error
+            oldError = Error
+        else:
+            # Create a random number
+            r = random.uniform(1.0, 0.0)
+            pa = math.exp(-1.0*diff/maxFactor)
+            if pa > 1:
+                pa = 1
+
+            # restore the last parameter if the random variable is larger then the error
+            if r < pa:
+                parameter.RestoreLastModifiedParameter()
             else:
-                # Create a random number
-                r = random.uniform(1.0, 0.0)
-                pa = math.exp(-1.0*diff/maxFactor)
-                if pa > 1:
-                    pa = 1
-                
-                # restore the last parameter if the random variable is larger then the error
-                if r < pa:
-                    fisc.RestoreLastModifiedParameter()
-                else:
-                    print "Not restored"
-                    print "diff ", diff, "Pa ", pa, " R ", r
+                oldError = Error
+                print "Not restored"
+                print "Error ", oldError, "diff ", diff, "Pa ", pa, " R ", r
 
-            count += 1
-        
-            if Error < 0.001:
-                break
-                
-        print "Finished after " + str(count) + " Iterations"
-        
-        fisc.SetFileName("/tmp/vtkTAG2EAbstractModelCalibratorTestsFinal.xml")
-        fisc.Write()
-        
-        # Show the result
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
-        model.SetModelParameter(fisc)
-        model.Update()
-            
-        Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), "result", "measure", 1, 1)
-              
+        count += 1
+
+        if Error < errorBreak:
+            break
+
+    print "Finished after " + str(count) + " Iterations"
+
+    parameter.SetFileName("/tmp/vtkTAG2EAbstractModelCalibratorTestsFinal.xml")
+    parameter.Write()
+    model.SetModelParameter(parameter)
+    model.Update()
+
+    Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(model.GetOutput(), modelArray, measureArray, 1, 1)
+    print "Error ", Error
   
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EAbstractModelCalibratorTests)
