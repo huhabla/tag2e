@@ -257,7 +257,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameterRandomly(double sd)
     check = this->ModifyParameter(index, sd);
   }
 
-  this->GenerateXMLFromInternalScheme();
+  // this->GenerateXMLFromInternalScheme();
 
   return check;
 }
@@ -305,7 +305,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::RestoreLastModifiedParameter()
   // Make sure the correct last parameter value is set
   this->ParameterValue = value;
   
-  this->GenerateXMLFromInternalScheme();
+  // this->GenerateXMLFromInternalScheme();
   
   return check;
 }
