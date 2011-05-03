@@ -300,8 +300,8 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
         double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
         if( diff > TOLERANCE){
           std::cerr << "WARNIG: Triangle shapes of fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
-          return true;
-        } 
+          return false;
+        }
       }
       
       if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
@@ -318,8 +318,8 @@ bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
         double diff = fabs(Factor.Sets[j - 1].Triangular.center - value);
         if( diff > TOLERANCE){
           std::cerr << "WARNING: Triangle shapes of fuzzy sets " << j << " and " << j - 1 << " are incorrect positioned, difference: " << diff << std::endl;
-          return true;
-        } 
+          return false;
+        }
       }
     }
   }
