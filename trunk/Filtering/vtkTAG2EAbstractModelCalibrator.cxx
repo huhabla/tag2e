@@ -37,7 +37,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkCellData.h>
 #include <vtkTemporalDataSet.h>
-#include <vtk-5.9/vtkFieldData.h>
+#include <vtkFieldData.h>
 #include "vtkTAG2EAbstractModelCalibrator.h"
 
 vtkCxxRevisionMacro(vtkTAG2EAbstractModelCalibrator, "$Revision: 1.0 $");
@@ -51,12 +51,15 @@ vtkTAG2EAbstractModelCalibrator::vtkTAG2EAbstractModelCalibrator()
   this->SetNumberOfOutputPorts(1);
   this->Model = NULL;
   this->ModelParameter = NULL;
+  this->TargetArrayName = NULL;
 }
 
 //----------------------------------------------------------------------------
 
 vtkTAG2EAbstractModelCalibrator::~vtkTAG2EAbstractModelCalibrator()
 {
+  if(this->TargetArrayName)
+    delete [] this->TargetArrayName;
   ;
 }
 
@@ -64,8 +67,8 @@ vtkTAG2EAbstractModelCalibrator::~vtkTAG2EAbstractModelCalibrator()
 
 double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataSet *tds, 
                                         const char *ModelResultArrayName, 
-                                        const char *MeasuredDataArrayname, 
-                                        bool usePointData, bool verbose)
+                                        const char *TargetArrayName, 
+                                        bool useCellData, bool verbose)
 {
   double result;
   unsigned int timeStep, id;
@@ -83,12 +86,12 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   {
     vtkDataSet *ds = vtkDataSet::SafeDownCast(tds->GetTimeStep(timeStep));
     
-    if(usePointData) {
+    if(!useCellData) {
       model = ds->GetPointData()->GetArray(ModelResultArrayName);
-      measure = ds->GetPointData()->GetArray(MeasuredDataArrayname);
+      measure = ds->GetPointData()->GetArray(TargetArrayName);
     } else  {
       model = ds->GetCellData()->GetArray(ModelResultArrayName);
-      measure = ds->GetCellData()->GetArray(MeasuredDataArrayname);
+      measure = ds->GetCellData()->GetArray(TargetArrayName);
     }
         
     for(id = 0; id < model->GetNumberOfTuples(); id++)
@@ -103,8 +106,7 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
     }  
   }
   
-  variance = vtkTAG2EAbstractModelCalibrator::StandardDeviation(measure);
-  variance *= variance;
+  variance = vtkTAG2EAbstractModelCalibrator::Variance(measure);
   
   result = squareSum/(numberOfValues * variance);
   

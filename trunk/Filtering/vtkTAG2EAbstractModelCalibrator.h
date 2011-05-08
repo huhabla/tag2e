@@ -47,7 +47,6 @@
 #define	vtkTAG2EAbstractModelCalibrator_H
 
 #include <vtkTemporalDataSetAlgorithm.h>
-#include <assert.h>
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 
@@ -72,20 +71,16 @@ public:
     
     //!\brief Set the name of the data array in the input which contains the measured data to
     //! estimate the calibrated model fit
-    vtkSetStringMacro(MeasuredDataArrayname);
+    vtkSetStringMacro(TargetArrayName);
     //!\brief Get the name of the meaured data array of the input
-    vtkGetStringMacro(MeasuredDataArrayname);
-    //!\brief Set the name of the result array in the model output
-    vtkSetStringMacro(ModelResultArrayName);
-    //!\brief Get the name of the result array in the model output
-    vtkGetStringMacro(ModelResultArrayName);
+    vtkGetStringMacro(TargetArrayName);
     
     //!\brief Compare two data arrays using the normative least squares algorithm
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
     static double CompareTemporalDataSets(vtkTemporalDataSet *tds, 
                                            const char *ModelResultArrayName, 
-                                           const char *MeasuredDataArrayname, 
-                                           bool usePointData, bool verbose);
+                                           const char *TargetArrayName, 
+                                           bool useCellData, bool verbose);
     
     static double ArithmeticMean(vtkDataArray *data);
     static double StandardDeviation(vtkDataArray *data);
@@ -103,8 +98,7 @@ protected:
     vtkTAG2EAbstractCalibratableModel *Model;
     vtkTAG2EAbstractCalibratableModelParameter *ModelParameter;
     
-    char *MeasuredDataArrayname;
-    char *ModelResultArrayName;
+    char *TargetArrayName;
 
 private:
     vtkTAG2EAbstractModelCalibrator(const vtkTAG2EAbstractModelCalibrator& orig); // Not implemented.

@@ -47,7 +47,6 @@
 #ifndef vtkTAG2EAbstractCalibratableModel_H
 #define	vtkTAG2EAbstractCalibratableModel_H
 
-#include <assert.h>
 #include "vtkTAG2EAbstractModel.h"
 
 class vtkTAG2EAbstractCalibratableModel : public vtkTAG2EAbstractModel {

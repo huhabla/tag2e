@@ -257,7 +257,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameterRandomly(double sd)
     check = this->ModifyParameter(index, sd);
   }
 
-  // this->GenerateXMLFromInternalScheme();
+  this->GenerateXMLFromInternalScheme();
 
   return check;
 }
@@ -305,7 +305,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::RestoreLastModifiedParameter()
   // Make sure the correct last parameter value is set
   this->ParameterValue = value;
   
-  // this->GenerateXMLFromInternalScheme();
+  this->GenerateXMLFromInternalScheme();
   
   return check;
 }
@@ -608,7 +608,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseFactors(vtkXMLDataElement *XMLFI
     this->WFIS.FIS.Factors.push_back(Factor);
 
     if (tag2eWFIS::CheckFuzzyFactor(Factor) != true) {
-      vtkErrorMacro( << "Factor " << i << " has incorrect fuzzy sets");
+      vtkErrorMacro( << "Factor " << Factor.name.c_str() << " has incorrect fuzzy sets");
       return false;
     }
   }
