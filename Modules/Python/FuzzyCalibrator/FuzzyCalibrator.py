@@ -163,7 +163,7 @@ if __name__ == "__main__":
     cal.resultFile = "BestFit.vtp"
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.measureName = "n2o"
-    cal.maxIterations = 50000
+    cal.maxIterations = 5000
     cal.Temperatur = 1
     cal.errorBreak = 0.01
     cal.outputName = "BestFit.xml"
@@ -171,4 +171,4 @@ if __name__ == "__main__":
     cal.standardDeviation = 0.5
     cal.minT = 1.005
     
-    cal.Run(3)
+    cal.Run(4)

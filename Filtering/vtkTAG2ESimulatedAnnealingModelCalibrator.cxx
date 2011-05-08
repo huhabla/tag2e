@@ -138,7 +138,7 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
     }
     // Run the model, the modified parameter is referenced internally 
     // so we need to tell the model that its modified
-    this->Model->SetModelParameter(this->ModelParameter);
+    this->Model->Modified();
     this->Model->Update();
 
     // Compute the error between the model result and the target values
@@ -156,6 +156,8 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
         bestFitError = error;
         std::cout << "Store best result at error " << bestFitError << std::endl;
         output->ShallowCopy(this->Model->GetOutput());
+
+        this->ModelParameter->GenerateXMLFromInternalScheme();
         this->BestFitModelParameter->GetXMLRoot()->DeepCopy(this->ModelParameter->GetXMLRoot());
       }
     } else {

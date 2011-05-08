@@ -48,7 +48,15 @@
 class vtkTAG2EAbstractCalibratableModelParameter : public vtkTAG2EAbstractModelParameter {
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
-    
+
+
+    //!\brief This abstract method should be used to generate the internal
+    //! representation for fast calibration computation from the XML decription
+    virtual bool GenerateInternalSchemeFromXML() = 0;
+    //!\brief This abstract method should be used to convert the internal reprsentation
+    //! of the model parameter into the XML representation for file storage or copying
+    virtual bool GenerateXMLFromInternalScheme() = 0;
+
     //!\brief Abstract Method to change arbritary a model parameter
     virtual bool ModifyParameterRandomly(double sd) = 0;
     //!\brief Abstract Restore the last modified model parameter 
