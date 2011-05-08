@@ -45,7 +45,7 @@
 #include <vtkTemporalDataSet.h>
 #include <vtkTemporalDataSetSource.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtk-5.9/vtkIdList.h>
+#include <vtkIdList.h>
 #include "vtkTAG2EModelMonteCarloVariationAnalyser.h"
 #include "vtkTAG2ELinearRegressionModel.h"
 #include <math.h>

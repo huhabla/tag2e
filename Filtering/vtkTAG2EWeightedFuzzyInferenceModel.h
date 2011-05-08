@@ -50,7 +50,7 @@ class WeightedFuzzyInferenceScheme;
 
 class vtkTAG2EWeightedFuzzyInferenceModel : public vtkTAG2EAbstractCalibratableModel {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EWeightedFuzzyInferenceModel, vtkTAG2EAbstractModel);
+    vtkTypeRevisionMacro(vtkTAG2EWeightedFuzzyInferenceModel, vtkTAG2EAbstractCalibratableModel);
     
     void PrintSelf(ostream& os, vtkIndent indent);
     static vtkTAG2EWeightedFuzzyInferenceModel *New(); 
