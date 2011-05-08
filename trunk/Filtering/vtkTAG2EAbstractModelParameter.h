@@ -87,6 +87,9 @@ public:
     vtkGetStringMacro(FileName);
     //!\brief Get the XML representation of the model parameter definitions
     vtkGetObjectMacro(XMLRoot, vtkXMLDataElement);
+
+    virtual bool GetXMLRepresentation(vtkXMLDataElement *root){return false;}
+    virtual bool SetXMLRepresentation(vtkXMLDataElement *root){return false;}
     
 protected:
     
