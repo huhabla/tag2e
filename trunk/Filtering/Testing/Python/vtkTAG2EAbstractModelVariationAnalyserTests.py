@@ -116,7 +116,7 @@ class vtkTAG2EAbstractModelVariationAnalyzerTests(unittest.TestCase):
         root.AddNestedElement(var2)
         
         self.ddd.SetFileName("/tmp/DataDistributionDescription1.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EAbstractModelVariationAnalyser()

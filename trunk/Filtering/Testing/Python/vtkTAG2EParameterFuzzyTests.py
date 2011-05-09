@@ -223,24 +223,17 @@ class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
-        fisc.GetXMLRoot().DeepCopy(self.root)
+        fisc.SetXMLRepresentation(self.root)
         fisc.Write()
-        # Read it again
+        # Read/Write it again
         fisc.Read();
-        # Change the name
-        fisc.GetXMLRoot().SetAttribute("name", "CH4Emission_V20101111") 
         fisc.SetFileName("/tmp/FuzzyInferenceScheme2.xml")
-        fisc.Write()
-        fisc.GenerateInternalSchemeFromXML();
-        fisc.GenerateXMLFromInternalScheme();
-        fisc.SetFileName("/tmp/FuzzyInferenceScheme3.xml")
         fisc.Write()
              
     def test3FuzzyParameter(self):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
-        fisc.GetXMLRoot().DeepCopy(self.root)
-        fisc.GenerateInternalSchemeFromXML();
+        fisc.SetXMLRepresentation(self.root)
         
         for j in range(fisc.GetNumberOfCalibratableParameter()):
             print "Modify Parameter " + str(j)
