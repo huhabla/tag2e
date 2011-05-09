@@ -205,8 +205,8 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     // The number of point data arrays can/should differ
     vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
     vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
-    // outputDataSet->CopyStructure(firstInputDataSet);
-    outputDataSet->DeepCopy(firstInputDataSet);
+    outputDataSet->CopyStructure(firstInputDataSet);
+    // outputDataSet->DeepCopy(firstInputDataSet);
 
     // Result for the current time step
     vtkDoubleArray *result = vtkDoubleArray::New();

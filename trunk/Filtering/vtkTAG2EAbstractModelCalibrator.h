@@ -75,11 +75,18 @@ public:
     //!\brief Get the name of the meaured data array of the input
     vtkGetStringMacro(TargetArrayName);
     
-    //!\brief Compare two data arrays using the normative least squares algorithm
+    //!\brief Compare two data arrays of a temporal dataset 
+    //! using the normative least squares algorithm
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
     static double CompareTemporalDataSets(vtkTemporalDataSet *tds, 
                                            const char *ModelResultArrayName, 
                                            const char *TargetArrayName, 
+                                           bool useCellData, bool verbose);
+    
+    //!\brief Compare the active scalar data arrays of two temporal dataset 
+    //! using the normative least squares algorithm
+    //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
+    static double CompareTemporalDataSets(vtkTemporalDataSet *tds1, vtkTemporalDataSet *tds2,
                                            bool useCellData, bool verbose);
     
     static double ArithmeticMean(vtkDataArray *data);
@@ -91,7 +98,7 @@ protected:
     ~vtkTAG2EAbstractModelCalibrator();
 
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
-        assert("RequestData must be implemented in a subclass");
+        vtkErrorMacro("RequestData must be implemented in a subclass");
         return -1;
     }
     

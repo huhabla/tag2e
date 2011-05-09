@@ -257,8 +257,6 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ModifyParameterRandomly(double sd)
     check = this->ModifyParameter(index, sd);
   }
 
-  //this->GenerateXMLFromInternalScheme();
-
   return check;
 }
 
@@ -304,9 +302,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::RestoreLastModifiedParameter()
   bool check = this->SetParameter(this->ParameterId, this->ParameterValue);
   // Make sure the correct last parameter value is set
   this->ParameterValue = value;
-  
-  //this->GenerateXMLFromInternalScheme();
-  
+    
   return check;
 }
 
@@ -493,7 +489,7 @@ void vtkTAG2EFuzzyInferenceModelParameter::AppendParameterState(unsigned int ind
 
 bool vtkTAG2EFuzzyInferenceModelParameter::GenerateInternalSchemeFromXML()
 {
-  vtkXMLDataElement *root = this->GetXMLRoot();
+  vtkXMLDataElement *root = this->XMLRoot;
   unsigned int i;
 
   // Check for correct name
@@ -907,5 +903,42 @@ bool vtkTAG2EFuzzyInferenceModelParameter::ParseWeights(vtkXMLDataElement *XMLWe
   //    << " value " << Weight.value << " min " << Weight.min
   //    << " max " << Weight.max << " active " << Weight.active << endl;
 
+  return true;
+}
+
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EFuzzyInferenceModelParameter::GetXMLRepresentation(vtkXMLDataElement *root)
+{
+  this->GenerateXMLFromInternalScheme();
+  
+  if(!this->XMLRoot)
+    return false;
+  
+  if(!root)
+    return false;
+  
+  root->DeepCopy(this->XMLRoot);
+    
+  return true;
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EFuzzyInferenceModelParameter::SetXMLRepresentation(vtkXMLDataElement *root)
+{
+  if(!this->XMLRoot)
+    return false;
+  
+  if(!root)
+    return false;
+ 
+  this->XMLRoot->DeepCopy(root);
+  
+  this->GenerateInternalSchemeFromXML();
+  
+  this->Modified();
+  
   return true;
 }

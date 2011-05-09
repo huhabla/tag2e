@@ -69,9 +69,9 @@ public:
     //!\brief Restore the last modified model parameter 
     //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
     virtual bool RestoreLastModifiedParameter();
-
-    virtual bool GenerateInternalSchemeFromXML();
-    virtual bool GenerateXMLFromInternalScheme();
+    
+    virtual bool GetXMLRepresentation(vtkXMLDataElement *root);
+    virtual bool SetXMLRepresentation(vtkXMLDataElement *root);
 
     vtkGetMacro(NumberOfRules, int);
     vtkGetMacro(NumberOfFactors, int);
@@ -80,6 +80,8 @@ public:
     WeightedFuzzyInferenceScheme &GetInternalScheme() {
         return this->WFIS;
     }
+    virtual bool GenerateInternalSchemeFromXML();
+    virtual bool GenerateXMLFromInternalScheme();
     //ETX
 
 protected:

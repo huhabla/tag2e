@@ -138,8 +138,10 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
   this->VariableDistributionType->Initialize();
   this->DistributionParameter->Initialize();
 
-  vtkXMLDataElement *root = this->DataDistributionDescription->GetXMLRoot();
-
+  vtkXMLDataElement *root = vtkXMLDataElement::New();
+  
+  this->DataDistributionDescription->GetXMLRepresentation(root);
+  
   // Check for correct 
   if (strncasecmp(root->GetName(), "DataDistributionDescription", 27) != 0) {
     vtkErrorMacro("The model parameter does not contain a valid data distribution description scheme");

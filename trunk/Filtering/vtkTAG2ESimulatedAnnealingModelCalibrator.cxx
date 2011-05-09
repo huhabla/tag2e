@@ -41,6 +41,7 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include "vtkTAG2ESimulatedAnnealingModelCalibrator.h"
+#include "vtkTAG2EFuzzyInferenceModelParameter.h"
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
@@ -75,21 +76,24 @@ vtkTAG2ESimulatedAnnealingModelCalibrator::~vtkTAG2ESimulatedAnnealingModelCalib
 
 int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
   vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **vtkNotUsed(inputVector),
+  vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
 {
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-  vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-  // Initiate the random number generator
-  srand(this->Seed);
-
   int i;
   double error;
   double lastAcceptedError;
   double bestFitError;
+  vtkXMLDataElement *root = vtkXMLDataElement::New();
+
+  // get the info objects
+  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  // get the first input and ouptut
+  vtkTemporalDataSet *input = vtkTemporalDataSet::SafeDownCast(
+                      inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
+    outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   if (this->Model == NULL) {
     vtkErrorMacro( << "The model is not set");
@@ -101,15 +105,19 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
     return 0;
   }
 
+  // Initiate the random number generator
+  srand(this->Seed);
+
   // Check for existing best fit model parameter
   if (this->BestFitModelParameter)
     this->BestFitModelParameter->Delete();
 
   // We store the parameter of the best fit separately in an instance of the same type
   this->BestFitModelParameter = this->ModelParameter->NewInstance();
-  this->BestFitModelParameter->GetXMLRoot()->DeepCopy(this->ModelParameter->GetXMLRoot());
+  this->ModelParameter->GetXMLRepresentation(root);
+  this->BestFitModelParameter->SetXMLRepresentation(root);
   
-  // The initial run of the model with the initial initialization
+  // The initial run of the model with initialization
   this->Model->SetModelParameter(this->ModelParameter);
   this->Model->Update();
 
@@ -118,16 +126,17 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 
   // Compute the initial error
   error = vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(this->Model->GetOutput(),
-    this->Model->GetResultArrayName(), this->TargetArrayName, this->Model->GetUseCellData(), 0);
+    input, this->Model->GetUseCellData(), 0);
 
-  // Initialize best fit and old error
+  // Initialize the error variables
   bestFitError = lastAcceptedError = error;
 
   // This is the main loop
   for (i = 0; i < this->MaxNumberOfIterations; i++) {
+    
     // Some verbose output
     if ((i + 1) % (int)(this->MaxNumberOfIterations / 100.0) == 1) {
-      std::cout << "Iteration " << i << " error " << error << " T " << this->InitialT << std::endl;
+      std::cout << "Iteration " << i << " error " << error << " Best fit " << bestFitError << " T " << this->InitialT << std::endl;
     }
 
     // Modify the model parameter randomly
@@ -143,22 +152,21 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 
     // Compute the error between the model result and the target values
     error = vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(this->Model->GetOutput(),
-      this->Model->GetResultArrayName(), this->TargetArrayName, this->Model->GetUseCellData(), 0);
+      input, this->Model->GetUseCellData(), 0);
     
     // The difference between last and current computation
     double diff = error - lastAcceptedError;
     
-    // In case the new error is lower the old error
+    // In case the new error is lower as the last configuration
     if (diff <= 0.0) {
       lastAcceptedError = error;
       // Store the best fit
       if (error < bestFitError) {
         bestFitError = error;
-        std::cout << "Store best result at error " << bestFitError << std::endl;
+        std::cout << "Store best result at iteration " << i << " with error " << bestFitError << std::endl;
         output->ShallowCopy(this->Model->GetOutput());
-
-        this->ModelParameter->GenerateXMLFromInternalScheme();
-        this->BestFitModelParameter->GetXMLRoot()->DeepCopy(this->ModelParameter->GetXMLRoot());
+        this->ModelParameter->GetXMLRepresentation(root);
+        this->BestFitModelParameter->SetXMLRepresentation(root);
       }
     } else {
       // Compute the criteria to accept poor configurations
@@ -188,6 +196,8 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 
   std::cout << "Finished after " << i << " iteration with best fit error " << bestFitError << std::endl;
 
+  root->Delete();
+  
   return 1;
 
 }

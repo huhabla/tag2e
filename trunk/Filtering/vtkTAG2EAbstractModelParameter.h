@@ -85,11 +85,11 @@ public:
     vtkSetStringMacro(FileName);
     //\brief filename of the XML model parameter definitions which should be read or written
     vtkGetStringMacro(FileName);
-    //!\brief Get the XML representation of the model parameter definitions
-    vtkGetObjectMacro(XMLRoot, vtkXMLDataElement);
-
-    virtual bool GetXMLRepresentation(vtkXMLDataElement *root){return false;}
-    virtual bool SetXMLRepresentation(vtkXMLDataElement *root){return false;}
+    //!\brief Return the XML representation as vtkXMLDataElement
+    //!\param root the XML element which will be overwritten
+    virtual bool GetXMLRepresentation(vtkXMLDataElement *root);
+    //!\brief Set the internal XML representation
+    virtual bool SetXMLRepresentation(vtkXMLDataElement *root);
     
 protected:
     

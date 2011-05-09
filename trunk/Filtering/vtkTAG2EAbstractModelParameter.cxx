@@ -51,7 +51,7 @@ vtkTAG2EAbstractModelParameter::vtkTAG2EAbstractModelParameter()
 vtkTAG2EAbstractModelParameter::~vtkTAG2EAbstractModelParameter()
 {
   this->XMLRoot->Delete();
-  if(this->FileName != NULL)
+  if (this->FileName != NULL)
     delete [] this->FileName;
 }
 
@@ -61,22 +61,55 @@ bool vtkTAG2EAbstractModelParameter::Read()
 {
   vtkXMLDataParser *reader = vtkXMLDataParser::New();
   reader->SetFileName(this->FileName);
-  if(0 == reader->Parse()) {
-    vtkErrorMacro(<<"Unable to parse XML file " << this->FileName);
+  if (0 == reader->Parse()) {
+    vtkErrorMacro( << "Unable to parse XML file " << this->FileName);
     return false;
   }
-  
-  this->XMLRoot->DeepCopy(reader->GetRootElement());
+
+  this->SetXMLRepresentation(reader->GetRootElement());
 
   reader->Delete();
-  
+
   this->Modified();
-  
+
   return true;
 }
 
+//----------------------------------------------------------------------------
 
 void vtkTAG2EAbstractModelParameter::Write()
 {
   this->XMLRoot->PrintXML(this->FileName);
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EAbstractModelParameter::GetXMLRepresentation(vtkXMLDataElement *root)
+{
+  if(!this->XMLRoot)
+    return false;
+  
+  if(!root)
+    return false;
+  
+  root->DeepCopy(this->XMLRoot);
+  
+  return true;
+}
+
+//----------------------------------------------------------------------------
+
+bool vtkTAG2EAbstractModelParameter::SetXMLRepresentation(vtkXMLDataElement *root)
+{
+  if(!this->XMLRoot)
+    return false;
+  
+  if(!root)
+    return false;
+ 
+  this->XMLRoot->DeepCopy(root);
+  
+  this->Modified();
+  
+  return true;
 }
