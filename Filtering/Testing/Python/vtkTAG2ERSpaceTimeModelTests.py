@@ -151,7 +151,7 @@ class vtkTAG2ERSpaceTimeModelTests(unittest.TestCase):
         
         self.modelparam = vtkTAG2EAbstractModelParameter()
         self.modelparam.SetFileName("/tmp/vtkTAG2ERSpaceTimeModelTests.xml")
-        self.modelparam.GetXMLRoot().DeepCopy(root)
+        self.modelparam.SetXMLRepresentation(root)
         self.modelparam.Write()
         
     def test1(self):

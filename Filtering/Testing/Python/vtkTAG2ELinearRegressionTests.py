@@ -115,7 +115,7 @@ class vtkTAG2EDLinearRegressionModelTestSimple(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest1.xml")
-        self.lrs.GetXMLRoot().DeepCopy(root)
+        self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
         
     def testSimpleLinearModel(self):
@@ -280,7 +280,7 @@ class vtkTAG2EDLinearRegressionModelTestComplex(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest2.xml")
-        self.lrs.GetXMLRoot().DeepCopy(root)
+        self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
         
     def testComplexLinearModel(self):
@@ -469,7 +469,7 @@ class vtkTAG2EDLinearRegressionModelTestComplexInterpol(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         self.lrs.SetFileName("/tmp/LinearRegressionSchemeTest3.xml")
-        self.lrs.GetXMLRoot().DeepCopy(root)
+        self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
         
     def testComplexLinearModel(self):
@@ -570,7 +570,7 @@ class vtkTAG2EDLinearRegressionParameter(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         lrs.SetFileName("/tmp/LinearRegressionSchemeFreibauer1.xml")
-        lrs.GetXMLRoot().DeepCopy(root)
+        lrs.SetXMLRepresentation(root)
         lrs.Write()
         # Read it again
         lrs.Read();

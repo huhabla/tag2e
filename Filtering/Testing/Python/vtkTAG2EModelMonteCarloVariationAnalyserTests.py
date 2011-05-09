@@ -75,7 +75,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         self.lrs.SetFileName("/tmp/MCComplexSimpleLinearRegressionScheme.xml")
-        self.lrs.GetXMLRoot().DeepCopy(root)
+        self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
         
         # Set up the model
@@ -106,7 +106,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         root.AddNestedElement(var1)
         
         self.ddd.SetFileName("/tmp/MCSimpleSimpleDataDistributionDescription1.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
@@ -153,7 +153,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         root.AddNestedElement(var1)
         
         self.ddd.SetFileName("/tmp/MCSimpleSimpleDataDistributionDescription2.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
@@ -200,7 +200,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         root.AddNestedElement(var1)
         
         self.ddd.SetFileName("/tmp/MCSimpleSimpleDataDistributionDescription3.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
@@ -290,7 +290,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         root.SetCharacterDataWidth(0)  
         
         self.lrs.SetFileName("/tmp/MCComplexLinearRegressionSchemeTest1.xml")
-        self.lrs.GetXMLRoot().DeepCopy(root)
+        self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
 
         # Set up the model
@@ -345,7 +345,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         root.AddNestedElement(var3)
         
         self.ddd.SetFileName("/tmp/MCLRComplexSimpleDataDistributionDescription1.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()
@@ -568,7 +568,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
-        fisc.GetXMLRoot().DeepCopy(self.root)
+        fisc.SetXMLRepresentation(self.root)
         
         # Set up the model
         self.Model = vtkTAG2EWeightedFuzzyInferenceModel()
@@ -610,7 +610,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         root.AddNestedElement(var2)
         
         self.ddd.SetFileName("/tmp/MCWFISSimpleDataDistributionDescription1.xml")
-        self.ddd.GetXMLRoot().DeepCopy(root)
+        self.ddd.SetXMLRepresentation(root)
         self.ddd.Write()
                 
         analyser = vtkTAG2EModelMonteCarloVariationAnalyser()

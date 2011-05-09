@@ -284,17 +284,19 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
     def test2FuzzyXML(self):
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
-        fisc.GetXMLRoot().DeepCopy(self.root)
-        fisc.GenerateInternalSchemeFromXML();
-
-        for i in range(1000):
-            print "Iteration " + str(i)
-            
+        fisc.SetXMLRepresentation(self.root)
+        
+        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model.SetModelParameter(fisc)
+        model.SetInputConnection(self.timesource.GetOutputPort())
+        
+        for i in range(10):
             fisc.ModifyParameterRandomly(0.1)
-            model = vtkTAG2EWeightedFuzzyInferenceModel()
-            model.SetModelParameter(fisc)
-            model.SetInputConnection(self.timesource.GetOutputPort())
+            
+            model.Modified()
             model.Update()
+            
+            fisc.GetXMLRepresentation(self.root)
             fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
             fisc.Write()
             

@@ -208,7 +208,6 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         
     def test1(self):
         
-
         self._BuildXML()
 
         # Set up the parameter and the model
