@@ -42,56 +42,79 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
+from libvtkGRASSBridgeFilteringPython import *
+
+import WFISGenerator
 
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("v.n2o.freibauer")
+    init.Init("v.fuzzy.calibrator")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Estimation of n2o emission in agriculture using the freibauer approach")
-    module.AddKeyword("raster")
+    module.SetDescription("Calibrate a weighted fuzzy inference model parameter based on vector data")
+    module.AddKeyword("vector")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
 
     feature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorFeatureType())
     feature.SetDefaultOptions("point,centroid,area")
-    feature.SetDefaultAnswer("area")
+    feature.SetDefaultAnswer("point")
     feature.MultipleOff()
     
-    nrate = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nrate")
-    nrate.SetDescription("The Nitrogen fertilization rate column name (%)")
+    factors = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "factors")
+    factors.SetDescription("Names of the table columns of the fuzzy factors")
 
-    sand = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "sand")
-    sand.SetDescription("The sand fraction rater column name (%)")
+    target = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "target")
+    target.SetDescription("Name of the table column of the target variable")
 
-    soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "csoil")
-    soilC.SetDescription("The organic carbon soil fraction  column name (%)")
+    iterations = vtkGRASSOption()
+    iterations.SetKey("iterations")
+    iterations.MultipleOff()
+    iterations.RequiredOff()
+    iterations.SetDefaultAnswer("5000")
+    iterations.SetDescription("The maximum number of iterations")
+    iterations.SetTypeToInteger()
 
-    soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nsoil")
-    soilN.SetDescription("The soil nitrogen fraction  column name (%)")
+    fuzzysets = vtkGRASSOption()
+    fuzzysets.SetKey("fuzzysets")
+    fuzzysets.MultipleOff()
+    fuzzysets.RequiredOff()
+    fuzzysets.SetDefaultAnswer("3")
+    fuzzysets.SetDefaultOptions("2,3,4,5")
+    fuzzysets.SetDescription("The number of fuzzy sets to be used for calibration")
+    fuzzysets.SetTypeToInteger()
 
-    croptype = vtkGRASSOption()
-    croptype.SetKey("croptype")
-    croptype.MultipleOff()
-    croptype.RequiredOff()
-    croptype.SetDefaultAnswer("grass")
-    croptype.SetDefaultOptions("grass,other")
-    croptype.SetDescription("The crop type")
-    croptype.SetTypeToString()
-    
-    climate = vtkGRASSOption()
-    climate.SetKey("climate")
-    climate.MultipleOff()
-    climate.RequiredOff()
-    climate.SetDefaultAnswer("temperate")
-    climate.SetDefaultOptions("subboreal,temperate")
-    climate.SetDescription("The climate type")
-    climate.SetTypeToString()
+    sd = vtkGRASSOption()
+    sd.SetKey("sd")
+    sd.MultipleOff()
+    sd.RequiredOff()
+    sd.SetDefaultAnswer("1")
+    sd.SetDescription("The standard deviation used to modify the fuzzy inference model")
+    sd.SetTypeToDouble()
+
+    breakcrit = vtkGRASSOption()
+    breakcrit.SetKey("breakcrit")
+    breakcrit.MultipleOff()
+    breakcrit.RequiredOff()
+    breakcrit.SetDefaultAnswer("0.01")
+    breakcrit.SetDescription("The break criteria")
+    breakcrit.SetTypeToDouble()
+
+    null = vtkGRASSOption()
+    null.SetKey("null")
+    null.MultipleOff()
+    null.RequiredOff()
+    null.SetDefaultAnswer("9999")
+    null.SetDescription("The value used fo no data")
+    null.SetTypeToDouble()
+
+    paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "parameter")
+    paramXML.SetDescription("Output name of the calibrated XML fuzzy inference parameter file")
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
-    output.SetDescription("The N2O emission estimation output map")
+    output.SetDescription("The best fitted model result")
 
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -102,12 +125,16 @@ def main():
 
     messages = vtkGRASSMessagingInterface()
 
+    # Create the names for the vector import and the fuzzy inference scheme generation
     columns = vtkStringArray()
-    columns.InsertNextValue(nrate.GetAnswer())
-    columns.InsertNextValue(sand.GetAnswer())
-    columns.InsertNextValue(soilC.GetAnswer())
-    columns.InsertNextValue(soilN.GetAnswer())
-    columns.InsertNextValue("cat")
+    factors.GetAnswers(columns)
+
+    names = []
+    for i in range(columns.GetNumberOfValues()):
+        names.append(columns.GetValue(i))
+    print names
+
+    columns.InsertNextValue(target.GetAnswer())
 
     messages.Message("Reading vector map into memory")
     # Reader
@@ -118,32 +145,54 @@ def main():
         dataset.SetFeatureTypeToPoint()
     if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
         dataset.SetFeatureTypeToCentroid()
+    dataset.Update()
 
-    messages.Message("Start N2O emission computation")
+    # Generate the time steps
+    timesteps = vtkDoubleArray()
+    timesteps.SetNumberOfTuples(1)
+    timesteps.SetNumberOfComponents(1)
+    timesteps.SetValue(0, 3600*24)
 
-    model = vtkTAG2EDataSetN2OFilterFreibauer()
-    model.SetInputConnection(dataset.GetOutputPort())
-    model.SetNitrogenRateArrayName(nrate.GetAnswer())
-    model.SetSandFractionArrayName(sand.GetAnswer())
-    model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
-    model.SetSoilNitrogenArrayName(soilN.GetAnswer())
-    model.SetCategoryArrayName("cat")
-    if croptype.GetAnswer() == "grass":
-        model.SetCropTypeToGrass()
-    else:
-        model.SetCropTypeToOther()
-    if climate.GetAnswer() == "temperate":
-        model.SetClimateTypeToTemperate()
-    else:
-        model.SetClimateTypeToSubBoreal()
-    model.UsePointDataOff()
-    model.Update()
-    
-    writer = vtkXMLPolyDataWriter()
-    writer.SetInput(model.GetOutput())
-    writer.SetFileName("/tmp/1.vtp")
-    writer.Write()
-    
+    # Create the spatio-temporal source
+    timesource = vtkTemporalDataSetSource()
+    timesource.SetTimeRange(0, 3600*24, timesteps)
+    timesource.SetInputConnection(0, dataset.GetOutputPort())
+
+    type = int(fuzzysets.GetAnswer())
+
+    if type == 2:
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+    if type == 3:
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+    if type == 4:
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+    if type == 5:
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+
+    # Set up the parameter and the model
+    parameter = vtkTAG2EFuzzyInferenceModelParameter()
+    parameter.SetXMLRepresentation(xmlRoot)
+
+    model = vtkTAG2EWeightedFuzzyInferenceModel()
+    model.SetInputConnection(timesource.GetOutputPort())
+    model.SetModelParameter(parameter)
+    model.UseCellDataOn()
+
+    caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
+    caliModel.SetInputConnection(timesource.GetOutputPort())
+    caliModel.SetModel(model)
+    caliModel.SetModelParameter(parameter)
+    caliModel.SetTargetArrayName(target.GetAnswer())
+    caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
+    caliModel.SetInitialT(1)
+    caliModel.SetTMinimizer(1.001)
+    caliModel.SetStandardDeviation(float(sd.GetAnswer()))
+    caliModel.SetBreakCriteria(float(breakcrit.GetAnswer()))
+    caliModel.Update()
+
+    caliModel.GetBestFitModelParameter().SetFileName(paramXML.GetAnswer())
+    caliModel.GetBestFitModelParameter().Write()
+
     messages.Message("Writing result vector map")
     
     # Areas must be treated in a specific way to garant correct topology
@@ -155,17 +204,18 @@ def main():
         boundaries.SetVectorName(input.GetAnswer())
         boundaries.SetColumnNames(columns)
         boundaries.SetFeatureTypeToBoundary()
+        boundaries.Update()
         
         writer = vtkGRASSVectorPolyDataAreaWriter()
-        writer.SetInputConnection(0, boundaries.GetOutputPort())
-        writer.SetInputConnection(1, model.GetOutputPort())
+        writer.SetInput(0, boundaries.GetOutput())
+        writer.SetInput(1, caliModel.GetOutput().GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()     
     else:
         # Write the result as vector map
         writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInputConnection(model.GetOutputPort())
+        writer.SetInput(caliModel.GetOutput().GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()

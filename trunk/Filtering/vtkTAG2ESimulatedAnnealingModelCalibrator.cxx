@@ -135,8 +135,12 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
   for (i = 0; i < this->MaxNumberOfIterations; i++) {
     
     // Some verbose output
-    if ((i + 1) % (int)(this->MaxNumberOfIterations / 100.0) == 1) {
-      std::cout << "Iteration " << i << " error " << error << " Best fit " << bestFitError << " T " << this->InitialT << std::endl;
+    if(this->MaxNumberOfIterations > 100) {
+        if ((i + 1) % (int)(this->MaxNumberOfIterations / 100.0) == 1) {
+          std::cout << "Iteration " << i << " error " << error << " Best fit " << bestFitError << " T " << this->InitialT << std::endl;
+        }
+    } else {
+        std::cout << "Iteration " << i << " error " << error << " Best fit " << bestFitError << " T " << this->InitialT << std::endl;
     }
 
     // Modify the model parameter randomly

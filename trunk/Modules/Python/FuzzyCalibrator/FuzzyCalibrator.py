@@ -66,7 +66,7 @@ class FuzzyCalibrator():
             caliModel.SetTargetArrayName(self.targetArrayName)
             caliModel.SetMaxNumberOfIterations(self.maxNumberOfIterations)
             caliModel.SetInitialT(self.initialT)
-            caliModel.SetTMinimizer = self.TMinimizer
+            caliModel.SetTMinimizer(self.TMinimizer)
             caliModel.SetStandardDeviation(self.standardDeviation)
             caliModel.SetBreakCriteria(self.breakCriteria)
             caliModel.Update()
