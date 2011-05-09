@@ -258,7 +258,8 @@ bool vtkTAG2ELinearRegressionModel::BuildLRValueArrays()
   this->Power->Initialize();
   this->ArrayNames->Initialize();
 
-  vtkXMLDataElement *root = this->ModelParameter->GetXMLRoot();
+  vtkXMLDataElement *root = vtkXMLDataElement::New();
+  this->ModelParameter->GetXMLRepresentation(root);
 
   // Check for correct 
   if (strncasecmp(root->GetName(), "LinearRegressionScheme", 22) != 0) {
@@ -317,6 +318,8 @@ bool vtkTAG2ELinearRegressionModel::BuildLRValueArrays()
       this->ArrayNames->InsertNextValue(arrayName);
     }
   }
+  
+  root->Delete();
   
   return true;
 }

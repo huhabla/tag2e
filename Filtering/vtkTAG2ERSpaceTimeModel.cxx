@@ -265,7 +265,8 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
     this->InputArrayNames->Initialize();
     this->OutputArrayNames->Initialize();
 
-    vtkXMLDataElement *root = this->ModelParameter->GetXMLRoot();
+    vtkXMLDataElement *root = vtkXMLDataElement::New();
+    this->ModelParameter->GetXMLRepresentation(root);
 
     // Check for correct
     
@@ -330,6 +331,8 @@ vtkTAG2ERSpaceTimeModel::BuildArrays()
             }
         }
     }
+    
+    root->Delete();
 
     return true;
 }

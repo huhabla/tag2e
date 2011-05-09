@@ -7,7 +7,6 @@
 #
 
 SET (Filtering_SRCS
-    vtkTAG2ERSpaceTimeModel.cxx
     vtkTAG2EImageDataN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterFreibauer.cxx
     vtkTAG2EDataSetN2OFilterStehfest.cxx
@@ -25,10 +24,10 @@ SET (Filtering_SRCS
     vtkTAG2EModelMonteCarloVariationAnalyser.cxx
     vtkTAG2EWeightedFuzzyInferenceModel.cxx
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
+    vtkTAG2ERSpaceTimeModel.cxx
 )
 
 SET (Filtering_H
-    vtkTAG2ERSpaceTimeModel.h
     vtkTAG2EFilteringWin32Header.h
     vtkTAG2EImageDataN2OFilterFreibauer.h
     vtkTAG2EDataSetN2OFilterFreibauer.h
@@ -47,6 +46,7 @@ SET (Filtering_H
     vtkTAG2EModelMonteCarloVariationAnalyser.h
     vtkTAG2EWeightedFuzzyInferenceModel.h
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
+    vtkTAG2ERSpaceTimeModel.h
 )
 
 # --------------------------------------------------------------------------
