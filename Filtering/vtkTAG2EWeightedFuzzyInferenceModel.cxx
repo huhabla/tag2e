@@ -34,6 +34,7 @@
 #include <vtkCompositeDataPipeline.h>
 #include <vtkDataSet.h>
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 #include <vtkIntArray.h>
 #include <vtkDoubleArray.h>
 #include <vtkStringArray.h>
@@ -250,9 +251,12 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
         return -1;
       }
 
-      //TODO: Support point and cell data 
-      // Get the point data
-      vtkDataSetAttributes *inputData = activeInputDataSet->GetPointData();
+      vtkDataSetAttributes *inputData;
+
+      if(this->UseCellData)
+        inputData = activeInputDataSet->GetCellData();
+      else
+        inputData = activeInputDataSet->GetPointData();
       // Get the array and 
 
       // Check if the array exists in the current input
@@ -281,9 +285,13 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
       delete [] fuzzyInput;
     }
 
-    //TODO: Support point and cell data 
-    outputDataSet->GetPointData()->AddArray(result);
-    outputDataSet->GetPointData()->SetActiveScalars(result->GetName());
+    if(this->UseCellData) {
+        outputDataSet->GetCellData()->AddArray(result);
+        outputDataSet->GetCellData()->SetActiveScalars(result->GetName());
+    } else {
+        outputDataSet->GetPointData()->AddArray(result);
+        outputDataSet->GetPointData()->SetActiveScalars(result->GetName());
+    }
     output->SetTimeStep(timeStep, outputDataSet);
     outputDataSet->Delete();
     result->Delete();
