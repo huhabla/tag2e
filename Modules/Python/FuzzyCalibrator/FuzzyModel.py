@@ -56,13 +56,8 @@ class FuzzyModel():
 
     def Run(self):
         
-        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile)
-        
-        if self.dataset.GetPointData().HasArray(self.targetArrayName):
-            self.dataset.GetPointData().SetActiveScalars(self.targetArrayName)
-        
-        if self.dataset.GetCellData().HasArray(self.targetArrayName):
-            self.dataset.GetCellData().SetActiveScalars(self.targetArrayName)
+        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile, self.targetArrayName)
+
             
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
