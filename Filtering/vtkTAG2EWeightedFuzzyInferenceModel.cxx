@@ -213,7 +213,10 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     vtkDoubleArray *result = vtkDoubleArray::New();
     result->SetNumberOfComponents(0);
     result->SetName(this->ResultArrayName);
-    result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
+    if(this->UseCellData)
+      result->SetNumberOfTuples(firstInputDataSet->GetNumberOfCells());
+    else
+      result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
     result->FillComponent(0,0.0);
 
     // This is used to store the needed arrays pointer to collect the 
@@ -269,9 +272,13 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
       Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
     }
     
-    //TODO: Support point and cell data
-    // Run the Fuzzy model for each point/pixel
-    for (i = 0; i < firstInputDataSet->GetNumberOfPoints(); i++) {
+    int num;
+    if(this->UseCellData)
+      num = firstInputDataSet->GetNumberOfPoints();
+    else
+      num = firstInputDataSet->GetNumberOfCells();
+    
+    for (i = 0; i < num; i++) {
 
       // Input array for fuzzy logic computation
       double *fuzzyInput = new double[numberOfFactors];
