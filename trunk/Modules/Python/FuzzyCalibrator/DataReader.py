@@ -35,7 +35,7 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-def ReadTextData(inputFile):
+def ReadTextData(inputFile, scalarName):
 
     file = open(inputFile)
     firstLine = file.readline()
@@ -48,8 +48,10 @@ def ReadTextData(inputFile):
     for i in range(4, len(names)):
         nameArray.append(str(names[i]).rstrip('\r\n'))
 
+    dataset = vtkPolyData()
+    dataset.Allocate(1,1)
+
     points = vtkPoints()
-    ids = vtkIdList()
 
     dataArrays = vtkDataSetAttributes()
 
@@ -72,7 +74,10 @@ def ReadTextData(inputFile):
         y = float(tmpArray[2])
         x = float(tmpArray[3])
 
+        ids = vtkIdList()
         ids.InsertNextId(points.InsertNextPoint(x, y, 0))
+
+        dataset.InsertNextCell(vtk.VTK_VERTEX, ids)
 
         count = 0
         for i in range(4, len(tmpArray)):
@@ -86,11 +91,15 @@ def ReadTextData(inputFile):
 
     file.close()
 
-    dataset = vtkPolyData()
-    dataset.Allocate(numberOfPoints,numberOfPoints)
     dataset.GetPointData().DeepCopy(dataArrays)
+    dataset.GetCellData().DeepCopy(dataArrays)
     dataset.SetPoints(points)
-    dataset.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
+
+    if dataset.GetPointData().HasArray(scalarName):
+        dataset.GetPointData().SetActiveScalars(scalarName)
+
+    if dataset.GetCellData().HasArray(scalarName):
+        dataset.GetCellData().SetActiveScalars(scalarName)
 
     # Create the temporal data
     # We have 1 time steps!

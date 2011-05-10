@@ -51,10 +51,13 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 100
+        xext = 10
         yext = 1
         num = xext*yext
-                
+
+        self.ds = vtkPolyData()
+        self.ds.Allocate(xext,yext)
+
         self.model = vtkDoubleArray()
         self.model.SetNumberOfTuples(num)
         self.model.SetName("model")
@@ -64,25 +67,24 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         self.measure.SetName("measure")
         
         # Point ids for poly vertex cell
-        ids = vtkIdList()
         points = vtkPoints()
         
         count = 0
         for i in range(xext):
             for j in range(yext):
-                points.InsertNextPoint(i, j, 0)
-                ids.InsertNextId(count)
+                ids = vtkIdList()
+                ids.InsertNextId(points.InsertNextPoint(i, j, 0))
                 # Data range [1:100] -> linear function x
                 self.model.SetValue(count, count + 1)
                 self.measure.SetValue(count, count + 1)
+                self.ds.InsertNextCell(vtk.VTK_VERTEX, ids)
                 count += 1
 
-        self.ds = vtkPolyData()
-        self.ds.Allocate(xext,yext)
         self.ds.GetPointData().SetScalars(self.model)
         self.ds.GetPointData().AddArray(self.measure)
-        self.ds.SetPoints(points)    
-        self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
+        self.ds.GetCellData().SetScalars(self.model)
+        self.ds.GetCellData().AddArray(self.measure)
+        self.ds.SetPoints(points) 
         
         # Create the temporal data
 
@@ -237,7 +239,11 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), "model", "measure", 0, 1)
         
         print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), self.timesource.GetOutput(), 0, 1)
-        
+
+        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), "model", "measure", 1, 1)
+
+        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), self.timesource.GetOutput(), 1, 1)
+
   
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EAbstractModelCalibratorTests)

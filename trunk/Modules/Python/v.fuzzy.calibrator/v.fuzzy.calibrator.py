@@ -147,7 +147,9 @@ def main():
     if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
         dataset.SetFeatureTypeToCentroid()
     dataset.Update()
-    
+
+    # Set the active scalar array to target variable. The calibration algorithm
+    # compares the active scalars to compute the best fit
     polyData = vtkPolyData()
     polyData.DeepCopy(dataset.GetOutput())
     polyData.GetCellData().SetActiveScalars(target.GetAnswer())

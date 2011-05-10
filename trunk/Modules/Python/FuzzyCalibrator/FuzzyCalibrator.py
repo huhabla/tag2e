@@ -33,14 +33,8 @@ class FuzzyCalibrator():
 
     def Run(self, type):
         
-        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile)
-        
-        if self.dataset.GetPointData().HasArray(self.targetArrayName):
-            self.dataset.GetPointData().SetActiveScalars(self.targetArrayName)
-        
-        if self.dataset.GetCellData().HasArray(self.targetArrayName):
-            self.dataset.GetCellData().SetActiveScalars(self.targetArrayName)
-            
+        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile, self.targetArrayName)
+                    
         if type == 2:
             xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 3:
@@ -95,7 +89,7 @@ if __name__ == "__main__":
     cal.resultFile = "BestFit.vtp"
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 20000
+    cal.maxNumberOfIterations = 2000
     cal.initialT = 1
     cal.breakCriteria = 0.01
     cal.outputName = "BestFit.xml"
