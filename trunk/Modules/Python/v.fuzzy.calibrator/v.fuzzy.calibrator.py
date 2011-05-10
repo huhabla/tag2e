@@ -2,9 +2,9 @@
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
 #
-# Program: r.n2o.freibauer
+# Program: r.fuzzy.calibrator
 #
-# Purpose: Estimation of n2o emission in agriculture using the freibauer approach
+# Purpose: Calibrate a weighted fuzzy inference model parameter based on vector data
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -137,6 +137,7 @@ def main():
     columns.InsertNextValue(target.GetAnswer())
 
     messages.Message("Reading vector map into memory")
+    
     # Reader
     dataset = vtkGRASSVectorTopoPolyDataReader()
     dataset.SetVectorName(input.GetAnswer())
@@ -146,6 +147,10 @@ def main():
     if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
         dataset.SetFeatureTypeToCentroid()
     dataset.Update()
+    
+    polyData = vtkPolyData()
+    polyData.DeepCopy(dataset.GetOutput())
+    polyData.GetCellData().SetActiveScalars(target.GetAnswer())
 
     # Generate the time steps
     timesteps = vtkDoubleArray()
@@ -156,18 +161,18 @@ def main():
     # Create the spatio-temporal source
     timesource = vtkTemporalDataSetSource()
     timesource.SetTimeRange(0, 3600*24, timesteps)
-    timesource.SetInputConnection(0, dataset.GetOutputPort())
+    timesource.SetInput(0, polyData)
 
     type = int(fuzzysets.GetAnswer())
 
     if type == 2:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 3:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 4:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 5:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), dataset.GetOutput(), float(null.GetAnswer()))
+        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
 
     # Set up the parameter and the model
     parameter = vtkTAG2EFuzzyInferenceModelParameter()
@@ -192,7 +197,7 @@ def main():
 
     caliModel.GetBestFitModelParameter().SetFileName(paramXML.GetAnswer())
     caliModel.GetBestFitModelParameter().Write()
-
+        
     messages.Message("Writing result vector map")
     
     # Areas must be treated in a specific way to garant correct topology
