@@ -89,7 +89,6 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
   vtkXMLDataElement *factor = vtkXMLDataElement::New();
   factor->SetName("Factor");
   factor->SetAttribute("name", this->W.Factor.name.c_str());
-  factor->SetIntAttribute("portId", this->W.Factor.portId);
   
   w->AddNestedElement(factor);
   w->AddNestedElement(weights);
@@ -175,13 +174,6 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
       this->W.Factor.name = factor->GetAttribute("name");
     } else {
       vtkErrorMacro( << "Attribute \"name\" is missing in Factor element");
-      return false;
-    }
-
-    if (factor->GetAttribute("name") != NULL) {
-      this->W.Factor.portId = atoi(factor->GetAttribute("portId"));
-    } else {
-      vtkErrorMacro( << "Attribute \"portId\" is missing in Factor element");
       return false;
     }
   }

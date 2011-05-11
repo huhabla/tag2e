@@ -67,7 +67,8 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   bool useCellData, bool verbose)
 {
   double result;
-  unsigned int timeStep, id;
+  unsigned int timeStep;
+  int id;
   double variance;
   double squareSum;
   unsigned int numberOfValues = 0;
@@ -124,7 +125,8 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   bool useCellData, bool verbose)
 {
   double result;
-  unsigned int timeStep, id;
+  unsigned int timeStep;
+  int id;
   double variance;
   double squareSum;
   unsigned int numberOfValues = 0;
