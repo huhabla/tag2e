@@ -44,21 +44,38 @@
 #define	vtkTAG2EAbstractCalibratableModelParameter_H
 
 #include <vtkTAG2EAbstractModelParameter.h>
+#include <vector>
 
 class vtkTAG2EAbstractCalibratableModelParameter : public vtkTAG2EAbstractModelParameter {
 public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
 
-    //!\brief Abstract Method to change arbritary a model parameter
-    virtual bool ModifyParameterRandomly(double sd) = 0;
-    //!\brief Abstract Restore the last modified model parameter 
-    virtual bool RestoreLastModifiedParameter() = 0;
-    //!\brief Abstract Method to change arbritary a model parameter
-    virtual bool ModifyParameter(int index, double sd) = 0;
-    //!\brief Abstract Method to get a model parameter at index
-    virtual double GetParameterValue(int index) = 0;
+    //!\brief Change arbritary a model parameter using a specific standard deviation
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool ModifyParameterRandomly(double sd);
+    //!\brief Change a model parameter at index using a specific standard deviation
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool ModifyParameter(int index, double sd);
+    //!\brief Return a model parameter at index. No index range check is performed.
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual double GetParameterValue(int index){return this->ParameterValues[index];};
+    //!\brief Restore the last modified model parameter 
+    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    virtual bool RestoreLastModifiedParameter();
+    
     //!\brief Return the number of calibratable parameter
     vtkGetMacro(NumberOfCalibratableParameter, int);
+    //!\brief Reimplemented from abstract model parameter to call
+    //! the internal scheme generator
+    virtual bool GetXMLRepresentation(vtkXMLDataElement *root);
+    //!\brief Reimplemented from abstract model parameter to call
+    //! the internal scheme generator
+    virtual bool SetXMLRepresentation(vtkXMLDataElement *root);
+    
+    //!\brief IMPLEMENT THIS METHOD IN SUBCLASS
+    virtual bool GenerateInternalSchemeFromXML() = 0;
+    //!\brief IMPLEMENT THIS METHOD IN SUBCLASS
+    virtual bool GenerateXMLFromInternalScheme() = 0;
     
 protected:
     vtkSetMacro(NumberOfCalibratableParameter, int);
@@ -66,8 +83,26 @@ protected:
     vtkTAG2EAbstractCalibratableModelParameter();
     ~vtkTAG2EAbstractCalibratableModelParameter();
     
-    int NumberOfCalibratableParameter;
+    //!\brief IMPLEMENT THIS METHOD IN SUBCLASS
+    virtual bool CreateParameterIndex() = 0;
+    //!\brief IMPLEMENT THIS METHOD IN SUBCLASS
+    virtual bool SetParameter(unsigned int index, double value) = 0;
+    //!\brief Append a parameter state to the internal parameter arrays for calibration
+    virtual void AppendParameterState(unsigned int index, double value, double min, double max);
+    //!\brief Update a parameter state to the internal parameter arrays for calibration
+    virtual void UpdateParameterState(unsigned int index, double old_value, double new_value);
+
     
+    int NumberOfCalibratableParameter;
+    double ParameterValue; // This variable stores the old parameter value
+    unsigned int ParameterId; // This is the id of the last changed parameter, -1 nothing changed yet
+
+    // BTX
+    std::vector <unsigned int> ParameterIndex;
+    std::vector <double> ParameterValues;
+    std::vector < std::vector <double> > ParameterMinMax;
+    // ETX
+
 private:
     vtkTAG2EAbstractCalibratableModelParameter(const vtkTAG2EAbstractCalibratableModelParameter& orig);
     void operator=(const vtkTAG2EAbstractCalibratableModelParameter&); // Not implemented. 

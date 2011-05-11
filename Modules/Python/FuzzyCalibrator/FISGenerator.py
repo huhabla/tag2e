@@ -76,9 +76,7 @@ def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
 #    0   25  50  75   100
 #
 
-    root  = vtk.vtkXMLDataElement()
     resp = vtkXMLDataElement()
-    weight = vtkXMLDataElement()
 
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
@@ -197,24 +195,12 @@ def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
         resp.AddNestedElement(rval)
 
     fuzzyRoot.AddNestedElement(resp)
-
-    weight.SetName("Weight")
-    weight.SetAttribute("name", "grass")
-    weight.SetIntAttribute("active", 1)
-    weight.SetIntAttribute("const", 1)
-    weight.SetDoubleAttribute("min", 0)
-    weight.SetDoubleAttribute("max", 10)
-    weight.SetCharacterData("1", 1)
-
-    root.SetName("WeightedFuzzyInferenceScheme")
-    root.SetAttribute("name", "Test")
-    root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
-    root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-    root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-    root.AddNestedElement(fuzzyRoot)
-    root.AddNestedElement(weight)
+    fuzzyRoot.SetAttribute("name", "Test")
+    fuzzyRoot.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
+    fuzzyRoot.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    fuzzyRoot.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
     
-    return root
+    return fuzzyRoot
 
 ################################################################################
 ################################################################################
@@ -233,9 +219,7 @@ def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
 #    0   33  66   100
 #
 
-    root  = vtk.vtkXMLDataElement()
     resp = vtkXMLDataElement()
-    weight = vtkXMLDataElement()
 
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
@@ -338,24 +322,12 @@ def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
         resp.AddNestedElement(rval)
 
     fuzzyRoot.AddNestedElement(resp)
+    fuzzyRoot.SetAttribute("name", "Test")
+    fuzzyRoot.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
+    fuzzyRoot.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    fuzzyRoot.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
 
-    weight.SetName("Weight")
-    weight.SetAttribute("name", "grass")
-    weight.SetIntAttribute("active", 1)
-    weight.SetIntAttribute("const", 1)
-    weight.SetDoubleAttribute("min", 0)
-    weight.SetDoubleAttribute("max", 10)
-    weight.SetCharacterData("1", 1)
-
-    root.SetName("WeightedFuzzyInferenceScheme")
-    root.SetAttribute("name", "Test")
-    root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
-    root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-    root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-    root.AddNestedElement(fuzzyRoot)
-    root.AddNestedElement(weight)
-    
-    return root
+    return fuzzyRoot
 
 ################################################################################
 ################################################################################
@@ -374,10 +346,7 @@ def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
 #   0   50  100
 #
 
-    root  = vtk.vtkXMLDataElement()
     resp = vtkXMLDataElement()
-    weight = vtkXMLDataElement()
-
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
 
@@ -464,23 +433,11 @@ def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
         resp.AddNestedElement(rval)
 
     fuzzyRoot.AddNestedElement(resp)
+    fuzzyRoot.SetAttribute("name", "Test")
+    fuzzyRoot.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
+    fuzzyRoot.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    fuzzyRoot.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
 
-    weight.SetName("Weight")
-    weight.SetAttribute("name", "grass")
-    weight.SetIntAttribute("active", 1)
-    weight.SetIntAttribute("const", 1)
-    weight.SetDoubleAttribute("min", 0)
-    weight.SetDoubleAttribute("max", 10)
-    weight.SetCharacterData("1", 1)
-
-    root.SetName("WeightedFuzzyInferenceScheme")
-    root.SetAttribute("name", "Test")
-    root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
-    root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-    root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-    root.AddNestedElement(fuzzyRoot)
-    root.AddNestedElement(weight)
-    
     return root
 
 ################################################################################
@@ -498,10 +455,7 @@ def BuildFuzzyXMLRepresentation2(factorNames, measureName, dataset, noData):
 #   0    100
 #
 
-    root  = vtk.vtkXMLDataElement()
     resp = vtkXMLDataElement()
-    weight = vtkXMLDataElement()
-
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
 
@@ -571,21 +525,9 @@ def BuildFuzzyXMLRepresentation2(factorNames, measureName, dataset, noData):
         resp.AddNestedElement(rval)
 
     fuzzyRoot.AddNestedElement(resp)
+    fuzzyRoot.SetAttribute("name", "Test")
+    fuzzyRoot.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
+    fuzzyRoot.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    fuzzyRoot.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
 
-    weight.SetName("Weight")
-    weight.SetAttribute("name", "cropland")
-    weight.SetIntAttribute("active", 1)
-    weight.SetIntAttribute("const", 1)
-    weight.SetDoubleAttribute("min", 0)
-    weight.SetDoubleAttribute("max", 10)
-    weight.SetCharacterData("1", 1)
-
-    root.SetName("WeightedFuzzyInferenceScheme")
-    root.SetAttribute("name", "Test")
-    root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
-    root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-    root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-    root.AddNestedElement(fuzzyRoot)
-    root.AddNestedElement(weight)
-    
-    return root
+    return fuzzyRoot

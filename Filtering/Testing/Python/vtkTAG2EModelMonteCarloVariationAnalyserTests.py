@@ -381,7 +381,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         self.riface.EvalRscript(script, True)
     
 # test a weighted fuzzy inference scheme with monte carlo analysis
-class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
+class vtkTAG2EModelMonteCarloVariationAnalyserTestsFIS(unittest.TestCase):
        
     def setUp(self):
         
@@ -392,8 +392,6 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         # Start the interface
         self.riface = vtkRInterfaceSpatial()
         self.root  = vtk.vtkXMLDataElement()
-        
-        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fss2 = vtkXMLDataElement()
         fs11 = vtkXMLDataElement()
@@ -409,8 +407,6 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         tr22 = vtkXMLDataElement()
         tr23 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        
-        weight = vtkXMLDataElement()
         
 # Triangular test shape layout first Factor 0.0 - 10.0
 # ____        ____
@@ -545,33 +541,22 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
             rval1.SetCharacterData(str(i * 20), 6)
             resp.AddNestedElement(rval1)
                 
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(fss2)
-        fuzzyRoot.AddNestedElement(resp)
+        self.root.SetName("FuzzyInferenceScheme")
+        self.root.AddNestedElement(fss1)
+        self.root.AddNestedElement(fss2)
+        self.root.AddNestedElement(resp)
         
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 0)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-        
-        self.root.SetName("WeightedFuzzyInferenceScheme")
         self.root.SetAttribute("name", "N2OEmission_V20101111")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)   
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd") 
         
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
         fisc.SetXMLRepresentation(self.root)
         
         # Set up the model
-        self.Model = vtkTAG2EWeightedFuzzyInferenceModel()
+        self.Model = vtkTAG2EFuzzyInferenceModel()
         self.Model.SetModelParameter(fisc)
         
     def test1(self):
@@ -630,7 +615,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         writer = vtkXMLPolyDataWriter()
         
         for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloWFISTest_1_" + str(i) + ".vtp")
+            writer.SetFileName("/tmp/TAG2EMonteCarloFISTest_1_" + str(i) + ".vtp")
             writer.SetInput(output.GetTimeStep(i))
             writer.Write()
             
@@ -641,7 +626,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS(unittest.TestCase):
         self.riface.AssignVTKDataArrayToRVariable(output.GetFieldData().GetArray(self.Model.GetResultArrayName()), self.Model.GetResultArrayName())
         
         # Save the workspace for testing
-        script = "save(list = ls(all=TRUE), file = \"/home/soeren/MonteCarloTestWFIS\")"
+        script = "save(list = ls(all=TRUE), file = \"/home/soeren/MonteCarloTestFIS\")"
         print script
         self.riface.EvalRscript(script, True)
         
@@ -650,7 +635,7 @@ if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=2).run(suite1) 
     suite2 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex)
     unittest.TextTestRunner(verbosity=2).run(suite2) 
-    suite3 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EModelMonteCarloVariationAnalyserTestsWFIS)
+    suite3 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EModelMonteCarloVariationAnalyserTestsFIS)
     unittest.TextTestRunner(verbosity=2).run(suite3) 
 
 

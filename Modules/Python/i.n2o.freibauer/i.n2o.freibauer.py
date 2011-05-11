@@ -61,7 +61,7 @@ def main():
     sand.SetDescription("The sand fraction raster map in percent")
 
     soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction raster map in percent")
+    soilC.SetDescription("The organic carbon soil fraction raster map in percent")
 
     soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType(), "nsoil")
     soilN.SetDescription("The soil nitrogen fraction raster map in percent")

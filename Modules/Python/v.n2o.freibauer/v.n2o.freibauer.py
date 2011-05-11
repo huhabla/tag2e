@@ -67,7 +67,7 @@ def main():
     sand.SetDescription("The sand fraction rater column name (%)")
 
     soilC = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "csoil")
-    soilC.SetDescription("The oranic carbon soil fraction  column name (%)")
+    soilC.SetDescription("The organic carbon soil fraction  column name (%)")
 
     soilN =vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "nsoil")
     soilN.SetDescription("The soil nitrogen fraction  column name (%)")
@@ -118,12 +118,11 @@ def main():
         dataset.SetFeatureTypeToPoint()
     if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
         dataset.SetFeatureTypeToCentroid()
-    dataset.Update()
 
     messages.Message("Start N2O emission computation")
 
     model = vtkTAG2EDataSetN2OFilterFreibauer()
-    model.SetInput(dataset.GetOutput())
+    model.SetInputConnection(dataset.GetOutputPort())
     model.SetNitrogenRateArrayName(nrate.GetAnswer())
     model.SetSandFractionArrayName(sand.GetAnswer())
     model.SetSoilOrganicCarbonArrayName(soilC.GetAnswer())
