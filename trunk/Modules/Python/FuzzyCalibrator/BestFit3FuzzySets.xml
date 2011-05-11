@@ -1,5 +1,4 @@
-<WeightedFuzzyInferenceScheme name="Test" xmlns="http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd">
-  <FuzzyInferenceScheme>
+<FuzzyInferenceScheme name="Test" xmlns="http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd">
     <Factor name="sand" min="8" max="87.8" portId="0">
       <Set const="0" position="left" priority="0" type="Triangular">
         <Triangular center="14.5270706622069" left="9999" right="7.398936198953">
@@ -331,9 +330,4 @@
       
     </Responses>
     
-  </FuzzyInferenceScheme>
-  <Weight active="1" const="1" min="0" max="10" name="grass">
-    1
-  </Weight>
-  
-</WeightedFuzzyInferenceScheme>
+</FuzzyInferenceScheme>

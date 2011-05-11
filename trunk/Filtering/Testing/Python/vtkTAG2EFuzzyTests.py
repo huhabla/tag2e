@@ -103,7 +103,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
 
         self.root  = vtk.vtkXMLDataElement()
         
-        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fss2 = vtkXMLDataElement()
         fs11 = vtkXMLDataElement()
@@ -120,7 +119,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         tr23 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
         
-        weight = vtkXMLDataElement()
         
 # Triangular test shape layout first Factor 0.0 - 10.0
 # ____        ____
@@ -255,30 +253,19 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             rval1.SetCharacterData(str(i * 20), 6)
             resp.AddNestedElement(rval1)
                 
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(fss2)
-        fuzzyRoot.AddNestedElement(resp)
-        
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 0)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-        
-        self.root.SetName("WeightedFuzzyInferenceScheme")
+        self.root.SetName("FuzzyInferenceScheme")
+        self.root.AddNestedElement(fss1)
+        self.root.AddNestedElement(fss2)
+        self.root.AddNestedElement(resp)
+                
         self.root.SetAttribute("name", "N2OEmission_V20101111")
-        self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
+        self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)   
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
         
     def test1Self(self):
         """Performe the self test"""
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.TestFISComputation()
         
     def test2FuzzyXML(self):
@@ -286,7 +273,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fisc = vtkTAG2EFuzzyInferenceModelParameter()
         fisc.SetXMLRepresentation(self.root)
         
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetModelParameter(fisc)
         model.SetInputConnection(self.timesource.GetOutputPort())
         

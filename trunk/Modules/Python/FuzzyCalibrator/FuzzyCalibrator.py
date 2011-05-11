@@ -9,7 +9,7 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-import WFISGenerator
+import FISGenerator
 import MetropolisAlgorithm
 import DataReader
 
@@ -36,19 +36,19 @@ class FuzzyCalibrator():
         self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile, self.targetArrayName)
                     
         if type == 2:
-            xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 3:
-            xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 4:
-            xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 5:
-            xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
 
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(xmlRoot)
             
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
                 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cal.resultFile = "BestFit.vtp"
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 2000
+    cal.maxNumberOfIterations = 20000
     cal.initialT = 1
     cal.breakCriteria = 0.01
     cal.outputName = "BestFit.xml"

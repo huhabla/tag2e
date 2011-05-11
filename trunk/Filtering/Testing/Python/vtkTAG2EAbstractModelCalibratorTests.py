@@ -111,15 +111,12 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         
         self.root  = vtk.vtkXMLDataElement()
         
-        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fs1 = vtkXMLDataElement()
         fs2 = vtkXMLDataElement()
         tr1 = vtkXMLDataElement()
         tr2 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        
-        weight = vtkXMLDataElement()
         
 # Triangular test shape layout
 # ____    ____
@@ -187,25 +184,13 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         resp.AddNestedElement(rval1)
         resp.AddNestedElement(rval2)
                 
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(resp)
-        
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 1)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-        
-        self.root.SetName("WeightedFuzzyInferenceScheme")
+        self.root.SetName("FuzzyInferenceScheme")
+        self.root.AddNestedElement(fss1)
+        self.root.AddNestedElement(resp)
         self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
         
         
     def test1(self):
@@ -216,7 +201,7 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(self.root)
 
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
         model.Update()

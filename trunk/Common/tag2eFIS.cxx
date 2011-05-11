@@ -32,7 +32,7 @@
 
 #include <iostream>
 #include <math.h>
-#include "tag2eWFIS.h"
+#include "tag2eFIS.h"
 
 #define TOLERANCE 0.001
 
@@ -80,10 +80,10 @@ static double InterpolatePointInNormDist (double x);
 
 //----------------------------------------------------------------------------
 
-bool tag2eWFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeMatrix, int numberOfRules, WeightedFuzzyInferenceScheme &WFIS)
+bool tag2eFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeMatrix, int numberOfRules, FuzzyInferenceScheme &FIS)
 {
   int col, row, length, length1, dum, inp, num, num1;
-  int numberOfFactors = WFIS.FIS.Factors.size();
+  int numberOfFactors = FIS.Factors.size();
 
   // Compute the rule code matrix which contains the 
   // permutation of all factors. The matrix enries are
@@ -103,14 +103,14 @@ bool tag2eWFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &Ru
     length = 1;
     dum = col + 1;
     while (dum <= numberOfFactors - 1) {
-      FuzzyFactor &Factor = WFIS.FIS.Factors[dum];
+      FuzzyFactor &Factor = FIS.Factors[dum];
       length = length * Factor.Sets.size();
       dum = dum + 1;
     }
     length1 = 1;
     dum = col;
     while (dum <= numberOfFactors - 1) {
-      FuzzyFactor &Factor = WFIS.FIS.Factors[dum];
+      FuzzyFactor &Factor = FIS.Factors[dum];
       length1 = length1 * Factor.Sets.size();
       dum = dum + 1;
     }
@@ -138,8 +138,8 @@ bool tag2eWFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &Ru
 
 //----------------------------------------------------------------------------
 
-double tag2eWFIS::ComputeFISResult(double *Input,
-  int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS)
+double tag2eFIS::ComputeFISResult(double *Input,
+  int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS)
 {
   int rule;
   double result;
@@ -151,18 +151,18 @@ double tag2eWFIS::ComputeFISResult(double *Input,
   // Compute the deegree of fullfillment for each rule
   for (rule = 0; rule < numberOfRules; rule++) {
 
-    dof = tag2eWFIS::ComputeDOF(Input, rule, RuleCodeMatrix, WFIS);
+    dof = tag2eFIS::ComputeDOF(Input, rule, RuleCodeMatrix, FIS);
 
     sum_dofs = sum_dofs + dof;
-    result = result + WFIS.FIS.Responses.Responses[rule].value * dof;
+    result = result + FIS.Responses.Responses[rule].value * dof;
     //std::cout << "Fuzzy Parameter rule dof value and result " << std::endl;
-    //std::cout << rule << " " << dof << " " << WFIS.FIS.Responses.Responses[rule].value << " " << result << std::endl;
+    //std::cout << rule << " " << dof << " " << FIS.Responses.Responses[rule].value << " " << result << std::endl;
   }
 
   // Check for wrong results and apply the deegrees of fullfillment
   if (sum_dofs == 0) {
     std::cerr << "Sum of deegrees of fullfillments is 0. Expect wrong model results. Factors: ";
-    for(unsigned int i = 0; i < WFIS.FIS.Factors.size(); i++)
+    for(unsigned int i = 0; i < FIS.Factors.size(); i++)
       std::cerr << Input[i] << " ";
     std::cerr << std::endl;
     result = 0.0;
@@ -170,20 +170,15 @@ double tag2eWFIS::ComputeFISResult(double *Input,
     result = result / sum_dofs;
   }
 
-  // Weight the result
-  if (WFIS.Weight.active) {
-    result *= WFIS.Weight.value;
-  }
-
   return result;
 }
 
 //----------------------------------------------------------------------------
 
-double tag2eWFIS::ComputeDOF(double *Input,
-  int rule, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS)
+double tag2eFIS::ComputeDOF(double *Input,
+  int rule, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS)
 {
-  int numberOfFactors = WFIS.FIS.Factors.size();
+  int numberOfFactors = FIS.Factors.size();
   int d, pos, shape;
   double *dom = new double[numberOfFactors]; // Deegree of membership of a fuzzy set
   double dof; // The resulting deegree of fullfillment for the rule
@@ -192,15 +187,15 @@ double tag2eWFIS::ComputeDOF(double *Input,
   dof = 1; // We need o initialize the resulting DOF with 1
   do {
     pos = (RuleCodeMatrix[rule][d]);
-    shape = WFIS.FIS.Factors[d].Sets[pos].type;
-    FuzzyFactor &Factor = WFIS.FIS.Factors[d];
+    shape = FIS.Factors[d].Sets[pos].type;
+    FuzzyFactor &Factor = FIS.Factors[d];
 
     //std::cout << "Factor " << d << " Input " << Input[d] << " Rule " << rule << std::endl;
         
     if ((Input[d] > Factor.max) || (Input[d] < Factor.min)) {
       dom[d] = 1;
     } else {
-      FuzzySet &Set = WFIS.FIS.Factors[d].Sets[pos];
+      FuzzySet &Set = FIS.Factors[d].Sets[pos];
       switch (shape) {
 
       // ATTENTION: The bellshape implementation must be updated to 
@@ -268,7 +263,7 @@ double tag2eWFIS::ComputeDOF(double *Input,
 
 //----------------------------------------------------------------------------
 
-bool tag2eWFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
+bool tag2eFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
 {
   unsigned int j;
 
@@ -366,12 +361,12 @@ double InterpolatePointInNormDist(double value)
 
 //----------------------------------------------------------------------------
 
-bool tag2eWFIS::TestFISComputation()
+bool tag2eFIS::TestFISComputation()
 {
   // Create a simple weighted fuzzy inference scheme
-  WeightedFuzzyInferenceScheme WFIS;
+  FuzzyInferenceScheme FIS;
 
-  WFIS.name = "Test";
+  FIS.name = "Test";
 
   // We have 2 factors with each 2 fuzzy sets
   FuzzyFactor F1; // nrate
@@ -454,7 +449,7 @@ bool tag2eWFIS::TestFISComputation()
   F1.Sets.push_back(F1S1);
   F1.Sets.push_back(F1S2);
 
-  if(!tag2eWFIS::CheckFuzzyFactor(F1))
+  if(!tag2eFIS::CheckFuzzyFactor(F1))
   {
     return false; 
   }
@@ -466,7 +461,7 @@ bool tag2eWFIS::TestFISComputation()
   F2.Sets.push_back(F2S1);
   F2.Sets.push_back(F2S2);
   
-  if(!tag2eWFIS::CheckFuzzyFactor(F2))
+  if(!tag2eFIS::CheckFuzzyFactor(F2))
   {
     return false; 
   }
@@ -476,23 +471,16 @@ bool tag2eWFIS::TestFISComputation()
   R3.value = 3;
   R4.value = 4;
 
-  WFIS.FIS.Responses.Responses.push_back(R1);
-  WFIS.FIS.Responses.Responses.push_back(R2);
-  WFIS.FIS.Responses.Responses.push_back(R3);
-  WFIS.FIS.Responses.Responses.push_back(R4);
+  FIS.Responses.Responses.push_back(R1);
+  FIS.Responses.Responses.push_back(R2);
+  FIS.Responses.Responses.push_back(R3);
+  FIS.Responses.Responses.push_back(R4);
 
-  WFIS.FIS.Responses.min = 1;
-  WFIS.FIS.Responses.max = 4;
+  FIS.Responses.min = 1;
+  FIS.Responses.max = 4;
 
-  WFIS.FIS.Factors.push_back(F1);
-  WFIS.FIS.Factors.push_back(F2);
-
-  WFIS.Weight.active = true;
-  WFIS.Weight.constant = false;
-  WFIS.Weight.max = 100;
-  WFIS.Weight.min = 0.001;
-  WFIS.Weight.name = "vegetables";
-  WFIS.Weight.value = 1.0;
+  FIS.Factors.push_back(F1);
+  FIS.Factors.push_back(F2);
 
   int i, j;
   int numberOfRules = 4;
@@ -503,7 +491,7 @@ bool tag2eWFIS::TestFISComputation()
   // Create the rule code matrix
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
 
-  tag2eWFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, WFIS);
+  tag2eFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, FIS);
 
   for (i = 0; i < numberOfRules; i++) {
     for (j = 0; j < numberOfFactors; j++) {
@@ -529,29 +517,29 @@ bool tag2eWFIS::TestFISComputation()
   double Input[2] = {75.0, 10.0};
   double result;
 
-  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 0, RuleCodeMatrix, FIS);
   if (fabs(result - 0.25) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 1 1");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 1, RuleCodeMatrix, FIS);
   if (fabs(result - 0.25) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 1 2");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 2, RuleCodeMatrix, FIS);
   if (fabs(result - 0.25) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 1 3");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 3, RuleCodeMatrix, FIS);
   if (fabs(result - 0.25) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 1 4");
     return false;
   }
 
   std::cout << "ComputeFISResult Test 1" << std::endl;
-  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 2.5) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 1");
@@ -563,29 +551,29 @@ bool tag2eWFIS::TestFISComputation()
   Input[0] = 0.0;
   Input[1] = -15.0;
 
-  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 0, RuleCodeMatrix, FIS);
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 1");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 1, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 2");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 2, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 3");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 3, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 2 4");
     return false;
   }
 
   std::cout << "ComputeFISResult Test 2" << std::endl;
-  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 2");
@@ -597,29 +585,29 @@ bool tag2eWFIS::TestFISComputation()
   Input[0] = 150;
   Input[1] = 35;
 
-  result = tag2eWFIS::ComputeDOF(Input, 0, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 0, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 1");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 1, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 1, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 2");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 2, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 2, RuleCodeMatrix, FIS);
   if (fabs(result - 0.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 3");
     return false;
   }
-  result = tag2eWFIS::ComputeDOF(Input, 3, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeDOF(Input, 3, RuleCodeMatrix, FIS);
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeDOF Test 3 4");
     return false;
   }
 
   std::cout << "ComputeFISResult Test 3" << std::endl;
-  result = tag2eWFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, WFIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 4.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 3");

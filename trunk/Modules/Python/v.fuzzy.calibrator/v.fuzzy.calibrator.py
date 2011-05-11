@@ -4,7 +4,7 @@
 #
 # Program: r.fuzzy.calibrator
 #
-# Purpose: Calibrate a weighted fuzzy inference model parameter based on vector data
+# Purpose: Calibrate a fuzzy inference model parameter based on vector data
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -44,7 +44,7 @@ from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
 from libvtkGRASSBridgeFilteringPython import *
 
-import WFISGenerator
+import FISGenerator
 
 def main():
     # Initiate GRASS
@@ -53,7 +53,7 @@ def main():
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Calibrate a weighted fuzzy inference model parameter based on vector data")
+    module.SetDescription("Calibrate a fuzzy inference model parameter based on vector data")
     module.AddKeyword("vector")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
@@ -168,19 +168,19 @@ def main():
     type = int(fuzzysets.GetAnswer())
 
     if type == 2:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 3:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 4:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
     if type == 5:
-        xmlRoot = WFISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
 
     # Set up the parameter and the model
     parameter = vtkTAG2EFuzzyInferenceModelParameter()
     parameter.SetXMLRepresentation(xmlRoot)
 
-    model = vtkTAG2EWeightedFuzzyInferenceModel()
+    model = vtkTAG2EFuzzyInferenceModel()
     model.SetInputConnection(timesource.GetOutputPort())
     model.SetModelParameter(parameter)
     model.UseCellDataOn()
@@ -189,7 +189,6 @@ def main():
     caliModel.SetInputConnection(timesource.GetOutputPort())
     caliModel.SetModel(model)
     caliModel.SetModelParameter(parameter)
-    caliModel.SetTargetArrayName(target.GetAnswer())
     caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
     caliModel.SetInitialT(1)
     caliModel.SetTMinimizer(1.001)

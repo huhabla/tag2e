@@ -1,27 +1,18 @@
 <xsd:schema
   xmlns='http://www.w3.org/2000/10/XMLSchema'
-  targetNamespace='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
-  xmlns:tag2e='http://tag2e.googlecode.com/files/WeighetedFuzzyInferenceScheme'
+  targetNamespace='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/FuzzyInferenceScheme'
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <xsd:element name='WeightedFuzzyInferenceScheme'>
-        <xsd:complexType>
-            <xsd:sequence minOccurs='0' maxOccurs='1'>
-                <xsd:element ref='tag2e:FuzzyInferenceScheme'/>
-                <xsd:element ref='tag2e:Weight'/>
-            </xsd:sequence>
-            <xsd:attribute name='name' type='xsd:string' use='required'/>
-        </xsd:complexType>
-    </xsd:element>
-
-<!-- This is the xML defintion of a fuzzy inference scheme which defines a set of rules. 
+<!-- This is the XML defintion of a fuzzy inference scheme which defines a set of rules. 
      -->
     <xsd:element name='FuzzyInferenceScheme'>
         <xsd:complexType>
-            <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
-                <xsd:element ref='tag2e:Factor'/>
-                <xsd:element ref='tag2e:Responses'/>
+            <xsd:sequence>
+                <xsd:element ref='tag2e:Factor' minOccurs='0' maxOccurs='unbounded'/>
+                <xsd:element ref='tag2e:Responses' minOccurs='0' maxOccurs='1'/>
             </xsd:sequence>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
         </xsd:complexType>
     </xsd:element>
 
@@ -140,17 +131,4 @@ l       r
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name='Weight'>
-        <xsd:complexType mixed='true'>
-            <xsd:simpleContent>
-                <xsd:extension base="xsd:double">
-                    <xsd:attribute name='name' type='xsd:string' use='required'/>
-                    <xsd:attribute name='active' type='xsd:boolean' use='required'/>
-                    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
-                    <xsd:attribute name='min' type='xsd:double' use='required'/>
-                    <xsd:attribute name='max' type='xsd:double' use='required'/>
-                </xsd:extension>
-            </xsd:simpleContent>
-        </xsd:complexType>
-    </xsd:element>
 </xsd:schema>

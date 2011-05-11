@@ -45,16 +45,16 @@
 
 #include <vtkDataSetAlgorithm.h>
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EWeightedFuzzyInferenceModel.h"
+#include "vtkTAG2EFuzzyInferenceModel.h"
 #include "vtkTAG2EFuzzyInferenceModelParameter.h"
 
 
-vtkCxxRevisionMacro(vtkTAG2EWeightedFuzzyInferenceModel, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EWeightedFuzzyInferenceModel);
+vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceModel, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModel);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EWeightedFuzzyInferenceModel::vtkTAG2EWeightedFuzzyInferenceModel()
+vtkTAG2EFuzzyInferenceModel::vtkTAG2EFuzzyInferenceModel()
 {
   this->FuzzyModelParameter = NULL;
   this->InputPorts = vtkIntArray::New();
@@ -63,7 +63,7 @@ vtkTAG2EWeightedFuzzyInferenceModel::vtkTAG2EWeightedFuzzyInferenceModel()
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EWeightedFuzzyInferenceModel::~vtkTAG2EWeightedFuzzyInferenceModel()
+vtkTAG2EFuzzyInferenceModel::~vtkTAG2EFuzzyInferenceModel()
 {
   this->InputPorts->Delete();
   this->ArrayNames->Delete();
@@ -71,7 +71,7 @@ vtkTAG2EWeightedFuzzyInferenceModel::~vtkTAG2EWeightedFuzzyInferenceModel()
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EWeightedFuzzyInferenceModel::FillInputPortInformation(
+int vtkTAG2EFuzzyInferenceModel::FillInputPortInformation(
   int vtkNotUsed(port),
   vtkInformation* info)
 {
@@ -82,7 +82,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::FillInputPortInformation(
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EWeightedFuzzyInferenceModel::RequestUpdateExtent(
+int vtkTAG2EFuzzyInferenceModel::RequestUpdateExtent(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
@@ -117,7 +117,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestUpdateExtent(
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
+void vtkTAG2EFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
 {
   int i = 0;
 
@@ -138,12 +138,12 @@ void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractMode
   // Generate the internal representation
   this->FuzzyModelParameter->GenerateInternalSchemeFromXML();
 
-  WeightedFuzzyInferenceScheme &WFIS = this->FuzzyModelParameter->GetInternalScheme();
+  FuzzyInferenceScheme &FIS = this->FuzzyModelParameter->GetInternalScheme();
 
   // Count the input ports and array names
   for (i = 0; i < this->FuzzyModelParameter->GetNumberOfFactors(); i++) {
-    this->InputPorts->InsertValue(i, WFIS.FIS.Factors[i].portId);
-    this->ArrayNames->InsertValue(i, WFIS.FIS.Factors[i].name);
+    this->InputPorts->InsertValue(i, FIS.Factors[i].portId);
+    this->ArrayNames->InsertValue(i, FIS.Factors[i].name);
   }
 
   double *range = this->InputPorts->GetRange();
@@ -155,7 +155,7 @@ void vtkTAG2EWeightedFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractMode
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
+int vtkTAG2EFuzzyInferenceModel::RequestData(
   vtkInformation * vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
@@ -174,7 +174,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     return -1;
   }
 
-  WeightedFuzzyInferenceScheme &WFIS = this->FuzzyModelParameter->GetInternalScheme();
+  FuzzyInferenceScheme &FIS = this->FuzzyModelParameter->GetInternalScheme();
 
   // Compute the number of rules and number of factors
   numberOfRules = this->FuzzyModelParameter->GetNumberOfRules();
@@ -184,7 +184,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
 
   // Compute the rule code matrix entries 
-  tag2eWFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, WFIS);
+  tag2eFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, FIS);
 
   // get the first input and ouptut
   vtkTemporalDataSet *firstInput = vtkTemporalDataSet::SafeDownCast(
@@ -274,9 +274,9 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
     
     int num;
     if(this->UseCellData)
-      num = firstInputDataSet->GetNumberOfPoints();
-    else
       num = firstInputDataSet->GetNumberOfCells();
+    else
+      num = firstInputDataSet->GetNumberOfPoints();
     
     for (i = 0; i < num; i++) {
 
@@ -287,7 +287,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
         Data[j]->GetTuple(i, &fuzzyInput[j]);
       }
 
-      double val = tag2eWFIS::ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, WFIS);
+      double val = tag2eFIS::ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, FIS);
       result->SetValue(i, val);
       delete [] fuzzyInput;
     }
@@ -309,7 +309,7 @@ int vtkTAG2EWeightedFuzzyInferenceModel::RequestData(
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EWeightedFuzzyInferenceModel::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTAG2EFuzzyInferenceModel::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

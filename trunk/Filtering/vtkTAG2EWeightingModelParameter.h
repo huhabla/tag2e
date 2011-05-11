@@ -36,8 +36,8 @@
  * \TODO Instead of normalized fuzzy set positions, use real values and normailze at runtime
  */
 
-#ifndef vtkTAG2EFuzzyInferenceModelParameter_H
-#define	vtkTAG2EFuzzyInferenceModelParameter_H
+#ifndef vtkTAG2EWeightingModelParameter_H
+#define	vtkTAG2EWeightingModelParameter_H
 
 #include <vtkObject.h>
 #include <vtkXMLDataElement.h>
@@ -46,52 +46,67 @@
 #include <map>
 #include "tag2eFIS.h"
 
+class WeightingWeight{
+public:
+    int id;
+    bool active;
+    bool constant;
+    double min;
+    double max;
+    double value;
+};
+
+class WeightingFactor{
+public:
+    int portId;
+    std::string name;
+};
+
+class Weighting{
+public:
+    std::string name;
+    WeightingFactor Factor;
+    std::vector<WeightingWeight> Weights;
+};
+
+
 class vtkXMLDataElement;
 
-class vtkTAG2EFuzzyInferenceModelParameter : public vtkTAG2EAbstractCalibratableModelParameter {
+class vtkTAG2EWeightingModelParameter : public vtkTAG2EAbstractCalibratableModelParameter {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
+    vtkTypeRevisionMacro(vtkTAG2EWeightingModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
 
     void PrintSelf(ostream& os, vtkIndent indent) {
         ;
     }
-    static vtkTAG2EFuzzyInferenceModelParameter *New();
+    static vtkTAG2EWeightingModelParameter *New();
 
     virtual bool GenerateInternalSchemeFromXML();
     virtual bool GenerateXMLFromInternalScheme();
     
-    vtkGetMacro(NumberOfRules, int);
-    vtkGetMacro(NumberOfFactors, int);
-    
     //BTX
-    FuzzyInferenceScheme &GetInternalScheme() {
-        return this->FIS;
+    Weighting &GetInternalScheme() {
+        return this->W;
     }
     //ETX
 
 protected:
 
-    vtkTAG2EFuzzyInferenceModelParameter();
-    ~vtkTAG2EFuzzyInferenceModelParameter();
+    vtkTAG2EWeightingModelParameter();
+    ~vtkTAG2EWeightingModelParameter();
 
-    bool ParseFactors(vtkXMLDataElement *FuzzyInferenceScheme);
-    bool ParseResponses(vtkXMLDataElement *FuzzyInferenceScheme);
-    bool ParseFuzzyInferenceScheme(vtkXMLDataElement *FuzzyInferenceScheme);
-    bool ParseFuzzySets(FuzzyFactor &Factor, vtkXMLDataElement *XMLFactor);
+    bool ParseWeight(vtkXMLDataElement *wXMLWeight, WeightingWeight &Weight);
     virtual bool CreateParameterIndex();
     virtual bool SetParameter(unsigned int index, double value);
-    
+
     // BTX
-    FuzzyInferenceScheme FIS;
+    Weighting W;
     // ETX
 
-    unsigned int NumberOfRules;
-    unsigned int NumberOfFactors;
-    
 private:
-    vtkTAG2EFuzzyInferenceModelParameter(const vtkTAG2EFuzzyInferenceModelParameter& orig);
-    void operator=(const vtkTAG2EFuzzyInferenceModelParameter&); // Not implemented.
+    vtkTAG2EWeightingModelParameter(const vtkTAG2EWeightingModelParameter& orig);
+    void operator=(const vtkTAG2EWeightingModelParameter&); // Not implemented.
 };
 
 
-#endif	/* vtkTAG2EFuzzyInferenceModelParameter_H */
+#endif	/* vtkTAG2EWeightingModelParameter_H */

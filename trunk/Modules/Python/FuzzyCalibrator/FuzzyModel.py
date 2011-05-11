@@ -36,8 +36,6 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-import WFISGenerator
-import MetropolisAlgorithm
 import DataReader
 
 ################################################################################
@@ -64,7 +62,7 @@ class FuzzyModel():
         parameter.SetFileName(self.parameterFile)
         parameter.Read()
             
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
         model.Update()

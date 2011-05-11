@@ -1,0 +1,47 @@
+<xsd:schema
+  xmlns='http://www.w3.org/2000/10/XMLSchema'
+  targetNamespace='http://tag2e.googlecode.com/files/Weighting'
+  xmlns:tag2e='http://tag2e.googlecode.com/files/Weighting'
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:element name='Weighting'>
+        <xsd:complexType>
+            <xsd:sequence minOccurs='0' maxOccurs='1'>
+                <xsd:element ref='tag2e:Factor'/>
+                <xsd:element ref='tag2e:Weights'/>
+            </xsd:sequence>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+<!-- A factor is a controling variable used to estimate a depended variable.
+     -->
+    <xsd:element name='Factor'>
+        <xsd:complexType>
+            <xsd:attribute name='portId' type='xsd:nonNegativeInteger' use='required'/>
+            <xsd:attribute name='name' type='xsd:string' use='required'/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name='Weights'>
+        <xsd:complexType mixed='true'>
+            <xsd:sequence minOccurs='0' maxOccurs='unbounded'>
+                <xsd:element ref='tag2e:Weight'/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name='Weight'>
+        <xsd:complexType mixed='true'>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:double">
+                    <xsd:attribute name='id' type='xsd:nonNegativeInteger' use='required'/>
+                    <xsd:attribute name='active' type='xsd:boolean' use='required'/>
+                    <xsd:attribute name='const' type='xsd:boolean' use='required'/>
+                    <xsd:attribute name='min' type='xsd:double' use='required'/>
+                    <xsd:attribute name='max' type='xsd:double' use='required'/>
+                </xsd:extension>
+            </xsd:simpleContent>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

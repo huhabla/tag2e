@@ -69,12 +69,6 @@ public:
     //!\brief Get the calibrated model parameter
     vtkGetObjectMacro(ModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
     
-    //!\brief Set the name of the data array in the input which contains the measured data to
-    //! estimate the calibrated model fit
-    vtkSetStringMacro(TargetArrayName);
-    //!\brief Get the name of the meaured data array of the input
-    vtkGetStringMacro(TargetArrayName);
-    
     //!\brief Compare two data arrays of a temporal dataset 
     //! using the normative least squares algorithm
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
@@ -105,8 +99,6 @@ protected:
     vtkTAG2EAbstractCalibratableModel *Model;
     vtkTAG2EAbstractCalibratableModelParameter *ModelParameter;
     
-    char *TargetArrayName;
-
 private:
     vtkTAG2EAbstractModelCalibrator(const vtkTAG2EAbstractModelCalibrator& orig); // Not implemented.
     void operator=(const vtkTAG2EAbstractModelCalibrator&); // Not implemented.

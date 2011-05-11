@@ -51,15 +51,12 @@ vtkTAG2EAbstractModelCalibrator::vtkTAG2EAbstractModelCalibrator()
   this->SetNumberOfOutputPorts(1);
   this->Model = NULL;
   this->ModelParameter = NULL;
-  this->TargetArrayName = NULL;
 }
 
 //----------------------------------------------------------------------------
 
 vtkTAG2EAbstractModelCalibrator::~vtkTAG2EAbstractModelCalibrator()
 {
-  if (this->TargetArrayName)
-    delete [] this->TargetArrayName;
   ;
 }
 

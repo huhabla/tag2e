@@ -22,9 +22,10 @@ SET (Filtering_SRCS
     vtkTAG2EFuzzyInferenceModelParameter.cxx
     vtkTAG2ELinearRegressionModel.cxx
     vtkTAG2EModelMonteCarloVariationAnalyser.cxx
-    vtkTAG2EWeightedFuzzyInferenceModel.cxx
+    vtkTAG2EFuzzyInferenceModel.cxx
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
     vtkTAG2ERSpaceTimeModel.cxx
+    vtkTAG2EWeightingModelParameter.cxx
 )
 
 SET (Filtering_H
@@ -44,9 +45,10 @@ SET (Filtering_H
     vtkTAG2EFuzzyInferenceModelParameter.h
     vtkTAG2ELinearRegressionModel.h
     vtkTAG2EModelMonteCarloVariationAnalyser.h
-    vtkTAG2EWeightedFuzzyInferenceModel.h
+    vtkTAG2EFuzzyInferenceModel.h
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
     vtkTAG2ERSpaceTimeModel.h
+    vtkTAG2EWeightingModelParameter.h
 )
 
 # --------------------------------------------------------------------------

@@ -55,6 +55,9 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         yext = 1
         num = xext*yext
                 
+        self.ds = vtkPolyData()
+        self.ds.Allocate(xext,yext)
+        
         self.model = vtkDoubleArray()
         self.model.SetNumberOfTuples(num)
         self.model.SetName("model")
@@ -62,28 +65,25 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         self.measure = vtkDoubleArray()
         self.measure.SetNumberOfTuples(num)
         self.measure.SetName("measure")
-        self.targetArrayName = "measure"
         
         # Point ids for poly vertex cell
-        ids = vtkIdList()
         points = vtkPoints()
         
         count = 0
         for i in range(xext):
             for j in range(yext):
-                points.InsertNextPoint(i, j, 0)
-                ids.InsertNextId(count)
+                ids = vtkIdList()                
+                ids.InsertNextId(points.InsertNextPoint(i, j, 0))
                 # Data range [1:100] -> linear function x
                 self.model.SetValue(count, count + 1)
-                self.measure.SetValue(count, count + 1)
+                self.measure.SetValue(count, count + 1)   
+                self.ds.InsertNextCell(vtk.VTK_VERTEX, ids)
                 count += 1
 
-        self.ds = vtkPolyData()
-        self.ds.Allocate(xext,yext)
-        self.ds.GetPointData().SetScalars(self.model)
-        self.ds.GetPointData().AddArray(self.measure)
-        self.ds.SetPoints(points)    
-        self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
+        self.ds.GetCellData().AddArray(self.measure)
+        self.ds.GetCellData().AddArray(self.model)
+        self.ds.GetCellData().SetActiveScalars(self.measure.GetName())
+        self.ds.SetPoints(points) 
         
         # Create the temporal data
 
@@ -110,15 +110,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         
         self.root  = vtk.vtkXMLDataElement()
         
-        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fs1 = vtkXMLDataElement()
         fs2 = vtkXMLDataElement()
         tr1 = vtkXMLDataElement()
         tr2 = vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        
-        weight = vtkXMLDataElement()
         
 # Triangular test shape layout
 # ____    ____
@@ -186,25 +183,13 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         resp.AddNestedElement(rval1)
         resp.AddNestedElement(rval2)
                 
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(resp)
-        
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 1)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-        
-        self.root.SetName("WeightedFuzzyInferenceScheme")
+        self.root.SetName("FuzzyInferenceScheme")
+        self.root.AddNestedElement(fss1)
+        self.root.AddNestedElement(resp)
         self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
         
     def test1(self):
 
@@ -212,20 +197,24 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
 
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
+        parameter.DebugOff()
         parameter.SetXMLRepresentation(self.root)
 
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
+        model.UseCellDataOn()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
         caliModel.SetInputConnection(self.timesource.GetOutputPort())
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
-        caliModel.SetTargetArrayName(self.targetArrayName)
         caliModel.SetMaxNumberOfIterations(100)
         caliModel.Update()
 
+        caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTests.xml")
+        caliModel.GetBestFitModelParameter().Write()
+        
 ################################################################################
 ################################################################################
 ################################################################################
@@ -250,7 +239,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         self.measure = vtkDoubleArray()
         self.measure.SetNumberOfTuples(num)
         self.measure.SetName("measure")
-        self.targetArrayName = "measure"
 
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -306,7 +294,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
 
         self.root  = vtk.vtkXMLDataElement()
 
-        fuzzyRoot = vtkXMLDataElement()
         fss1 = vtkXMLDataElement()
         fss2 = vtkXMLDataElement()
         fs11 = vtkXMLDataElement()
@@ -324,10 +311,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         tr23 = vtkXMLDataElement()
 
         resp = vtkXMLDataElement()
-
-        weight = vtkXMLDataElement()
-
-
 
 # Triangular test shape layout
 #   ____        ____
@@ -447,26 +430,15 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
 
             resp.AddNestedElement(rval)
 
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        fuzzyRoot.AddNestedElement(fss1)
-        fuzzyRoot.AddNestedElement(fss2)
-        fuzzyRoot.AddNestedElement(resp)
+        self.root.SetName("FuzzyInferenceScheme")
+        self.root.AddNestedElement(fss1)
+        self.root.AddNestedElement(fss2)
+        self.root.AddNestedElement(resp)
 
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 1)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-
-        self.root.SetName("WeightedFuzzyInferenceScheme")
         self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
 
     def test1(self):
 
@@ -476,7 +448,7 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(self.root)
 
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
         
@@ -484,10 +456,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         caliModel.SetInputConnection(self.timesource.GetOutputPort())
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
-        caliModel.SetTargetArrayName(self.targetArrayName)
         caliModel.SetMaxNumberOfIterations(100)
         caliModel.Update()
 
+        caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestscomplex.xml")
+        caliModel.GetBestFitModelParameter().Write()
+        
 ################################################################################
 ################################################################################
 ################################################################################
@@ -520,7 +494,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
         self.measure = vtkDoubleArray()
         self.measure.SetNumberOfTuples(num)
         self.measure.SetName("measure")
-        self.targetArrayName = "measure"
 
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -585,7 +558,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
 
         self.root  = vtk.vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        weight = vtkXMLDataElement()
 
 
 
@@ -604,9 +576,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
 # 2: left = 50  center = 50 right = 101
 
 
-        fuzzyRoot = vtkXMLDataElement()
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
-        
         names = []
         names.append("w")
         names.append("x")
@@ -655,7 +624,7 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
             fss.AddNestedElement(fs1)
             fss.AddNestedElement(fs3)
 
-            fuzzyRoot.AddNestedElement(fss)
+            self.root.AddNestedElement(fss)
 
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)
@@ -670,23 +639,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
 
             resp.AddNestedElement(rval)
             
-        fuzzyRoot.AddNestedElement(resp)
-
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 0)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-
-        self.root.SetName("WeightedFuzzyInferenceScheme")
+        self.root.AddNestedElement(resp)
+        self.root.SetName("FuzzyInferenceScheme")
         self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
 
 
     def test1(self):
@@ -697,7 +655,7 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(self.root)
 
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
 
@@ -705,9 +663,11 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
         caliModel.SetInputConnection(self.timesource.GetOutputPort())
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
-        caliModel.SetTargetArrayName(self.targetArrayName)
         caliModel.SetMaxNumberOfIterations(100)
         caliModel.Update()
+        
+        caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark.xml")
+        caliModel.GetBestFitModelParameter().Write()
         
 ################################################################################
 ################################################################################
@@ -749,7 +709,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
         self.measure = vtkDoubleArray()
         self.measure.SetNumberOfTuples(num)
         self.measure.SetName("measure")
-        self.targetArrayName = "measure"
 
         # Point ids for poly vertex cell
         ids = vtkIdList()
@@ -822,9 +781,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
 
         self.root  = vtk.vtkXMLDataElement()
         resp = vtkXMLDataElement()
-        weight = vtkXMLDataElement()
-
-
 
 # Triangular test shape layout
 #   ____        ____
@@ -839,10 +795,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
 # 1: left = 101 center = -50 right = 50
 # 2: left = 50  center = 0 right = 50
 # 2: left = 50  center = 50 right = 101
-
-
-        fuzzyRoot = vtkXMLDataElement()
-        fuzzyRoot.SetName("FuzzyInferenceScheme")
 
         names = []
         names.append("u")
@@ -907,7 +859,7 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
             fss.AddNestedElement(fs2)
             fss.AddNestedElement(fs3)
 
-            fuzzyRoot.AddNestedElement(fss)
+            self.root.AddNestedElement(fss)
 
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)
@@ -922,23 +874,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
 
             resp.AddNestedElement(rval)
             
-        fuzzyRoot.AddNestedElement(resp)
-
-        weight.SetName("Weight")
-        weight.SetAttribute("name", "grass")
-        weight.SetIntAttribute("active", 1)
-        weight.SetIntAttribute("const", 1)
-        weight.SetDoubleAttribute("min", 0)
-        weight.SetDoubleAttribute("max", 10)
-        weight.SetCharacterData("1", 1)
-
-        self.root.SetName("WeightedFuzzyInferenceScheme")
+        self.root.AddNestedElement(resp)
+        self.root.SetName("FuzzyInferenceScheme")
         self.root.SetAttribute("name", "Test")
         self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/WightedFuzzyInferenceScheme")
         self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
-        self.root.AddNestedElement(fuzzyRoot)
-        self.root.AddNestedElement(weight)
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/FuzzyInferenceScheme.xsd")
 
     def test1(self):
 
@@ -947,18 +888,22 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(self.root)
+        parameter.DebugOff()
 
-        model = vtkTAG2EWeightedFuzzyInferenceModel()
+        model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
+        model.UseCellDataOff()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
         caliModel.SetInputConnection(self.timesource.GetOutputPort())
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
-        caliModel.SetTargetArrayName(self.targetArrayName)
-        caliModel.SetMaxNumberOfIterations(100)
+        caliModel.SetMaxNumberOfIterations(1000)
         caliModel.Update()
+        
+        caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge.xml")
+        caliModel.GetBestFitModelParameter().Write()
   
 
 ################################################################################

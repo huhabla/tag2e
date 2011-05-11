@@ -103,7 +103,7 @@ def main():
     parameter.SetFileName(paramXML.GetAnswer())
     parameter.Read()
 
-    model = vtkTAG2EWeightedFuzzyInferenceModel()
+    model = vtkTAG2EFuzzyInferenceModel()
     model.SetInputConnection(timesource.GetOutputPort())
     model.SetModelParameter(parameter)
     model.UseCellDataOn()

@@ -13,7 +13,7 @@ vtkKeyValueMap.cxx
 )
 
 SET (CommonNoWrap_SRCS
-tag2eWFIS.cxx
+tag2eFIS.cxx
 )
 
 SET (Common_H
@@ -22,7 +22,7 @@ vtkTAG2ECommonWin32Header.h
 vtkTAG2EModelParameterCollection.h
 vtkTAG2EDefines.h
 vtkKeyValueMap.h
-tag2eWFIS.h
+tag2eFIS.h
 )
 
 # --------------------------------------------------------------------------

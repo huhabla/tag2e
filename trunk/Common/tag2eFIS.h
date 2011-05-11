@@ -1,5 +1,5 @@
-#ifndef TAG2EWFIS_H
-#define TAG2EWFIS_H
+#ifndef TAG2EFIS_H
+#define TAG2EFIS_H
 
 #include <vector>
 
@@ -11,7 +11,7 @@
 #define FUZZY_SET_TYPE_BELL_SHAPE 2
 
 // The documentation of the following trivial classes
-// is located in the WeightedFuzzyInferenceScheme.xsd
+// is located in the FuzzyInferenceScheme.xsd
 // These classes describe the internal represenation of 
 // the XML weighted fuzzy inference definition
 class FuzzyShapeTriangular{
@@ -72,23 +72,7 @@ class FuzzyInferenceScheme {
 public:
     std::vector<FuzzyFactor> Factors;
     FuzzyResponses Responses;
-};
-
-class FuzzyWeight{
-public:
     std::string name;
-    bool active;
-    bool constant;
-    double value;  // calibrated
-    double min;
-    double max;
-};
-
-class WeightedFuzzyInferenceScheme {
-public:
-    std::string name;
-    FuzzyInferenceScheme FIS;
-    FuzzyWeight Weight;
 };
 
 /** 
@@ -98,32 +82,32 @@ public:
  * \TODO Add Rene Dechow paper reference
  * 
  */
-class tag2eWFIS {
+class tag2eFIS {
 public:
    
     //!\brief This method computes the rule code matrix which is used to compute the 
     //! the deegree of membership of an input factor for each rule
     //!\param RuleCodeMatrix The matrix of coded rules
     //!\param numberOfRules Number of rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
+    //!\param FIS The internal representation of the weighted fuzzy inference scheme
     //!\return true in case of success
     static bool ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &RuleCodeMatrix, 
-                         int numberOfRules, WeightedFuzzyInferenceScheme &WFIS);
+                         int numberOfRules, FuzzyInferenceScheme &FIS);
     //!\brief Compute the deegree of fullfillment of a single point for a single rule
     //!\param The factor input vector of a single point at a single time step
     //!\param rule The index of a single rule (index of row in the RuleCodeMatrix)
     //!\param RuleCodeMatrix The matrix of coded rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
+    //!\param FIS The internal representation of the weighted fuzzy inference scheme
     //!\return The deegree of fullfillment of a single rule
-    static double ComputeDOF(double *Input, int rule, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS);
+    static double ComputeDOF(double *Input, int rule, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS);
 
-    //!\brief Compute the weighted fuzzy inference scheme result for a single point  
+    //!\brief Compute the fuzzy inference scheme result for a single point  
     //!\param The factor input vector of a single point at a single time step
     //!\param numberOfRules Number of rules
     //!\param RuleCodeMatrix The matrix of coded rules
-    //!\param WFIS The internal representation of the weighted fuzzy inference scheme
+    //!\param FIS The internal representation of the weighted fuzzy inference scheme
     //!\return The result of the fuzzy inference scheme computation
-    static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, WeightedFuzzyInferenceScheme &WFIS);
+    static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS);
     
     //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
     static bool CheckFuzzyFactor(FuzzyFactor &Factor);
@@ -133,4 +117,4 @@ public:
 
 };
 
-#endif	/* TAG2EWFIS_H */
+#endif	/* TAG2EFIS_H */
