@@ -44,7 +44,6 @@
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 #include <vector>
 #include <map>
-#include "tag2eFIS.h"
 
 class WeightingWeight{
 public:
@@ -58,7 +57,6 @@ public:
 
 class WeightingFactor{
 public:
-    int portId;
     std::string name;
 };
 

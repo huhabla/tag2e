@@ -34,52 +34,42 @@
  * \brief This class uses a  fuzzy inference scheme to process
  * the point data of the temporal input data sets. The  fuzzy inference 
  * must be provided as as XML model parameter representation which is of type
- * vtkTAG2EFuzzyInferenceModelParameter. 
+ * vtkTAG2EWeightingModelParameter.
  */
 
-#ifndef vtkTAG2EFuzzyInferenceModel_H
-#define	vtkTAG2EFuzzyInferenceModel_H
+#ifndef vtkTAG2EWeightingModel_H
+#define	vtkTAG2EWeightingModel_H
 
 #include "vtkTAG2EAbstractCalibratableModel.h"
-#include "tag2eFIS.h"
+#include "vtkTAG2EWeightingModelParameter.h"
 
-class vtkIntArray;
-class vtkStringArray;
-class vtkTAG2EFuzzyInferenceModelParameter;
-class FuzzyInferenceScheme;
-
-class vtkTAG2EFuzzyInferenceModel : public vtkTAG2EAbstractCalibratableModel {
+class vtkTAG2EWeightingModel : public vtkTAG2EAbstractCalibratableModel {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModel, vtkTAG2EAbstractCalibratableModel);
+    vtkTypeRevisionMacro(vtkTAG2EWeightingModel, vtkTAG2EAbstractCalibratableModel);
     
     void PrintSelf(ostream& os, vtkIndent indent);
-    static vtkTAG2EFuzzyInferenceModel *New(); 
+    static vtkTAG2EWeightingModel *New();
      
     virtual double GetModelAssessmentFactor(){return 1.0;}
     
-    //!\brief Set the model parameter which must be of type vtkTAG2EFuzzyInferenceModelParameter
-    //! This XML model parameter describes the fuzzy inference scheme which is used to compute 
+    //!\brief Set the model parameter which must be of type vtkTAG2EWeightingModelParameter
+    //! This XML model parameter describes the weighting scheme which is used to compute
     //! the input point data.
     void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
     
-    // Verify the FIS comutation with simple test cases. No inputs required.
-    bool TestFISComputation(){return tag2eFIS::TestFISComputation();}
-
 protected:
-    vtkTAG2EFuzzyInferenceModel();
-    ~vtkTAG2EFuzzyInferenceModel();
+    vtkTAG2EWeightingModel();
+    ~vtkTAG2EWeightingModel();
     
     virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
     virtual int FillInputPortInformation(int port, vtkInformation* info);
     virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
         
-    vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
-    vtkIntArray *InputPorts;
-    vtkStringArray *ArrayNames;
+    vtkTAG2EWeightingModelParameter *WeightingModelParameter;
     
 private:
-    vtkTAG2EFuzzyInferenceModel(const vtkTAG2EFuzzyInferenceModel& orig); // Not implemented.
-    void operator=(const vtkTAG2EFuzzyInferenceModel&); // Not implemented.
+    vtkTAG2EWeightingModel(const vtkTAG2EWeightingModel& orig); // Not implemented.
+    void operator=(const vtkTAG2EWeightingModel&); // Not implemented.
 };
 
-#endif	/* vtkTAG2EFuzzyInferenceModel_H */
+#endif	/* vtkTAG2EWeightingModel_H */

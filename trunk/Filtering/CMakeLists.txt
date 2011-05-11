@@ -26,6 +26,7 @@ SET (Filtering_SRCS
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
     vtkTAG2ERSpaceTimeModel.cxx
     vtkTAG2EWeightingModelParameter.cxx
+    vtkTAG2EWeightingModel.cxx
 )
 
 SET (Filtering_H
@@ -49,6 +50,7 @@ SET (Filtering_H
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
     vtkTAG2ERSpaceTimeModel.h
     vtkTAG2EWeightingModelParameter.h
+    vtkTAG2EWeightingModel.h
 )
 
 # --------------------------------------------------------------------------

@@ -45,33 +45,32 @@
 
 #include <vtkDataSetAlgorithm.h>
 #include <vtkObjectFactory.h>
-#include "vtkTAG2EFuzzyInferenceModel.h"
-#include "vtkTAG2EFuzzyInferenceModelParameter.h"
+#include "vtkTAG2EWeightingModel.h"
+#include "vtkTAG2EWeightingModelParameter.h"
+#include "vtkTAG2EAbstractModelParameter.h"
 
 
-vtkCxxRevisionMacro(vtkTAG2EFuzzyInferenceModel, "$Revision: 1.0 $");
-vtkStandardNewMacro(vtkTAG2EFuzzyInferenceModel);
+vtkCxxRevisionMacro(vtkTAG2EWeightingModel, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkTAG2EWeightingModel);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceModel::vtkTAG2EFuzzyInferenceModel()
+vtkTAG2EWeightingModel::vtkTAG2EWeightingModel()
 {
-  this->FuzzyModelParameter = NULL;
-  this->InputPorts = vtkIntArray::New();
-  this->ArrayNames = vtkStringArray::New();
+  this->WeightingModelParameter = NULL;
+  this->SetNumberOfInputPorts(1);
 }
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EFuzzyInferenceModel::~vtkTAG2EFuzzyInferenceModel()
+vtkTAG2EWeightingModel::~vtkTAG2EWeightingModel()
 {
-  this->InputPorts->Delete();
-  this->ArrayNames->Delete();
+    ;
 }
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EFuzzyInferenceModel::FillInputPortInformation(
+int vtkTAG2EWeightingModel::FillInputPortInformation(
   int vtkNotUsed(port),
   vtkInformation* info)
 {
@@ -82,7 +81,7 @@ int vtkTAG2EFuzzyInferenceModel::FillInputPortInformation(
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EFuzzyInferenceModel::RequestUpdateExtent(
+int vtkTAG2EWeightingModel::RequestUpdateExtent(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
@@ -117,52 +116,33 @@ int vtkTAG2EFuzzyInferenceModel::RequestUpdateExtent(
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EFuzzyInferenceModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
+void vtkTAG2EWeightingModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
 {
-  int i = 0;
-
   this->Superclass::SetModelParameter(modelParameter);
 
-  this->ArrayNames->Initialize();
-  this->InputPorts->Initialize();
-
   // Check if the ModelParameter is of correct type
-  if (this->ModelParameter->IsA("vtkTAG2EFuzzyInferenceModelParameter")) {
-    this->FuzzyModelParameter = static_cast<vtkTAG2EFuzzyInferenceModelParameter *> (this->ModelParameter);
+  if (this->ModelParameter->IsA("vtkTAG2EWeightingModelParameter")) {
+    this->WeightingModelParameter = static_cast<vtkTAG2EWeightingModelParameter *> (this->ModelParameter);
   } else {
-    vtkErrorMacro( << "The ModelParameter is not of type vtkTAG2EFuzzyInferenceModelParameter");
+    vtkErrorMacro( << "The ModelParameter is not of type vtkTAG2EWeightingModelParameter");
     this->SetModelParameter(NULL);
     return;
   }
 
   // Generate the internal representation
-  this->FuzzyModelParameter->GenerateInternalSchemeFromXML();
+  this->WeightingModelParameter->GenerateInternalSchemeFromXML();
 
-  FuzzyInferenceScheme &FIS = this->FuzzyModelParameter->GetInternalScheme();
-
-  // Count the input ports and array names
-  for (i = 0; i < this->FuzzyModelParameter->GetNumberOfFactors(); i++) {
-    this->InputPorts->InsertValue(i, FIS.Factors[i].portId);
-    this->ArrayNames->InsertValue(i, FIS.Factors[i].name);
-  }
-
-  double *range = this->InputPorts->GetRange();
-  // Ports from 0 ... n must be used  
-  this->SetNumberOfInputPorts((int) (range[1] + 1));
-  
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EFuzzyInferenceModel::RequestData(
+int vtkTAG2EWeightingModel::RequestData(
   vtkInformation * vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
 {
   unsigned int timeStep;
-  int numberOfRules = 0;
-  int numberOfFactors = 0;
 
   // get the info objects
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
@@ -174,122 +154,73 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
     return -1;
   }
 
-  FuzzyInferenceScheme &FIS = this->FuzzyModelParameter->GetInternalScheme();
-
-  // Compute the number of rules and number of factors
-  numberOfRules = this->FuzzyModelParameter->GetNumberOfRules();
-  numberOfFactors = this->FuzzyModelParameter->GetNumberOfFactors();
-
-  // Create the rule code matrix
-  std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
-
-  // Compute the rule code matrix entries 
-  tag2eFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, FIS);
+  Weighting &W = this->WeightingModelParameter->GetInternalScheme();
 
   // get the first input and ouptut
-  vtkTemporalDataSet *firstInput = vtkTemporalDataSet::SafeDownCast(
+  vtkTemporalDataSet *input = vtkTemporalDataSet::SafeDownCast(
     inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
     outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  output->SetNumberOfTimeSteps(firstInput->GetNumberOfTimeSteps());
+  output->SetNumberOfTimeSteps(input->GetNumberOfTimeSteps());
 
   // Iterate over each timestep of the first input
   // Timesteps must be equal in the inputs.
-  for (timeStep = 0; timeStep < firstInput->GetNumberOfTimeSteps(); timeStep++) {
-    int i, j;
-    int port;
+  for (timeStep = 0; timeStep < input->GetNumberOfTimeSteps(); timeStep++) {
+    int i;
 
     // The first input is used to create the ouput
     // It is assumed that each input has the same number of points and the same topology
     // The number of point data arrays can/should differ
-    vtkDataSet *firstInputDataSet = vtkDataSet::SafeDownCast(firstInput->GetTimeStep(timeStep));
-    vtkDataSet *outputDataSet = firstInputDataSet->NewInstance();
-    //outputDataSet->CopyStructure(firstInputDataSet);
-    outputDataSet->DeepCopy(firstInputDataSet);
+    vtkDataSet *inputDataSet = vtkDataSet::SafeDownCast(input->GetTimeStep(timeStep));
+    vtkDataSet *outputDataSet = inputDataSet->NewInstance();
+    outputDataSet->CopyStructure(inputDataSet);
+    //outputDataSet->DeepCopy(inputDataSet);
 
     // Result for the current time step
     vtkDoubleArray *result = vtkDoubleArray::New();
     result->SetNumberOfComponents(0);
     result->SetName(this->ResultArrayName);
+    
     if(this->UseCellData)
-      result->SetNumberOfTuples(firstInputDataSet->GetNumberOfCells());
+      result->SetNumberOfTuples(inputDataSet->GetNumberOfCells());
     else
-      result->SetNumberOfTuples(firstInputDataSet->GetNumberOfPoints());
+      result->SetNumberOfTuples(inputDataSet->GetNumberOfPoints());
     result->FillComponent(0,0.0);
 
-    // This is used to store the needed arrays pointer to collect the 
-    // data for fuzzy computation
-    std::vector<vtkDataArray *> Data;
-
-    // Get the arrays for each input port and factor
-    for (i = 0; i < this->InputPorts->GetNumberOfTuples(); i++) {
-
-      port = this->InputPorts->GetValue(i);
-      //cerr << "Processing input port " << port << " at time step " << timeStep << endl;
-
-      // Get the correct input port for the input
-      vtkInformation *activeInputInfo = inputVector[port]->GetInformationObject(0);
-
-      // Check if the input port was filled with data
-      if (activeInputInfo == NULL) {
-        vtkErrorMacro( << "No temporal dataset available at input port " << port);
-        return -1;
-      }
-
-      vtkTemporalDataSet *activeInput = vtkTemporalDataSet::SafeDownCast(activeInputInfo->Get(vtkDataObject::DATA_OBJECT()));
-      vtkDataSet *activeInputDataSet = vtkDataSet::SafeDownCast(activeInput->GetTimeStep(timeStep));
-
-      // Check if a dataset is present at actual time step
-      if (activeInputDataSet == NULL) {
-        vtkErrorMacro( << "No dataset available at input port " << port << " time step " << timeStep);
-        return -1;
-      }
-
-      // Check if the number of points and cells in the active input are identical with the first input
-      if (firstInputDataSet->GetNumberOfPoints() != activeInputDataSet->GetNumberOfPoints() ||
-        firstInputDataSet->GetNumberOfCells() != activeInputDataSet->GetNumberOfCells()) {
-        vtkErrorMacro( << "The number of points or cells differ between the inputs.");
-        return -1;
-      }
-
-      vtkDataSetAttributes *inputData;
-
-      if(this->UseCellData)
-        inputData = activeInputDataSet->GetCellData();
-      else
-        inputData = activeInputDataSet->GetPointData();
-      // Get the array and 
-
-      // Check if the array exists in the current input
-      if (!inputData->HasArray(this->ArrayNames->GetValue(i))) {
-        vtkErrorMacro( << "Array " << this->ArrayNames->GetValue(i) << " is missing in input. Wrong reference in the model parameter");
-        return -1;
-      }
-
-      // Put the array pointer into the vector template
-      Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
+    vtkDataArray *scalars, *factors;
+    vtkDataSetAttributes *attrData;
+    int num = 0;
+    
+    if(this->UseCellData) {
+        attrData = inputDataSet->GetCellData();
+        num = inputDataSet->GetNumberOfCells();
+    } else {
+        attrData = inputDataSet->GetPointData();
+        num = inputDataSet->GetNumberOfPoints();
     }
-    
-    int num;
-    if(this->UseCellData)
-      num = firstInputDataSet->GetNumberOfCells();
-    else
-      num = firstInputDataSet->GetNumberOfPoints();
-    
-    for (i = 0; i < num; i++) {
 
-      // Input array for fuzzy logic computation
-      double *fuzzyInput = new double[numberOfFactors];
+    scalars = attrData->GetScalars();
+    if(attrData->HasArray(W.Factor.name.c_str())) {
+        factors = attrData->GetArray(W.Factor.name.c_str());
+    } else {
+        vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in dataset at time step " << timeStep);
+        return -1;
+    }
 
-      for (j = 0; j < numberOfFactors; j++) {
-        Data[j]->GetTuple(i, &fuzzyInput[j]);
-      }
-
-      double val = tag2eFIS::ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, FIS);
-      result->SetValue(i, val);
-      delete [] fuzzyInput;
+    double val;
+    unsigned int id;
+    for(i = 0; i < num; i++)
+    {
+        val = scalars->GetTuple1(i);
+        id = (int)factors->GetTuple1(i);
+        if(id < 0 || id > W.Weights.size()) {
+            vtkErrorMacro(<<"Factor id is out of range " << id);
+            continue;
+        }
+        val = W.Weights[id].value * val;
+        result->SetValue(i, val);
     }
 
     if(this->UseCellData) {
@@ -309,7 +240,7 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
 
 //----------------------------------------------------------------------------
 
-void vtkTAG2EFuzzyInferenceModel::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTAG2EWeightingModel::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

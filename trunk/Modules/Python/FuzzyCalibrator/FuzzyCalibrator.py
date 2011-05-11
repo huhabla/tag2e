@@ -57,7 +57,6 @@ class FuzzyCalibrator():
             caliModel.SetInputConnection(self.timesource.GetOutputPort())
             caliModel.SetModel(model)
             caliModel.SetModelParameter(parameter)
-            caliModel.SetTargetArrayName(self.targetArrayName)
             caliModel.SetMaxNumberOfIterations(self.maxNumberOfIterations)
             caliModel.SetInitialT(self.initialT)
             caliModel.SetTMinimizer(self.TMinimizer)
