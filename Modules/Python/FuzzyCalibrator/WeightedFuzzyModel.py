@@ -46,36 +46,34 @@ import MetaModel
 ################################################################################
 ################################################################################
   
-class FuzzyCalibrator():
+class WeightedFuzzyModel():
     
     def __init__(self):
         self.inputFile = "FuzzyCalibrationData.txt"
+        self.resultFile = "Model.vtp"
         self.factorNames = ["sand", "Paut", "Twin", "fertN"]
         self.targetArrayName = "n2o"
-        self.weightFactorName = "croptype"
-        self.maxNumberOfIterations = 1000
-        self.initialT = 1
-        self.breakCriteria = 0.01
-        self.outputName = "BestFit.xml"
-        self.noData = 9999
-        self.standardDeviation = 2
-        self.TMinimizer = 1.005
-        self.numberOfWeights = 6
+        self.parameterFile = "BestFit5FuzzySets.xml"
 
-    def Run(self, type):
+    def Run(self):
         
         self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
-                    
-        if type == 2:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
-        if type == 3:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
-        if type == 4:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
-        if type == 5:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
 
-        xmlRootW = XMLWeightingGenerator.BuildXML(self.weightFactorName, self.numberOfWeights, 0, 10)
+        reader = vtkXMLDataParser()
+        reader.SetFileName(self.parameterFile)
+        reader.Parse()
+
+        xmlRoot = vtkXMLDataElement()
+        xmlRoot.DeepCopy(reader.GetRootElement())
+
+        xmlRootFIS = vtkXMLDataElement()
+        xmlRootW = vtkXMLDataElement()
+
+        xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
+        xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
+
+        xmlRootFIS.PrintXML("/tmp/1.xml")
+        xmlRootW.PrintXML("/tmp/2.xml")
 
         # Set up the parameter and the model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
@@ -91,36 +89,21 @@ class FuzzyCalibrator():
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
-        
-        meta = MetaModel.MetaModel()
-        meta.InsertModelParameter(modelFIS, parameterFIS, "vtkTAG2EFuzzyInferenceModel")
-        meta.InsertModelParameter(modelW, parameterW, "vtkTAG2EWeightingModel")
-        meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
-        meta.SetTargetDataSet(self.timesource.GetOutput())
-    
-        Calibration.MetaModelSimulatedAnnealing(meta, self.maxNumberOfIterations,\
-                           self.initialT, self.standardDeviation, self.breakCriteria, \
-                           self.outputName, self.TMinimizer)
+        modelW.Update()
+
+        Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(modelW.GetOutput(), self.timesource.GetOutput(), modelW.GetUseCellData(), 0)
+        print "Finished with error", Error
 
         writer = vtkXMLPolyDataWriter()
         writer.SetFileName(self.resultFile)
-        writer.SetInput(meta.GetModelOutput().GetTimeStep(0))
+        writer.SetInput(modelW.GetOutput().GetTimeStep(0))
         writer.Write()
         
 if __name__ == "__main__":
-    cal = FuzzyCalibrator()
-
-    cal.inputFile = "FuzzyCalibrationData.txt"
-    cal.resultFile = "BestFit.vtp"
-    cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
-    cal.weightFactorName = "croptype"
-    cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 10000
-    cal.initialT = 1
-    cal.breakCriteria = 0.01
-    cal.outputName = "BestFit.xml"
-    cal.noData = 9999
-    cal.standardDeviation = 0.5
-    cal.TMinimizer = 1.005
-    cal.numberOfWeights = 6
-    cal.Run(2)
+    model = WeightedFuzzyModel()
+    model.inputFile = "FuzzyCalibrationData.txt"
+    model.resultFile = "Model.vtp"
+    model.factorNames = ["sand", "Paut", "Twin", "fertN"]
+    model.targetArrayName = "n2o"
+    model.parameterFile = "BestFit.xml"
+    model.Run()

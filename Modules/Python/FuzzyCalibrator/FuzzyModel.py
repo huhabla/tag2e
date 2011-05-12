@@ -36,7 +36,7 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-import DataReader
+import CSVDataReader
 
 ################################################################################
 ################################################################################
@@ -45,7 +45,6 @@ import DataReader
 class FuzzyModel():
     
     def __init__(self):
-
         self.inputFile = "FuzzyCalibrationData.txt"
         self.resultFile = "Model.vtp"
         self.factorNames = ["sand", "Paut", "Twin", "fertN"]
@@ -54,9 +53,8 @@ class FuzzyModel():
 
     def Run(self):
         
-        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile, self.targetArrayName)
+        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
 
-            
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetFileName(self.parameterFile)

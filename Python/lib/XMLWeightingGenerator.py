@@ -31,9 +31,6 @@
 #  GNU General Public License for more details.
 
 #include the VTK and vtkGRASSBridge Python libraries
-import unittest
-import random
-
 from vtk import *
 
 from libvtkTAG2ECommonPython import *
@@ -42,7 +39,7 @@ from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 
-def BuildXML(factorName, numWeights, min, max):
+def BuildXML(factorName, numWeights, min, max, init=0):
 
     root  = vtk.vtkXMLDataElement()
 
@@ -61,7 +58,7 @@ def BuildXML(factorName, numWeights, min, max):
         weight.SetIntAttribute("active", 0)
         weight.SetDoubleAttribute("min", min)
         weight.SetDoubleAttribute("max", max)
-        weight.SetCharacterData(str(0), 6)
+        weight.SetCharacterData(str(init), 6)
         weights.AddNestedElement(weight)
 
     root.SetName("Weighting")

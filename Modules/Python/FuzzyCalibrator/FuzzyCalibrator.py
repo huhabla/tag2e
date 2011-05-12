@@ -1,7 +1,34 @@
-#! /usr/bin/python
-
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
+#!/usr/bin/env python
+#
+# Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
+#
+# Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
+#          Rene Dechow, rene.dechow@vti.bund.de
+#
+# Copyright:
+#
+# Johann Heinrich von Thuenen-Institut
+# Institut fuer Agrarrelevante Klimaforschung
+#
+# Phone: +49 (0)531 596 2601
+#
+# Fax:+49 (0)531 596 2699
+#
+# Mail: ak@vti.bund.de
+#
+# Bundesallee 50
+# 38116 Braunschweig
+# Germany
+#
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; version 2 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 from vtk import *
 
 from libvtkTAG2ECommonPython import *
@@ -9,9 +36,9 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-import FISGenerator
+import XMLFuzzyInferenceGenerator
 import MetropolisAlgorithm
-import DataReader
+import CSVDataReader
 
 ################################################################################
 ################################################################################
@@ -33,16 +60,16 @@ class FuzzyCalibrator():
 
     def Run(self, type):
         
-        self.dataset, self.timesource = DataReader.ReadTextData(self.inputFile, self.targetArrayName)
-                    
+        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
+        
         if type == 2:
-            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 3:
-            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 4:
-            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
         if type == 5:
-            xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
 
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
