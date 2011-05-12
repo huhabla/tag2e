@@ -109,7 +109,10 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
 
   variance = vtkTAG2EAbstractModelCalibrator::Variance(array2);
 
-  result = squareSum / (numberOfValues * variance);
+  if(variance != 0)
+    result = squareSum / (numberOfValues * variance);
+  else
+    result = squareSum / (numberOfValues);
 
   allMeasure->Delete();
 
@@ -174,7 +177,11 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
 
   variance = vtkTAG2EAbstractModelCalibrator::Variance(array2);
 
-  result = squareSum / (numberOfValues * variance);
+
+  if(variance != 0)
+    result = squareSum / (numberOfValues * variance);
+  else
+    result = squareSum / (numberOfValues);
 
   allMeasure->Delete();
 

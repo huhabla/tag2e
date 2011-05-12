@@ -38,14 +38,11 @@ from libvtkGRASSBridgeCommonPython import *
 def ReadTextData(inputFile, scalarName):
 
     file = open(inputFile)
-    firstLine = file.readline()
     headerLine = file.readline()
-
-    numberOfTimeSteps = int(firstLine)
     names = headerLine.split(',')
 
     nameArray = []
-    for i in range(4, len(names)):
+    for i in range(0, len(names)):
         nameArray.append(str(names[i]).rstrip('\r\n'))
 
     dataset = vtkPolyData()
@@ -60,7 +57,6 @@ def ReadTextData(inputFile, scalarName):
         array.SetName(name)
         dataArrays.AddArray(array)
 
-    numberOfPoints = 0
     while True:
 
         line = file.readline()
@@ -69,10 +65,9 @@ def ReadTextData(inputFile, scalarName):
         tmpArray = line.split(',')
 
         data = {}
-        step = float(tmpArray[0])
-        year = float(tmpArray[1])
-        y = float(tmpArray[2])
-        x = float(tmpArray[3])
+        year = float(tmpArray[0])
+        y = float(tmpArray[1])
+        x = float(tmpArray[2])
 
         ids = vtkIdList()
         ids.InsertNextId(points.InsertNextPoint(x, y, 0))
@@ -80,14 +75,12 @@ def ReadTextData(inputFile, scalarName):
         dataset.InsertNextCell(vtk.VTK_VERTEX, ids)
 
         count = 0
-        for i in range(4, len(tmpArray)):
+        for i in range(0, len(tmpArray)):
             data[nameArray[count]] = float(tmpArray[i])
             count += 1
 
         for key in data.keys():
             dataArrays.GetArray(key).InsertNextValue(data[key])
-
-        numberOfPoints += 1
 
     file.close()
 

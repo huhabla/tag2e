@@ -177,6 +177,8 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
       return false;
     }
   }
+  
+  this->W.Weights.clear();
 
   vtkXMLDataElement *weights = root->FindNestedElementWithName("Weights");
   if(weights != NULL){
@@ -257,10 +259,10 @@ bool vtkTAG2EWeightingModelParameter::ParseWeight(vtkXMLDataElement *XMLWeight, 
     return false;
   }
 
-    cout << "Added Weight const " << Weight.constant
-      << " value " << Weight.value << " min " << Weight.min
-      << " max " << Weight.max << " active " << Weight.active 
-      << " id " << Weight.id << endl;
+//    cout << "Added Weight const " << Weight.constant
+//      << " value " << Weight.value << " min " << Weight.min
+//      << " max " << Weight.max << " active " << Weight.active 
+//      << " id " << Weight.id << endl;
 
   return true;
 }
