@@ -54,7 +54,7 @@ public:
     
     //!\brief Set the model parameter which must be of type vtkTAG2EWeightingModelParameter
     //! This XML model parameter describes the weighting scheme which is used to compute
-    //! the input point data.
+    //! the input data.
     void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
     
 protected:

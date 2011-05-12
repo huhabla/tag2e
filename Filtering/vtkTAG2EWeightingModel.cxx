@@ -205,7 +205,11 @@ int vtkTAG2EWeightingModel::RequestData(
     if(attrData->HasArray(W.Factor.name.c_str())) {
         factors = attrData->GetArray(W.Factor.name.c_str());
     } else {
-        vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in dataset at time step " << timeStep);
+        if(this->UseCellData) {
+            vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in cell data of dataset at time step " << timeStep);
+        } else {
+            vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in point data of dataset at time step " << timeStep);
+        }
         return -1;
     }
 
@@ -220,6 +224,7 @@ int vtkTAG2EWeightingModel::RequestData(
             continue;
         }
         val = W.Weights[id].value * val;
+        std::cout << "Factor " << i << " with id " << id << " value " << val << std::endl;
         result->SetValue(i, val);
     }
 
