@@ -63,7 +63,7 @@ def ComputeDoubleArrayRange(array, noData):
 ################################################################################
 ################################################################################
 
-def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
+def BuildXML5(factorNames, measureName, dataset, noData, useCellData=False):
     """Build a weighted fuzzy inference model with 5 fuzzy sets each factor.
     The initial fuzzy set values are computed based on min and max values."""
 
@@ -83,7 +83,10 @@ def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
 
     for i in range(len(factorNames)):
 
-        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        if useCellData == False:
+            min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        else:
+            min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
         mean = (max - min)/4.0
 
         # Generate the initial shapes automatically
@@ -179,7 +182,11 @@ def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
 
         fuzzyRoot.AddNestedElement(fss)
 
-    min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    if useCellData == False:
+        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    else:
+        min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
+
         
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
@@ -206,7 +213,7 @@ def BuildFuzzyXMLRepresentation5(factorNames, measureName, dataset, noData):
 ################################################################################
 ################################################################################
 
-def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
+def BuildXML4(factorNames, measureName, dataset, noData, useCellData=False):
     """Build a weighted fuzzy inference model with 4 fuzzy sets each factor.
     The initial fuzzy set values are computed based on min and max values."""
 
@@ -226,7 +233,10 @@ def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
 
     for i in range(len(factorNames)):
 
-        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        if useCellData == False:
+            min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        else:
+            min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
         mean = (max - min)/3.0
 
         # Generate the initial shapes automatically
@@ -306,7 +316,11 @@ def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
 
         fuzzyRoot.AddNestedElement(fss)
 
-    min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    if useCellData == False:
+        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    else:
+        min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
+
         
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
@@ -333,7 +347,7 @@ def BuildFuzzyXMLRepresentation4(factorNames, measureName, dataset, noData):
 ################################################################################
 ################################################################################
 
-def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
+def BuildXML3(factorNames, measureName, dataset, noData, useCellData=False):
     """Build a weighted fuzzy inference model with 3 fuzzy sets each factor.
     The initial fuzzy set values are computed based on min and max values."""
 
@@ -352,7 +366,10 @@ def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
 
     for i in range(len(factorNames)):
 
-        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        if useCellData == False:
+            min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        else:
+            min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
         mean = (max - min)/2.0
 
         # Generate the initial shapes automatically
@@ -417,7 +434,11 @@ def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
 
         fuzzyRoot.AddNestedElement(fss)
 
-    min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    if useCellData == False:
+        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    else:
+        min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
+
         
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
@@ -444,7 +465,7 @@ def BuildFuzzyXMLRepresentation3(factorNames, measureName, dataset, noData):
 ################################################################################
 ################################################################################
 
-def BuildFuzzyXMLRepresentation2(factorNames, measureName, dataset, noData):
+def BuildXML2(factorNames, measureName, dataset, noData, useCellData=False):
 
 # Triangular test shape layout
 #   _    _
@@ -461,7 +482,10 @@ def BuildFuzzyXMLRepresentation2(factorNames, measureName, dataset, noData):
 
     for i in range(len(factorNames)):
 
-        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        if useCellData == False:
+            min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+        else:
+            min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
 
         # Generate the initial shapes automatically
 
@@ -509,8 +533,11 @@ def BuildFuzzyXMLRepresentation2(factorNames, measureName, dataset, noData):
 
         fuzzyRoot.AddNestedElement(fss)
 
-    min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
-        
+    if useCellData == False:
+        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+    else:
+        min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
+
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
     resp.SetDoubleAttribute("max", max)

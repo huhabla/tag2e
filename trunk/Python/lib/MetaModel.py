@@ -55,29 +55,61 @@ class MetaModel():
     def SetLastModelParameterInPipeline(self, model, parameter, modelName):
         self.InsertModelParameter(model, parameter, modelName)
         self.lastModelInPipeline = modelName
+        new = True
+        for i in self.identifier:
+            if i == modelName:
+                new = False
+        if new:
+            self.identifier.append(modelName)
         
     def ModifyParameterRandomly(self, sd):
         # Choose a randomly selected model parameter
         # And call ModifyParameterRandomly(sd)
-        # TODO: Weight the parameter selection
-        pnum = len(self.identifier)
+
+        idrange = []
+        pnum = 0
+        for key in self.identifier:
+            num = self.parameters[key].GetNumberOfCalibratableParameter()
+            idrange.append(num)
+            pnum += num
+
         r = random.randint(0, pnum - 1)
-        key = self.identifier[r]
-        self.parameters[key].ModifyParameterRandomly(sd)
+
+        key = None
+        count = 0
+        for i in idrange:
+            if r < i:
+                key = self.identifier[count]
+            count += 1
+
+        if key == None:
+            return False
+
+        check = self.parameters[key].ModifyParameterRandomly(sd)
+
+        if check == False:
+            return check
+
         # Set the modification flag of the model to force an update in the pipeline
         self.models[key].Modified()
         self.lastModifiedModelParameter = key
         self.wasModified += 1
-        
+
+        return True
+
     def RestoreLastModifiedParameter(self):
         if self.wasModified > 0:
-            self.parameters[self.lastModifiedModelParameter].RestoreLastModifiedParameter()
+            check = self.parameters[self.lastModifiedModelParameter].RestoreLastModifiedParameter()
+            if check == False:
+                return check
             self.wasModified -= 1
+
+        return True
         
-    def GetNumberOfParameters(self):
+    def GetNumberOfCalibratableParameter(self):
         num = 0
         for key in self.parameters.keys():
-            num += parameters[key].GetNumberOfParameters()
+            num += parameters[key].GetNumberOfCalibratableParameter()
         return num
     
     def SetTargetDataSet(self, dataSet):
