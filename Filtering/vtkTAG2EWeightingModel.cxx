@@ -224,7 +224,7 @@ int vtkTAG2EWeightingModel::RequestData(
             continue;
         }
         val = W.Weights[id].value * val;
-        std::cout << "Factor " << i << " with id " << id << " value " << val << std::endl;
+        // std::cout << "Factor " << i << " with id " << id << " value " << val << std::endl;
         result->SetValue(i, val);
     }
 

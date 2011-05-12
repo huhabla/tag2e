@@ -899,17 +899,154 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
         caliModel.SetInputConnection(self.timesource.GetOutputPort())
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
-        caliModel.SetMaxNumberOfIterations(1000)
+        caliModel.SetMaxNumberOfIterations(100)
         caliModel.Update()
         
         caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge.xml")
         caliModel.GetBestFitModelParameter().Write()
   
+################################################################################
+################################################################################
+################################################################################
 
-################################################################################
-################################################################################
-################################################################################
+class vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting(unittest.TestCase):
   
+    def setUp(self):
+
+        # Create the point data
+        xext = 7
+        yext = 1
+        num = xext*yext
+
+        self.ds1 = vtkPolyData()
+        self.ds1.Allocate(xext,yext)
+        
+        self.ds2 = vtkPolyData()
+        self.ds2.Allocate(xext,yext)
+
+        self.model = vtkDoubleArray()
+        self.model.SetNumberOfTuples(num)
+        self.model.SetName("model")
+
+        self.factor = vtkDoubleArray()
+        self.factor.SetNumberOfTuples(num)
+        self.factor.SetName("factor")
+
+        self.target = vtkDoubleArray()
+        self.target.SetNumberOfTuples(num)
+        self.target.SetName("target")
+        self.target.FillComponent(0, 1.0)
+
+        # Point ids for poly vertex cell
+        points = vtkPoints()
+
+        count = 0
+        for i in range(xext):
+            for j in range(yext):
+                ids = vtkIdList()
+                ids.InsertNextId(points.InsertNextPoint(i, j, 0))
+                # Data range [1:100] -> linear function x
+                self.model.SetValue(count, count + 1)
+                self.factor.SetValue(count, count)
+                self.ds1.InsertNextCell(vtk.VTK_VERTEX, ids)
+                self.ds2.InsertNextCell(vtk.VTK_VERTEX, ids)
+                count += 1
+
+        self.ds1.GetCellData().AddArray(self.factor)
+        self.ds1.GetCellData().AddArray(self.model)
+        self.ds1.GetCellData().SetActiveScalars(self.model.GetName())
+        self.ds1.SetPoints(points)
+        
+        self.ds2.GetCellData().AddArray(self.target)
+        self.ds2.GetCellData().SetActiveScalars(self.target.GetName())
+        self.ds2.SetPoints(points)
+                
+        # Create the temporal data
+
+        # We have 10 time steps!
+        time = 1
+
+        # Generate the time steps
+        timesteps = vtkDoubleArray()
+        timesteps.SetNumberOfTuples(time)
+        timesteps.SetNumberOfComponents(1)
+        for i in range(time):
+            timesteps.SetValue(i, 3600*24*i)
+
+        # Create the spatio-temporal source
+        self.timesource1 = vtkTemporalDataSetSource()
+        self.timesource1.SetTimeRange(0, 3600*24*time, timesteps)
+        for i in range(time):
+            self.timesource1.SetInput(i, self.ds1)
+        self.timesource1.Update()
+
+        # Create the spatio-temporal source
+        self.timesource2 = vtkTemporalDataSetSource()
+        self.timesource2.SetTimeRange(0, 3600*24*time, timesteps)
+        for i in range(time):
+            self.timesource2.SetInput(i, self.ds2)
+        self.timesource2.Update()
+        
+        self._BuildXML()
+
+    def _BuildXML(self):
+
+        self.root  = vtk.vtkXMLDataElement()
+        
+        factor = vtkXMLDataElement()
+        factor.SetName("Factor")
+        factor.SetAttribute("name", "factor")
+        
+        weights = vtkXMLDataElement()
+        weights.SetName("Weights")
+
+        for i in range(7):
+            weight = vtkXMLDataElement()
+            weight.SetName("Weight")
+            weight.SetIntAttribute("id", i)
+            weight.SetIntAttribute("const", 0)
+            weight.SetIntAttribute("active", 1)
+            weight.SetDoubleAttribute("min", 0)
+            weight.SetDoubleAttribute("max", 1)
+            weight.SetCharacterData(str(0), 6)
+            weights.AddNestedElement(weight)
+        
+        self.root.SetName("Weighting")
+        self.root.AddNestedElement(factor)
+        self.root.AddNestedElement(weights)
+        self.root.SetAttribute("name", "test")
+        self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/Weighting")
+        self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/Weighting http://tag2e.googlecode.com/files/Weighting.xsd")
+        
+    def test1Model(self):
+
+        self._BuildXML()
+        # We expect as result the following weights:
+        # 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7
+
+        # Set up the parameter and the model
+        parameter = vtkTAG2EWeightingModelParameter()
+        parameter.SetXMLRepresentation(self.root)
+        parameter.SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting0.xml")
+        parameter.Write()
+
+        model = vtkTAG2EWeightingModel()
+        model.SetInputConnection(self.timesource1.GetOutputPort())
+        model.SetModelParameter(parameter)
+        model.UseCellDataOn()
+
+        caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
+        caliModel.SetInputConnection(self.timesource2.GetOutputPort())
+        caliModel.SetModel(model)
+        caliModel.SetModelParameter(parameter)
+        caliModel.SetMaxNumberOfIterations(1000)
+        caliModel.SetStandardDeviation(0.1)
+        caliModel.SetBreakCriteria(0.001)
+        caliModel.Update()
+        
+        caliModel.GetBestFitModelParameter().SetFileName("/tmp/vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting1.xml")
+        caliModel.GetBestFitModelParameter().Write()
   
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2ESimulatedAnnealingModelCalibratorTests)
@@ -920,3 +1057,6 @@ if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=2).run(suite3) 
     suite4 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge)
     unittest.TextTestRunner(verbosity=2).run(suite4) 
+    suite5 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting)
+    unittest.TextTestRunner(verbosity=2).run(suite5)     
+    
