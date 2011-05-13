@@ -49,7 +49,7 @@ class FuzzyModel():
         self.resultFile = "Model.vtp"
         self.factorNames = ["sand", "Paut", "Twin", "fertN"]
         self.targetArrayName = "n2o"
-        self.parameterFile = "BestFit5FuzzySets.xml"
+        self.parameterFile = "BestFit.xml"
 
     def Run(self):
         
@@ -79,5 +79,5 @@ if __name__ == "__main__":
     model.resultFile = "Model.vtp"
     model.factorNames = ["sand", "Paut", "Twin", "fertN"]
     model.targetArrayName = "n2o"
-    model.parameterFile = "BestFit5FuzzySets.xml"
+    model.parameterFile = "BestFit.xml"
     model.Run()

@@ -63,13 +63,13 @@ class FuzzyCalibrator():
         self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
         
         if type == 2:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 3:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 4:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 5:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
 
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
@@ -78,35 +78,31 @@ class FuzzyCalibrator():
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(self.timesource.GetOutputPort())
         model.SetModelParameter(parameter)
+        model.UseCellDataOn()
                 
-        if True:
-            caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-            caliModel.SetInputConnection(self.timesource.GetOutputPort())
-            caliModel.SetModel(model)
-            caliModel.SetModelParameter(parameter)
-            caliModel.SetMaxNumberOfIterations(self.maxNumberOfIterations)
-            caliModel.SetInitialT(self.initialT)
-            caliModel.SetTMinimizer(self.TMinimizer)
-            caliModel.SetStandardDeviation(self.standardDeviation)
-            caliModel.SetBreakCriteria(self.breakCriteria)
-            caliModel.Update()
-            
-            caliModel.GetBestFitModelParameter().SetFileName(cal.outputName)
-            caliModel.GetBestFitModelParameter().Write()
-                    
-            writer = vtkXMLPolyDataWriter()
-            writer.SetFileName(self.resultFile)
-            writer.SetInput(caliModel.GetOutput().GetTimeStep(0))
-            writer.Write()
-        else:
-            MetropolisAlgorithm.SimulatedAnnealing(model, parameter, self.maxNumberOfIterations, self.initialT, \
-                               self.standardDeviation, self.breakCriteria, model.GetResultArrayName(), \
-                               self.targetArrayName, self.outputName, self.TMinimizer)
-                                               
-            writer = vtkXMLPolyDataWriter()
-            writer.SetFileName(self.resultFile)
-            writer.SetInput(model.GetOutput().GetTimeStep(0))
-            writer.Write()
+        caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
+        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetModel(model)
+        caliModel.SetModelParameter(parameter)
+        caliModel.SetMaxNumberOfIterations(self.maxNumberOfIterations)
+        caliModel.SetInitialT(self.initialT)
+        caliModel.SetTMinimizer(self.TMinimizer)
+        caliModel.SetStandardDeviation(self.standardDeviation)
+        caliModel.SetBreakCriteria(self.breakCriteria)
+        caliModel.Update()
+
+        caliModel.GetBestFitModelParameter().SetFileName(cal.outputName)
+        caliModel.GetBestFitModelParameter().Write()
+
+        writer = vtkXMLPolyDataWriter()
+        writer.SetFileName(self.resultFile)
+        writer.SetInput(caliModel.GetOutput().GetTimeStep(0))
+        writer.Write()
+
+        writer = vtkXMLPolyDataWriter()
+        writer.SetFileName(self.resultFile)
+        writer.SetInput(model.GetOutput().GetTimeStep(0))
+        writer.Write()
         
 if __name__ == "__main__":
     cal = FuzzyCalibrator()

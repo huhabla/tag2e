@@ -35,6 +35,8 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
+import random
+
 # Implement bagging and cross validation using this code
 # from VTK test TestExtractSelection.cxx:
 #  32   vtkSelection* sel = vtkSelection::New();
@@ -114,12 +116,8 @@ def ReadTextData(inputFile, scalarName, bagging = True):
 
     file.close()
 
-    dataset.GetPointData().DeepCopy(dataArrays)
     dataset.GetCellData().DeepCopy(dataArrays)
     dataset.SetPoints(points)
-
-    if dataset.GetPointData().HasArray(scalarName):
-        dataset.GetPointData().SetActiveScalars(scalarName)
 
     if dataset.GetCellData().HasArray(scalarName):
         dataset.GetCellData().SetActiveScalars(scalarName)
@@ -131,17 +129,21 @@ def ReadTextData(inputFile, scalarName, bagging = True):
     if bagging == True:
         selectionNode.GetProperties().Set(vtkSelectionNode.CONTENT_TYPE(), vtkSelectionNode.INDICES)
         selectionNode.GetProperties().Set(vtkSelectionNode.FIELD_TYPE(), vtkSelectionNode.CELL)
-        
+
+        num = dataset.GetNumberOfCells()
+        liste = {}
         ids = vtkIdTypeArray()
         ids.SetName("Selection")
-        ids.SetNumberOfTuples(dataset.GetNumberOfCells())
-        for i in range(dataset.GetNumberOfCells()):
-            ids.SetTuple1(i, i)
+        ids.SetNumberOfTuples(num)
+        for i in range(num):
+            id = random.randint(0, num)
+            liste[id] = id
+            ids.SetTuple1(i, id)
             
         selectionNode.SetSelectionList(ids)
         selection.AddNode(selectionNode)
         
-        print selection
+        print len(liste)
         
         extract.SetInput(1, selection)
         extract.SetInput(0, dataset)
@@ -165,7 +167,7 @@ def ReadTextData(inputFile, scalarName, bagging = True):
         if bagging == True:
             timesource.SetInput(i, extract.GetOutput())
         else:
-            timesource.SetInput(i,dataset)
+            timesource.SetInput(i, dataset)
     timesource.Update()
     
     return dataset, timesource

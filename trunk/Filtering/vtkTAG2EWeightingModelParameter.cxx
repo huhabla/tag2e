@@ -83,7 +83,7 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
     weight->SetCharacterData(value.str().c_str(), value.str().size());
 
     weights->AddNestedElement(weight);
-
+    weight->Delete();
   }
 
   vtkXMLDataElement *factor = vtkXMLDataElement::New();
@@ -92,6 +92,8 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
   
   w->AddNestedElement(factor);
   w->AddNestedElement(weights);
+  weights->Delete();
+  factor->Delete();
 
   this->XMLRoot->DeepCopy(w);
   w->Delete();
@@ -203,9 +205,6 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
 bool vtkTAG2EWeightingModelParameter::ParseWeight(vtkXMLDataElement *XMLWeight, WeightingWeight &Weight)
 {
   int active;
-
-  ;
-
   int constant = 0;
   active = 0;
 
