@@ -122,7 +122,7 @@ class MetaModel():
         return self.targetDataSet
     
     def Run(self):
-        self.models[self.lastModelInPipeline].Update()
+        return self.models[self.lastModelInPipeline].Update()
     
     def GetXMLRepresentation(self, xml):
         root = vtkXMLDataElement()

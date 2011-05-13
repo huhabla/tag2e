@@ -60,6 +60,7 @@ class FuzzyCalibrator():
         self.noData = 9999
         self.standardDeviation = 2
         self.TMinimizer = 1.005
+        self.SdMinimizer = 1.005
         self.numberOfWeights = 6
 
     def Run(self, type):
@@ -97,16 +98,24 @@ class FuzzyCalibrator():
         meta.InsertModelParameter(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetTargetDataSet(self.timesource.GetOutput())
-    
-        Calibration.MetaModelSimulatedAnnealing(meta, self.maxNumberOfIterations,\
-                           self.initialT, self.standardDeviation, self.breakCriteria, \
-                           self.outputName, self.TMinimizer)
+
+        bestFitParameter, bestFitOutput, = Calibration.MetaModelSimulatedAnnealingImproved(
+                                           meta, self.maxNumberOfIterations,\
+                                           self.initialT, self.standardDeviation, 
+                                           self.breakCriteria, self.TMinimizer,\
+                                           self.SdMinimizer)
+
+        bestFitParameter.PrintXML(self.outputName)
 
         writer = vtkXMLPolyDataWriter()
         writer.SetFileName(self.resultFile)
-        writer.SetInput(meta.GetModelOutput().GetTimeStep(0))
+        writer.SetInput(bestFitOutput.GetTimeStep(0))
         writer.Write()
         
+################################################################################
+################################################################################
+################################################################################
+
 if __name__ == "__main__":
     cal = FuzzyCalibrator()
 
@@ -115,12 +124,13 @@ if __name__ == "__main__":
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.weightFactorName = "croptype"
     cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 10000
+    cal.maxNumberOfIterations = 50000
     cal.initialT = 1
     cal.breakCriteria = 0.01
     cal.outputName = "BestFit.xml"
     cal.noData = 9999
-    cal.standardDeviation = 0.5
-    cal.TMinimizer = 1.005
+    cal.standardDeviation = 2
+    cal.TMinimizer = 1.002
+    cal.SdMinimizer = 1.0001
     cal.numberOfWeights = 6
-    cal.Run(2)
+    cal.Run(4)

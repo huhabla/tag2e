@@ -72,9 +72,6 @@ class WeightedFuzzyModel():
         xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
         xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
 
-        xmlRootFIS.PrintXML("/tmp/1.xml")
-        xmlRootW.PrintXML("/tmp/2.xml")
-
         # Set up the parameter and the model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
         parameterFIS.SetXMLRepresentation(xmlRootFIS)

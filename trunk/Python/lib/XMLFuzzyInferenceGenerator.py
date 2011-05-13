@@ -459,7 +459,7 @@ def BuildXML3(factorNames, measureName, dataset, noData, useCellData=False):
     fuzzyRoot.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
     fuzzyRoot.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd")
 
-    return root
+    return fuzzyRoot
 
 ################################################################################
 ################################################################################
