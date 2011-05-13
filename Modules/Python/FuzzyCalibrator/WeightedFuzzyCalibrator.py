@@ -62,19 +62,20 @@ class FuzzyCalibrator():
         self.TMinimizer = 1.005
         self.SdMinimizer = 1.005
         self.numberOfWeights = 6
+        self.enableBagging = True
 
     def Run(self, type):
         
-        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
+        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName, self.enableBagging)
                     
         if type == 2:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 3:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 4:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
         if type == 5:
-            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData)
+            xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
 
         xmlRootW = XMLWeightingGenerator.BuildXML(self.weightFactorName, self.numberOfWeights, 0, 10)
 
@@ -85,6 +86,7 @@ class FuzzyCalibrator():
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(self.timesource.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
+        modelFIS.UseCellDataOn()
         
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
@@ -92,6 +94,7 @@ class FuzzyCalibrator():
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
+        modelW.UseCellDataOn()
         
         meta = MetaModel.MetaModel()
         meta.InsertModelParameter(modelFIS, parameterFIS, "vtkTAG2EFuzzyInferenceModel")
@@ -133,4 +136,5 @@ if __name__ == "__main__":
     cal.TMinimizer = 1.002
     cal.SdMinimizer = 1.0001
     cal.numberOfWeights = 6
-    cal.Run(4)
+    cal.enableBagging = True
+    cal.Run(2)

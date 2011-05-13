@@ -57,7 +57,7 @@ class WeightedFuzzyModel():
 
     def Run(self):
         
-        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
+        self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName, False)
 
         reader = vtkXMLDataParser()
         reader.SetFileName(self.parameterFile)
@@ -79,6 +79,7 @@ class WeightedFuzzyModel():
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(self.timesource.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
+        modelFIS.UseCellDataOn()
         
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
@@ -86,6 +87,7 @@ class WeightedFuzzyModel():
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
+        modelW.UseCellDataOn()
         modelW.Update()
 
         Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(modelW.GetOutput(), self.timesource.GetOutput(), modelW.GetUseCellData(), 0)
