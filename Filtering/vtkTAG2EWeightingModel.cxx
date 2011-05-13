@@ -175,8 +175,8 @@ int vtkTAG2EWeightingModel::RequestData(
     // The number of point data arrays can/should differ
     vtkDataSet *inputDataSet = vtkDataSet::SafeDownCast(input->GetTimeStep(timeStep));
     vtkDataSet *outputDataSet = inputDataSet->NewInstance();
-    outputDataSet->CopyStructure(inputDataSet);
-    //outputDataSet->DeepCopy(inputDataSet);
+    //outputDataSet->CopyStructure(inputDataSet);
+    outputDataSet->DeepCopy(inputDataSet);
 
     // Result for the current time step
     vtkDoubleArray *result = vtkDoubleArray::New();
