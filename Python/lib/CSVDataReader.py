@@ -35,7 +35,37 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-def ReadTextData(inputFile, scalarName):
+# Implement bagging and cross validation using this code
+# from VTK test TestExtractSelection.cxx:
+#  32   vtkSelection* sel = vtkSelection::New();
+#  33   vtkSelectionNode* node = vtkSelectionNode::New();
+#  34   sel->AddNode(node);
+#  35   node->GetProperties()->Set(
+#  36     vtkSelectionNode::CONTENT_TYPE(), vtkSelectionNode::INDICES);
+#  37   node->GetProperties()->Set(
+#  38     vtkSelectionNode::FIELD_TYPE(), vtkSelectionNode::CELL);
+#  39   
+#  40   // list of cells to be selected
+#  41   vtkIdTypeArray* arr = vtkIdTypeArray::New();
+#  42   arr->SetNumberOfTuples(4);
+#  43   arr->SetTuple1(0, 2);
+#  44   arr->SetTuple1(1, 4);
+#  45   arr->SetTuple1(2, 5);
+#  46   arr->SetTuple1(3, 8);
+#  47 
+#  48   node->SetSelectionList(arr);
+#  49   arr->Delete();
+#  50 
+#  51   vtkSphereSource* sphere = vtkSphereSource::New();
+#  52 
+#  53   vtkExtractSelectedPolyDataIds* selFilter = 
+#  54     vtkExtractSelectedPolyDataIds::New();
+#  55   selFilter->SetInput(1, sel);
+#  56   selFilter->SetInputConnection(0,sphere->GetOutputPort());
+#  57   sel->Delete();
+#  58   node->Delete();
+
+def ReadTextData(inputFile, scalarName, bagging = True):
 
     file = open(inputFile)
     headerLine = file.readline()
@@ -93,9 +123,32 @@ def ReadTextData(inputFile, scalarName):
 
     if dataset.GetCellData().HasArray(scalarName):
         dataset.GetCellData().SetActiveScalars(scalarName)
-
-    # Create the temporal data
-    # We have 1 time steps!
+        
+    selection = vtkSelection()
+    selectionNode = vtkSelectionNode()
+    extract = vtkExtractSelectedPolyDataIds()
+        
+    if bagging == True:
+        selectionNode.GetProperties().Set(vtkSelectionNode.CONTENT_TYPE(), vtkSelectionNode.INDICES)
+        selectionNode.GetProperties().Set(vtkSelectionNode.FIELD_TYPE(), vtkSelectionNode.CELL)
+        
+        ids = vtkIdTypeArray()
+        ids.SetName("Selection")
+        ids.SetNumberOfTuples(dataset.GetNumberOfCells())
+        for i in range(dataset.GetNumberOfCells()):
+            ids.SetTuple1(i, i)
+            
+        selectionNode.SetSelectionList(ids)
+        selection.AddNode(selectionNode)
+        
+        print selection
+        
+        extract.SetInput(1, selection)
+        extract.SetInput(0, dataset)
+        extract.Update()
+        
+        print extract.GetOutput()
+        
     time = 1
 
     # Generate the time steps
@@ -109,7 +162,10 @@ def ReadTextData(inputFile, scalarName):
     timesource = vtkTemporalDataSetSource()
     timesource.SetTimeRange(0, 3600*24*time, timesteps)
     for i in range(time):
-        timesource.SetInput(i, dataset)
+        if bagging == True:
+            timesource.SetInput(i, extract.GetOutput())
+        else:
+            timesource.SetInput(i,dataset)
     timesource.Update()
     
     return dataset, timesource
