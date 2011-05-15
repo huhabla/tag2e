@@ -82,6 +82,7 @@ class FuzzyCalibrator():
         # Set up the parameter and the model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
         parameterFIS.SetXMLRepresentation(xmlRootFIS)
+        parameterFIS.DebugOff()
             
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(self.timesource.GetOutputPort())
@@ -90,6 +91,7 @@ class FuzzyCalibrator():
         
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
+        parameterW.DebugOff()
             
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
@@ -127,14 +129,14 @@ if __name__ == "__main__":
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.weightFactorName = "croptype"
     cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 50000
+    cal.maxNumberOfIterations = 30000
     cal.initialT = 1
     cal.breakCriteria = 0.01
     cal.outputName = "BestFit.xml"
     cal.noData = 9999
-    cal.standardDeviation = 2
+    cal.standardDeviation = 1
     cal.TMinimizer = 1.002
     cal.SdMinimizer = 1.0001
     cal.numberOfWeights = 6
-    cal.enableBagging = True
+    cal.enableBagging = False
     cal.Run(2)

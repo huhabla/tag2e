@@ -4,7 +4,7 @@
 #
 # Program: r.fuzzy.calibrator
 #
-# Purpose: Calibrate a fuzzy inference model parameter based on vector data
+# Purpose: Calibrate a (weighted) fuzzy inference model parameter based on vector data
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -44,7 +44,15 @@ from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
 from libvtkGRASSBridgeFilteringPython import *
 
-import FISGenerator
+import XMLWeightingGenerator
+import XMLFuzzyInferenceGenerator
+import BootstrapAggregating
+import MetaModel
+import Calibration
+
+################################################################################
+################################################################################
+################################################################################
 
 def main():
     # Initiate GRASS
@@ -68,6 +76,10 @@ def main():
 
     target = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "target")
     target.SetDescription("Name of the table column of the target variable")
+
+    weightingFactor = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "weightfactor")
+    weightingFactor.SetDescription("Name of the table column of the weighting variable")
+    weightingFactor.RequiredOff()
 
     iterations = vtkGRASSOption()
     iterations.SetKey("iterations")
@@ -102,6 +114,14 @@ def main():
     breakcrit.SetDescription("The break criteria")
     breakcrit.SetTypeToDouble()
 
+    weightNum = vtkGRASSOption()
+    weightNum.SetKey("weightnum")
+    weightNum.MultipleOff()
+    weightNum.RequiredOff()
+    weightNum.SetDefaultAnswer("6")
+    weightNum.SetDescription("The number of weights used for calibration")
+    weightNum.SetTypeToInteger()
+
     null = vtkGRASSOption()
     null.SetKey("null")
     null.MultipleOff()
@@ -110,8 +130,16 @@ def main():
     null.SetDescription("The value used fo no data")
     null.SetTypeToDouble()
 
+    bagging = vtkGRASSFlag()
+    bagging.SetDescription("Use bagging for input data selection")
+    bagging.SetKey('b')
+
+    weighting = vtkGRASSFlag()
+    weighting.SetDescription("Use weighting for input data calibration")
+    weighting.SetKey('w')
+
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "parameter")
-    paramXML.SetDescription("Output name of the calibrated XML fuzzy inference parameter file")
+    paramXML.SetDescription("Output name of the calibrated XML (weighted) fuzzy inference parameter file")
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The best fitted model result")
@@ -125,33 +153,45 @@ def main():
 
     messages = vtkGRASSMessagingInterface()
 
-    # Create the names for the vector import and the fuzzy inference scheme generation
+    # Check for weighting support
+    if weighting.GetAnswer() == True:
+        if not weightingFactor.GetAnswer():
+            messages.FatalError("The name of the weighting column name must be provided")
+
+    # Create the names for the vector import and the (weighted) fuzzy inference scheme generation
     columns = vtkStringArray()
     factors.GetAnswers(columns)
 
     names = []
     for i in range(columns.GetNumberOfValues()):
         names.append(columns.GetValue(i))
-    print names
 
     columns.InsertNextValue(target.GetAnswer())
+    
+    if weighting.GetAnswer() == True:
+        columns.InsertNextValue(weightingFactor.GetAnswer())
 
     messages.Message("Reading vector map into memory")
     
     # Reader
-    dataset = vtkGRASSVectorTopoPolyDataReader()
-    dataset.SetVectorName(input.GetAnswer())
-    dataset.SetColumnNames(columns)
+    reader = vtkGRASSVectorTopoPolyDataReader()
+    reader.SetVectorName(input.GetAnswer())
+    reader.SetColumnNames(columns)
     if feature.GetAnswer() == "point":
-        dataset.SetFeatureTypeToPoint()
+        reader.SetFeatureTypeToPoint()
     if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
-        dataset.SetFeatureTypeToCentroid()
-    dataset.Update()
+        reader.SetFeatureTypeToCentroid()
+    reader.Update()
+
+    polyData = vtkPolyData()
+    
+    if bagging.GetAnswer() == True:
+        polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput()))
+    else:
+        polyData.ShallowCopy(reader.GetOutput())
 
     # Set the active scalar array to target variable. The calibration algorithm
     # compares the active scalars to compute the best fit
-    polyData = vtkPolyData()
-    polyData.DeepCopy(dataset.GetOutput())
     polyData.GetCellData().SetActiveScalars(target.GetAnswer())
 
     # Generate the time steps
@@ -168,37 +208,81 @@ def main():
     type = int(fuzzysets.GetAnswer())
 
     if type == 2:
-        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation2(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML2(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
     if type == 3:
-        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation3(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML3(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
     if type == 4:
-        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation4(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML4(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
     if type == 5:
-        xmlRoot = FISGenerator.BuildFuzzyXMLRepresentation5(names, target.GetAnswer(), polyData, float(null.GetAnswer()))
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML5(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
 
-    # Set up the parameter and the model
-    parameter = vtkTAG2EFuzzyInferenceModelParameter()
-    parameter.SetXMLRepresentation(xmlRoot)
+    outputTDS = vtkTemporalDataSet()
 
-    model = vtkTAG2EFuzzyInferenceModel()
-    model.SetInputConnection(timesource.GetOutputPort())
-    model.SetModelParameter(parameter)
-    model.UseCellDataOn()
+    if weighting.GetAnswer():
 
-    caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-    caliModel.SetInputConnection(timesource.GetOutputPort())
-    caliModel.SetModel(model)
-    caliModel.SetModelParameter(parameter)
-    caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
-    caliModel.SetInitialT(1)
-    caliModel.SetTMinimizer(1.001)
-    caliModel.SetStandardDeviation(float(sd.GetAnswer()))
-    caliModel.SetBreakCriteria(float(breakcrit.GetAnswer()))
-    caliModel.Update()
+        xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
 
-    caliModel.GetBestFitModelParameter().SetFileName(paramXML.GetAnswer())
-    caliModel.GetBestFitModelParameter().Write()
-        
+        # Set up the parameter and the model of the meta model
+        parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
+        parameterFIS.SetXMLRepresentation(xmlRootFIS)
+        parameterFIS.DebugOff()
+
+        modelFIS = vtkTAG2EFuzzyInferenceModel()
+        modelFIS.SetInputConnection(timesource.GetOutputPort())
+        modelFIS.SetModelParameter(parameterFIS)
+        modelFIS.UseCellDataOn()
+
+        parameterW = vtkTAG2EWeightingModelParameter()
+        parameterW.SetXMLRepresentation(xmlRootW)
+        parameterW.DebugOff()
+
+        modelW = vtkTAG2EWeightingModel()
+        modelW.SetInputConnection(modelFIS.GetOutputPort())
+        modelW.SetModelParameter(parameterW)
+        modelW.UseCellDataOn()
+
+        meta = MetaModel.MetaModel()
+        meta.InsertModelParameter(modelFIS, parameterFIS, "vtkTAG2EFuzzyInferenceModel")
+        meta.InsertModelParameter(modelW, parameterW, "vtkTAG2EWeightingModel")
+        meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
+        meta.SetTargetDataSet(timesource.GetOutput())
+
+        bestFitParameter, bestFitOutput, = Calibration.MetaModelSimulatedAnnealingImproved(
+                                           meta, int(iterations.GetAnswer()),\
+                                           1, float(sd.GetAnswer()),
+                                           float(breakcrit.GetAnswer()), 1.001,\
+                                           1.001)
+
+        bestFitParameter.PrintXML(paramXML.GetAnswer())
+
+        outputTDS.ShallowCopy(bestFitOutput)
+
+    else:
+        # Set up the parameter and the model
+        parameter = vtkTAG2EFuzzyInferenceModelParameter()
+        parameter.SetXMLRepresentation(xmlRootFIS)
+
+        model = vtkTAG2EFuzzyInferenceModel()
+        model.SetInputConnection(timesource.GetOutputPort())
+        model.SetModelParameter(parameter)
+        model.UseCellDataOn()
+
+        caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
+        caliModel.SetInputConnection(timesource.GetOutputPort())
+        caliModel.SetModel(model)
+        caliModel.SetModelParameter(parameter)
+        caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
+        caliModel.SetInitialT(1)
+        caliModel.SetTMinimizer(1.001)
+        caliModel.SetStandardDeviation(float(sd.GetAnswer()))
+        caliModel.SetBreakCriteria(float(breakcrit.GetAnswer()))
+        caliModel.Update()
+
+        caliModel.GetBestFitModelParameter().SetFileName(paramXML.GetAnswer())
+        caliModel.GetBestFitModelParameter().Write()
+
+        outputTDS.ShallowCopy(caliModel.GetOutput())
+
     messages.Message("Writing result vector map")
     
     # Areas must be treated in a specific way to garant correct topology
@@ -214,17 +298,21 @@ def main():
         
         writer = vtkGRASSVectorPolyDataAreaWriter()
         writer.SetInput(0, boundaries.GetOutput())
-        writer.SetInput(1, caliModel.GetOutput().GetTimeStep(0))
+        writer.SetInput(1, outputTDS.GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()     
     else:
         # Write the result as vector map
         writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInput(caliModel.GetOutput().GetTimeStep(0))
+        writer.SetInput(outputTDS.GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
+
+################################################################################
+################################################################################
+################################################################################
 
 if __name__ == "__main__":
     main()

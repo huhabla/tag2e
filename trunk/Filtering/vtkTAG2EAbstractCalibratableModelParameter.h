@@ -66,10 +66,10 @@ public:
     //!\brief Return the number of calibratable parameter
     vtkGetMacro(NumberOfCalibratableParameter, int);
     //!\brief Reimplemented from abstract model parameter to call
-    //! the internal scheme generator
+    //! the internal representation generator
     virtual bool GetXMLRepresentation(vtkXMLDataElement *root);
     //!\brief Reimplemented from abstract model parameter to call
-    //! the internal scheme generator
+    //! the internal representation generator
     virtual bool SetXMLRepresentation(vtkXMLDataElement *root);
     
     //!\brief IMPLEMENT THIS METHOD IN SUBCLASS
