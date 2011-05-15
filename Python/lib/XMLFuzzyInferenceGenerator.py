@@ -420,7 +420,6 @@ def BuildXML3(factorNames, measureName, dataset, noData, useCellData=False):
         fs3.SetAttribute("position", "right")
         fs3.AddNestedElement(tr3)
 
-
         fss.SetName("Factor")
         fss.SetIntAttribute("portId", 0)
         fss.SetAttribute("name", factorNames[i])
@@ -519,7 +518,6 @@ def BuildXML2(factorNames, measureName, dataset, noData, useCellData=False):
         fs3.SetIntAttribute("const", 0)
         fs3.SetAttribute("position", "right")
         fs3.AddNestedElement(tr3)
-
 
         fss.SetName("Factor")
         fss.SetIntAttribute("portId", 0)

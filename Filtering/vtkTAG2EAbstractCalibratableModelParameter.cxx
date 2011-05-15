@@ -36,7 +36,7 @@
 
 vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, "$Revision: 1.0 $");
 
-#define MAX_CHANGE_PARAMETER_RUNS 1000
+#define MAX_CHANGE_PARAMETER_RUNS 10000
 
 //----------------------------------------------------------------------------
 
@@ -64,7 +64,6 @@ vtkTAG2EAbstractCalibratableModelParameter::vtkTAG2EAbstractCalibratableModelPar
   this->NumberOfCalibratableParameter = 0;
   this->ParameterId = -1;
   this->ParameterValue = 0.0;
-  this->ParameterIndex.clear();
 
   // Initiate the random number generator with the current time
   srand(time(0));

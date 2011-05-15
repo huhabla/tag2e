@@ -70,8 +70,8 @@ class MetaModel():
         pnum = 0
         for key in self.identifier:
             num = self.parameters[key].GetNumberOfCalibratableParameter()
-            idrange.append(num)
             pnum += num
+            idrange.append(pnum)
 
         r = random.randint(0, pnum - 1)
 
@@ -80,31 +80,28 @@ class MetaModel():
         for i in idrange:
             if r < i:
                 key = self.identifier[count]
+                break
             count += 1
 
         if key == None:
-            return False
+            raise IOError("Unable to find parameter to modify")
 
         check = self.parameters[key].ModifyParameterRandomly(sd)
 
         if check == False:
-            return check
+            raise IOError("Unable to modify parameter")
 
         # Set the modification flag of the model to force an update in the pipeline
         self.models[key].Modified()
         self.lastModifiedModelParameter = key
         self.wasModified += 1
 
-        return True
-
     def RestoreLastModifiedParameter(self):
         if self.wasModified > 0:
             check = self.parameters[self.lastModifiedModelParameter].RestoreLastModifiedParameter()
             if check == False:
-                return check
+                raise IOError("Unable to restore last modified parameter")
             self.wasModified -= 1
-
-        return True
         
     def GetNumberOfCalibratableParameter(self):
         num = 0

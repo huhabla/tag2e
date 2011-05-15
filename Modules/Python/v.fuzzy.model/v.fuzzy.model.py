@@ -44,6 +44,10 @@ from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
 from libvtkGRASSBridgeFilteringPython import *
 
+################################################################################
+################################################################################
+################################################################################
+
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
@@ -51,7 +55,7 @@ def main():
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
-    module.SetDescription("Compute a weighted fuzzy inference model based on vector data")
+    module.SetDescription("Compute a (weighted) fuzzy inference model based on vector data")
     module.AddKeyword("vector")
     module.AddKeyword("fuzzy")
 
@@ -63,7 +67,7 @@ def main():
     feature.MultipleOff()
     
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "parameter")
-    paramXML.SetDescription("Name of the XML fuzzy inference parameter file")
+    paramXML.SetDescription("Name of the XML (weighted) fuzzy inference parameter file")
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The model result")
@@ -135,6 +139,10 @@ def main():
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
+
+################################################################################
+################################################################################
+################################################################################
 
 if __name__ == "__main__":
     main()

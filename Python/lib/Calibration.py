@@ -42,69 +42,6 @@ from MetaModel import *
 ################################################################################
 ################################################################################
 
-def MetaModelSimulatedAnnealing(metaModel, maxiter, initialT, sd, breakCriteria, outputName, TMinimizer):
-    """The simulated annelaing algorithm"""
-
-    metaModel.Run()
-
-    firstError = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(metaModel.GetModelOutput(), metaModel.GetTargetDataSet(), 1, 0)
-
-    count = 0
-
-    T = initialT
-
-    for i in range(maxiter):
-        
-        
-        if i == 0:
-            lastAcceptedError = firstError
-            Error = firstError
-            
-        if (i + 1) % 100 == 1:
-            print "######### Iteration " + str(i) + " error " + str(Error) + " #########"
-
-        sdNew = sd/((initialT - T)/initialT + 1)
-
-        metaModel.ModifyParameterRandomly(sdNew)
-        metaModel.Run()
-
-
-        # Measure the difference between old and new error
-        Error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(metaModel.GetModelOutput(), metaModel.GetTargetDataSet(), 1, 0)
-
-        diff = Error - lastAcceptedError
-
-        # Accept the new parameter
-        if diff <= 0:
-            lastAcceptedError = Error
-        else:
-            # Create a random number
-            r = random.uniform(1.0, 0.0)
-            pa = math.exp(-1.0*diff/T)
-            if pa > 1:
-                pa = 1
-
-            # restore the last parameter if the random variable is larger then the error
-            if r > pa:
-                metaModel.RestoreLastModifiedParameter()
-            else:
-                lastAcceptedError = Error
-                print "Accepted poor result at iteration ", i, " with Error ", Error, "T ", T, "sd ", sdNew
-                T = T/TMinimizer
-
-        count += 1
-
-        if Error < breakCriteria:
-            break
-
-    metaModel.WriteParameter(outputName)
-
-    print "Finished after " + str(count) + " Iterations with error ", Error
-
-################################################################################
-################################################################################
-################################################################################
-
 def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,\
                                         sd = 1, breakCriteria = 0.01, TMinimizer = 1.0, \
                                         SdMinimizer = 1.0):
@@ -137,10 +74,15 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
 
     for i in range(maxiter):
             
-        if (i + 1) % int(maxiter/100) == 1:
+        if maxiter > 100:
+            if (i + 1) % int(maxiter/100) == 1:
+                print "Iteration ", i, " error ", error, " T ", T, " sd ", sd
+        else:
             print "Iteration ", i, " error ", error, " T ", T, " sd ", sd
 
         metaModel.ModifyParameterRandomly(sd)
+
+        # Run the model
         metaModel.Run()
 
         # Measure the difference between old and new error
@@ -179,6 +121,7 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
         count += 1
 
         if bestFitError < breakCriteria:
+            print "Best fit reached"
             break
 
     print "Finished after ", count, " Iterations with best fit ", bestFitError

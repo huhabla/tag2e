@@ -36,11 +36,7 @@ from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 
-import XMLFuzzyInferenceGenerator
-import XMLWeightingGenerator
 import CSVDataReader
-import Calibration
-import MetaModel
 
 ################################################################################
 ################################################################################
@@ -53,7 +49,7 @@ class WeightedFuzzyModel():
         self.resultFile = "Model.vtp"
         self.factorNames = ["sand", "Paut", "Twin", "fertN"]
         self.targetArrayName = "n2o"
-        self.parameterFile = "BestFit5FuzzySets.xml"
+        self.parameterFile = "BestFit.xml"
 
     def Run(self):
         
@@ -64,13 +60,26 @@ class WeightedFuzzyModel():
         reader.Parse()
 
         xmlRoot = vtkXMLDataElement()
-        xmlRoot.DeepCopy(reader.GetRootElement())
-
         xmlRootFIS = vtkXMLDataElement()
         xmlRootW = vtkXMLDataElement()
 
+        xmlRoot.DeepCopy(reader.GetRootElement())
+
+        if xmlRoot.GetName() != "MetaModel":
+            print "Wrong input XML file. Missing MetaModel element."
+            return 1
+
         xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
+
+        if xmlRootFIS.GetName() != "FuzzyInferenceScheme":
+            print "Wrong input XML file. Missing FuzzyInferenceScheme element."
+            return 1
+
         xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
+
+        if xmlRootW.GetName() != "Weighting":
+            print "Wrong input XML file. Missing Weighting element."
+            return 1
 
         # Set up the parameter and the model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
