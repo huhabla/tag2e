@@ -310,6 +310,8 @@ def main():
         writer.BuildTopoOn()
         writer.Update()
         
+    messages.Message("Writing result VTK poly data")
+    
     # Create the poly data output for paraview analysis
     pwriter = vtkXMLPolyDataWriter()
     pwriter.SetFileName(output.GetAnswer() + ".vtp")

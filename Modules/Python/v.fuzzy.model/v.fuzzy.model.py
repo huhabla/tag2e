@@ -121,20 +121,17 @@ def main():
         xmlRoot.DeepCopy(reader.GetRootElement())
 
         if xmlRoot.GetName() != "MetaModel":
-            print "Wrong input XML file. Missing MetaModel element."
-            return 1
-
+            messages.FatalError("Wrong input XML file. Missing MetaModel element.")
+            
         xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
 
         if xmlRootFIS.GetName() != "FuzzyInferenceScheme":
-            print "Wrong input XML file. Missing FuzzyInferenceScheme element."
-            return 1
+            messages.FatalError("Wrong input XML file. Missing FuzzyInferenceScheme element.")
 
         xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
 
         if xmlRootW.GetName() != "Weighting":
-            print "Wrong input XML file. Missing Weighting element."
-            return 1        
+            messages.FatalError("Wrong input XML file. Missing Weighting element.")
 
         # Set up the parameter and the model of the meta model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
@@ -199,6 +196,8 @@ def main():
         writer.BuildTopoOn()
         writer.Update()
 
+    messages.Message("Writing result VTK poly data")
+    
     # Create the poly data output for paraview analysis
     pwriter = vtkXMLPolyDataWriter()
     pwriter.SetFileName(output.GetAnswer() + ".vtp")
