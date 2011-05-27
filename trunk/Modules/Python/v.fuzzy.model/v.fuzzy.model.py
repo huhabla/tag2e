@@ -42,7 +42,7 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 
 ################################################################################
 ################################################################################
@@ -71,6 +71,10 @@ def main():
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The model result")
+
+    weighting = vtkGRASSFlag()
+    weighting.SetDescription("Input is weighted fuzzy inference scheme")
+    weighting.SetKey('w')
 
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -102,16 +106,71 @@ def main():
     timesource.SetTimeRange(0, 3600*24, timesteps)
     timesource.SetInputConnection(0, dataset.GetOutputPort())
 
-    # Set up the parameter and the model
-    parameter = vtkTAG2EFuzzyInferenceModelParameter()
-    parameter.SetFileName(paramXML.GetAnswer())
-    parameter.Read()
+    outputTDS = vtkTemporalDataSet()
 
-    model = vtkTAG2EFuzzyInferenceModel()
-    model.SetInputConnection(timesource.GetOutputPort())
-    model.SetModelParameter(parameter)
-    model.UseCellDataOn()
-    model.Update()
+    if weighting.GetAnswer():
+
+        reader = vtkXMLDataParser()
+        reader.SetFileName(paramXML.GetAnswer())
+        reader.Parse()
+
+        xmlRoot = vtkXMLDataElement()
+        xmlRootFIS = vtkXMLDataElement()
+        xmlRootW = vtkXMLDataElement()
+
+        xmlRoot.DeepCopy(reader.GetRootElement())
+
+        if xmlRoot.GetName() != "MetaModel":
+            print "Wrong input XML file. Missing MetaModel element."
+            return 1
+
+        xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
+
+        if xmlRootFIS.GetName() != "FuzzyInferenceScheme":
+            print "Wrong input XML file. Missing FuzzyInferenceScheme element."
+            return 1
+
+        xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
+
+        if xmlRootW.GetName() != "Weighting":
+            print "Wrong input XML file. Missing Weighting element."
+            return 1        
+
+        # Set up the parameter and the model of the meta model
+        parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
+        parameterFIS.SetXMLRepresentation(xmlRootFIS)
+        parameterFIS.DebugOff()
+
+        modelFIS = vtkTAG2EFuzzyInferenceModel()
+        modelFIS.SetInputConnection(timesource.GetOutputPort())
+        modelFIS.SetModelParameter(parameterFIS)
+        modelFIS.UseCellDataOn()
+
+        parameterW = vtkTAG2EWeightingModelParameter()
+        parameterW.SetXMLRepresentation(xmlRootW)
+        parameterW.DebugOff()
+
+        modelW = vtkTAG2EWeightingModel()
+        modelW.SetInputConnection(modelFIS.GetOutputPort())
+        modelW.SetModelParameter(parameterW)
+        modelW.UseCellDataOn()
+        modelW.Update()
+
+        outputTDS.ShallowCopy(modelW.GetOutput())
+
+    else:
+        # Set up the parameter and the model
+        parameter = vtkTAG2EFuzzyInferenceModelParameter()
+        parameter.SetFileName(paramXML.GetAnswer())
+        parameter.Read()
+
+        model = vtkTAG2EFuzzyInferenceModel()
+        model.SetInputConnection(timesource.GetOutputPort())
+        model.SetModelParameter(parameter)
+        model.UseCellDataOn()
+        model.Update()
+
+        outputTDS.ShallowCopy(model.GetOutput())
 
     messages.Message("Writing result vector map")
     
@@ -128,18 +187,24 @@ def main():
         
         writer = vtkGRASSVectorPolyDataAreaWriter()
         writer.SetInput(0, boundaries.GetOutput())
-        writer.SetInput(1, model.GetOutput().GetTimeStep(0))
+        writer.SetInput(1, outputTDS.GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()     
     else:
         # Write the result as vector map
         writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInput(model.GetOutput().GetTimeStep(0))
+        writer.SetInput(outputTDS.GetTimeStep(0))
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
 
+    # Create the poly data output for paraview analysis
+    pwriter = vtkXMLPolyDataWriter()
+    pwriter.SetFileName(output.GetAnswer() + ".vtp")
+    pwriter.SetInput(outputTDS.GetTimeStep(0))
+    pwriter.Write()
+    
 ################################################################################
 ################################################################################
 ################################################################################

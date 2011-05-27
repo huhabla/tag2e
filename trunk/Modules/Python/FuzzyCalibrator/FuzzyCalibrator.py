@@ -33,7 +33,7 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 import XMLFuzzyInferenceGenerator
@@ -97,11 +97,6 @@ class FuzzyCalibrator():
         writer = vtkXMLPolyDataWriter()
         writer.SetFileName(self.resultFile)
         writer.SetInput(caliModel.GetOutput().GetTimeStep(0))
-        writer.Write()
-
-        writer = vtkXMLPolyDataWriter()
-        writer.SetFileName(self.resultFile)
-        writer.SetInput(model.GetOutput().GetTimeStep(0))
         writer.Write()
         
 if __name__ == "__main__":

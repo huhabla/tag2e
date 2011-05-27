@@ -37,10 +37,10 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeGraphicsPython import *
+from libvtkGRASSBridgeRSpaceTimePython import *
 
 class vtkTAG2ERSpaceTimeModelTests(unittest.TestCase):
     

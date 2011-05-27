@@ -39,7 +39,7 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 ################################################################################
