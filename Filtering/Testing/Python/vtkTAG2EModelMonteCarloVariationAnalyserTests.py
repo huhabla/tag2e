@@ -35,9 +35,9 @@ import unittest
 from vtk import *
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeGraphicsPython import *
+from libvtkGRASSBridgeRSpaceTimePython import *
 
 # test a simple linear regression scheme with monte carlo analysis
 class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):

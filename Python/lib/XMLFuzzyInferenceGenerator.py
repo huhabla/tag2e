@@ -34,7 +34,7 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 ################################################################################
@@ -79,7 +79,11 @@ def BuildXML5(factorNames, measureName, dataset, noData, useCellData=False):
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
 
+    numberOfFuzzySets = 5
+    numberOfRules = 1
+    
     for i in range(len(factorNames)):
+        numberOfRules *= numberOfFuzzySets
 
         if useCellData == False:
             min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
@@ -185,12 +189,13 @@ def BuildXML5(factorNames, measureName, dataset, noData, useCellData=False):
     else:
         min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
 
-        
+    print "Using ", numberOfRules, " number of rules "
+
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
     resp.SetDoubleAttribute("max", max)
 
-    for i in range(625):
+    for i in range(numberOfRules):
         rval = vtkXMLDataElement()
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)
@@ -228,8 +233,12 @@ def BuildXML4(factorNames, measureName, dataset, noData, useCellData=False):
 
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
-
+    
+    numberOfFuzzySets = 4
+    numberOfRules = 1
+    
     for i in range(len(factorNames)):
+        numberOfRules *= numberOfFuzzySets
 
         if useCellData == False:
             min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
@@ -319,12 +328,13 @@ def BuildXML4(factorNames, measureName, dataset, noData, useCellData=False):
     else:
         min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
 
-        
+    print "Using ", numberOfRules, " number of rules "
+
     resp.SetName("Responses")
     resp.SetDoubleAttribute("min", min)
     resp.SetDoubleAttribute("max", max)
 
-    for i in range(256):
+    for i in range(numberOfRules):
         rval = vtkXMLDataElement()
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)
@@ -362,7 +372,11 @@ def BuildXML3(factorNames, measureName, dataset, noData, useCellData=False):
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
 
+    numberOfFuzzySets = 3
+    numberOfRules = 1
+    
     for i in range(len(factorNames)):
+        numberOfRules *= numberOfFuzzySets
 
         if useCellData == False:
             min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
@@ -441,7 +455,9 @@ def BuildXML3(factorNames, measureName, dataset, noData, useCellData=False):
     resp.SetDoubleAttribute("min", min)
     resp.SetDoubleAttribute("max", max)
 
-    for i in range(81):
+    print "Using ", numberOfRules, " number of rules "
+
+    for i in range(numberOfRules):
         rval = vtkXMLDataElement()
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)
@@ -476,8 +492,12 @@ def BuildXML2(factorNames, measureName, dataset, noData, useCellData=False):
     resp = vtkXMLDataElement()
     fuzzyRoot = vtkXMLDataElement()
     fuzzyRoot.SetName("FuzzyInferenceScheme")
-
+    
+    numberOfFuzzySets = 2
+    numberOfRules = 1
+    
     for i in range(len(factorNames)):
+        numberOfRules *= numberOfFuzzySets
 
         if useCellData == False:
             min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
@@ -538,7 +558,9 @@ def BuildXML2(factorNames, measureName, dataset, noData, useCellData=False):
     resp.SetDoubleAttribute("min", min)
     resp.SetDoubleAttribute("max", max)
 
-    for i in range(16):
+    print "Using ", numberOfRules, " number of rules "
+
+    for i in range(numberOfRules):
         rval = vtkXMLDataElement()
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)

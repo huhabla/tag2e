@@ -33,7 +33,7 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 import XMLFuzzyInferenceGenerator
@@ -100,7 +100,6 @@ class FuzzyCalibrator():
         
         meta = MetaModel.MetaModel()
         meta.InsertModelParameter(modelFIS, parameterFIS, "vtkTAG2EFuzzyInferenceModel")
-        meta.InsertModelParameter(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetTargetDataSet(self.timesource.GetOutput())
 
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
     cal.weightFactorName = "croptype"
     cal.targetArrayName = "n2o"
-    cal.maxNumberOfIterations = 30000
+    cal.maxNumberOfIterations = 10
     cal.initialT = 1
     cal.breakCriteria = 0.01
     cal.outputName = "BestFit.xml"
@@ -139,4 +138,4 @@ if __name__ == "__main__":
     cal.SdMinimizer = 1.0001
     cal.numberOfWeights = 6
     cal.enableBagging = False
-    cal.Run(2)
+    cal.Run(3)

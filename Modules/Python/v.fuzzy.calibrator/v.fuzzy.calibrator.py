@@ -42,7 +42,7 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeFilteringPython import *
+from libvtkGRASSBridgeTemporalPython import *
 
 import XMLWeightingGenerator
 import XMLFuzzyInferenceGenerator
@@ -142,7 +142,7 @@ def main():
     paramXML.SetDescription("Output name of the calibrated XML (weighted) fuzzy inference parameter file")
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
-    output.SetDescription("The best fitted model result")
+    output.SetDescription("The best fitted model result as vector map and VTK XML poly data output (.vtp added)")
 
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -309,6 +309,12 @@ def main():
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
+        
+    # Create the poly data output for paraview analysis
+    pwriter = vtkXMLPolyDataWriter()
+    pwriter.SetFileName(output.GetAnswer() + ".vtp")
+    pwriter.SetInput(outputTDS.GetTimeStep(0))
+    pwriter.Write()
 
 ################################################################################
 ################################################################################
