@@ -91,11 +91,9 @@ def main():
 
     fuzzysets = vtkGRASSOption()
     fuzzysets.SetKey("fuzzysets")
-    fuzzysets.MultipleOff()
-    fuzzysets.RequiredOff()
-    fuzzysets.SetDefaultAnswer("3")
-    fuzzysets.SetDefaultOptions("2,3,4,5")
-    fuzzysets.SetDescription("The number of fuzzy sets to be used for calibration")
+    fuzzysets.MultipleOn()
+    fuzzysets.RequiredOn()
+    fuzzysets.SetDescription("The number of fuzzy sets to be used for calibration for each factor: in case of 4 factors each 2 fuzzy sets: 2,2,2,2")
     fuzzysets.SetTypeToInteger()
 
     sd = vtkGRASSOption()
@@ -162,9 +160,16 @@ def main():
     columns = vtkStringArray()
     factors.GetAnswers(columns)
 
+    setnums = vtkStringArray()
+    fuzzysets.GetAnswers(setnums)
+
     names = []
     for i in range(columns.GetNumberOfValues()):
         names.append(columns.GetValue(i))
+
+    fuzzySetNum = []
+    for i in range(setnums.GetNumberOfValues()):
+        fuzzySetNum.append(int(setnums.GetValue(i)))
 
     columns.InsertNextValue(target.GetAnswer())
     
@@ -205,16 +210,7 @@ def main():
     timesource.SetTimeRange(0, 3600*24, timesteps)
     timesource.SetInput(0, polyData)
 
-    type = int(fuzzysets.GetAnswer())
-
-    if type == 2:
-        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML2(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
-    if type == 3:
-        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML3(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
-    if type == 4:
-        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML4(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
-    if type == 5:
-        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML5(names, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
+    xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
 
     outputTDS = vtkTemporalDataSet()
 

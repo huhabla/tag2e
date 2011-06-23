@@ -49,6 +49,7 @@ class FuzzyCalibrator():
     def __init__(self):
         self.inputFile = "FuzzyCalibrationData.txt"
         self.factorNames = ["sand", "Paut", "Twin", "fertN"]
+        self.fuzzySetNum = [2,3,3,2]
         self.targetArrayName = "n2o"
         self.maxNumberOfIterations = 1000
         self.initialT = 1
@@ -58,18 +59,11 @@ class FuzzyCalibrator():
         self.standardDeviation = 2
         self.TMinimizer = 1.005
 
-    def Run(self, type):
+    def Run(self):
         
         self.dataset, self.timesource = CSVDataReader.ReadTextData(self.inputFile, self.targetArrayName)
         
-        if type == 2:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML2(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
-        if type == 3:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML3(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
-        if type == 4:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML4(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
-        if type == 5:
-            xmlRoot = XMLFuzzyInferenceGenerator.BuildXML5(self.factorNames, self.targetArrayName, self.dataset, self.noData, True)
+        xmlRoot = XMLFuzzyInferenceGenerator.BuildXML(self.factorNames, self.fuzzySetNum, self.targetArrayName, self.dataset, self.noData, True)
 
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
@@ -105,6 +99,7 @@ if __name__ == "__main__":
     cal.inputFile = "FuzzyCalibrationData.txt"
     cal.resultFile = "BestFit.vtp"
     cal.factorNames = ["sand", "Paut", "Twin", "fertN"]
+    cal.fuzzySetNum = [2,3,3,2]
     cal.targetArrayName = "n2o"
     cal.maxNumberOfIterations = 20000
     cal.initialT = 1
@@ -113,4 +108,4 @@ if __name__ == "__main__":
     cal.noData = 9999
     cal.standardDeviation = 0.5
     cal.TMinimizer = 1.005
-    cal.Run(2)
+    cal.Run()
