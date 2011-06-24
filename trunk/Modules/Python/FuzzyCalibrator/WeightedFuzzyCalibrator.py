@@ -97,7 +97,8 @@ class FuzzyCalibrator():
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetTargetDataSet(self.timesource.GetOutput())
 
-        bestFitParameter, bestFitOutput, = Calibration.MetaModelSimulatedAnnealingImproved(
+        bestFitParameter, bestFitOutput, bestFitError = \
+                                           Calibration.MetaModelSimulatedAnnealingImproved(\
                                            meta, self.maxNumberOfIterations,\
                                            self.initialT, self.standardDeviation, 
                                            self.breakCriteria, self.TMinimizer,\

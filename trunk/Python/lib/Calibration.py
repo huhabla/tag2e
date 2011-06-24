@@ -126,5 +126,5 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
 
     print "Finished after ", count, " Iterations with best fit ", bestFitError
     
-    return bestFitModelParameter, bestFitDataSet
+    return bestFitModelParameter, bestFitDataSet, bestFitError
 

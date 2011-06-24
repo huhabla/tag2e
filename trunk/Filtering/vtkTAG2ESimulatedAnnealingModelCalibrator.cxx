@@ -62,6 +62,7 @@ vtkTAG2ESimulatedAnnealingModelCalibrator::vtkTAG2ESimulatedAnnealingModelCalibr
   time_t t = time(NULL);
   this->Seed = (unsigned int) t;
   this->BestFitModelParameter = NULL;
+  this->BestFitError = 999999;
 }
 
 //----------------------------------------------------------------------------
@@ -192,11 +193,13 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
         this->InitialT /= this->TMinimizer;
       }
     }
-
+    
     // Break if the best fit is reached
     if (bestFitError < this->BreakCriteria)
       break;
   }
+
+  this->BestFitError = bestFitError;
 
   std::cout << "Finished after " << i << " iteration with best fit error " << bestFitError << std::endl;
 

@@ -127,6 +127,12 @@ def main():
     null.SetDefaultAnswer("9999")
     null.SetDescription("The value used fo no data")
     null.SetTypeToDouble()
+    
+    logfile = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType())
+    logfile.SetKey("log")
+    logfile.RequiredOn()
+    logfile.SetDefaultAnswer("error.log")
+    logfile.SetDescription("The name of the logfile to store the model error")
 
     bagging = vtkGRASSFlag()
     bagging.SetDescription("Use bagging for input data selection")
@@ -213,6 +219,8 @@ def main():
     xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
 
     outputTDS = vtkTemporalDataSet()
+    
+    bestFitError = 999999
 
     if weighting.GetAnswer():
 
@@ -243,7 +251,8 @@ def main():
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetTargetDataSet(timesource.GetOutput())
 
-        bestFitParameter, bestFitOutput, = Calibration.MetaModelSimulatedAnnealingImproved(
+        bestFitParameter, bestFitOutput, bestFitError = \
+                                           Calibration.MetaModelSimulatedAnnealingImproved(\
                                            meta, int(iterations.GetAnswer()),\
                                            1, float(sd.GetAnswer()),
                                            float(breakcrit.GetAnswer()), 1.001,\
@@ -276,6 +285,8 @@ def main():
 
         caliModel.GetBestFitModelParameter().SetFileName(paramXML.GetAnswer())
         caliModel.GetBestFitModelParameter().Write()
+        
+        bestFitError = caliModel.GetBestFitError()
 
         outputTDS.ShallowCopy(caliModel.GetOutput())
 
@@ -307,6 +318,11 @@ def main():
         writer.Update()
         
     messages.Message("Writing result VTK poly data")
+    
+    # Write the logfile
+    log = open(logfile.GetAnswer(), "w")
+    log.write(str(bestFitError))
+    log.close()
     
     # Create the poly data output for paraview analysis
     pwriter = vtkXMLPolyDataWriter()
