@@ -36,9 +36,102 @@
 
 import grass.script as grass
 
+
+
+################################################################################
+################################################################################
+################################################################################
+
+globalError = 0
+
+def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations):
+
+    print "Running calibration ", inputvector, target, factornames, fuzzysets
+
+#    global globalError
+#    globalError += 1
+#    return globalError
+
+    grass.run_command("v.fuzzy.calibrator", input=inputvector, factors=factornames,\
+          target=target, fuzzysets=fuzzysets, iterations=iterations, \
+          parameter=(id + ".xml"), output=id, log=(id + ".log"))
+
+    logfile = open(id + ".log")
+    error = float(logfile.readline())
+    logfile.close()
+    return error
+
+
 Vector="n2o_emission"
-Factors=["sand","Twin","Paut","fertN"]
+Factors=["sand","Twin","Paut", "fertN"]
+FuzzySets = [2,3]
 Target="n2o"
 
-for name in Factors:
-    grass.run_command("v.fuzzy.calibrator", input=Vector, factor=name)
+Count = 0
+hierarchyFactors = []
+hierarchyFuzzySets = []
+StartFactors = Factors
+
+hierarchy = {}
+
+while Count < len(Factors):
+
+    factorNames = []
+    fuzzySetNums = []
+
+    hierarchyCount = len(hierarchyFactors)
+
+    # Insert the previous selected factors and fuzzy set numbers
+    for i in range(hierarchyCount):
+        factorNames.append(hierarchyFactors[i])
+        fuzzySetNums.append(hierarchyFuzzySets[i])
+
+    # Allocate the next entry
+    factorNames.append("")
+    fuzzySetNums.append("")
+
+    # For each factor left
+    for factor in StartFactors:
+        factorNames[hierarchyCount] = factor
+        for fuzzySet in FuzzySets:
+            fuzzySetNums[hierarchyCount] = fuzzySet
+
+            id = ""
+            for i in range(len(factorNames)):
+                id += str(factorNames[i]) + str(fuzzySetNums[i])
+                
+            error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, 30000)
+
+            # Make a copy of the lists, otherwise the references get modified
+            a = 1*factorNames
+            b = 1*fuzzySetNums
+            
+            hierarchy[id] = [a, b, error]
+
+    # Select the best result from the hierarchy
+    firstError = 9999
+    bestFitName = ""
+    for key in hierarchy.keys():
+        fact, fuset, error = hierarchy[key]
+        if error < firstError:
+            firstError = error
+            hierarchyFactors = fact
+            hierarchyFuzzySets = fuset
+            bestFitName = key
+
+    print "Selected ", bestFitName, firstError, hierarchyFactors, hierarchyFuzzySets
+    
+    # Build new StartFactor list
+    StartFactors = []
+
+    for factor in Factors:
+        if factor not in hierarchyFactors:
+            StartFactors.append(factor)
+            
+    Count += 1
+
+print "Best fit ", bestFitName, " with error ", firstError
+file = open("BestFit.txt", 'w')
+file.write("Best fit: " + str(bestFitName) + ".xml\n")
+file.write("Error: " + str(firstError))
+file.close()
