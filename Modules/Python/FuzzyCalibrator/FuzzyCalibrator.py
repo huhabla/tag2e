@@ -87,6 +87,8 @@ class FuzzyCalibrator():
 
         caliModel.GetBestFitModelParameter().SetFileName(cal.outputName)
         caliModel.GetBestFitModelParameter().Write()
+        
+        bestFitError = caliModel.GetBestFitError()
 
         writer = vtkXMLPolyDataWriter()
         writer.SetFileName(self.resultFile)

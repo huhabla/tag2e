@@ -80,6 +80,9 @@ public:
     vtkSetMacro(Seed, unsigned int);
     vtkGetMacro(Seed, unsigned int);
     
+    //!\brief Return the best fit error of the calibration run
+    vtkGetMacro(BestFitError, double);
+    
     //!\brief Get the calibrated model parameter
     vtkGetObjectMacro(BestFitModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
     
@@ -95,6 +98,7 @@ protected:
     double BreakCriteria;
     double InitialT;
     double TMinimizer;
+    double BestFitError;
     
     vtkTAG2EAbstractCalibratableModelParameter *BestFitModelParameter;
     

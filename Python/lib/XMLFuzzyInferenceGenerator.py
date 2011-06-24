@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+0,#!/usr/bin/env python
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
 #
@@ -244,6 +244,7 @@ def GenerateFactor4(factorName, min, max, mean):
         0   33  66   100
     print "Generate 4 fuzzy sets"
     """
+    print "Generate 4 fuzzy sets"
 
     shapeL = [9999, min, mean]
     shapeI1 = [mean, min + mean, mean]
