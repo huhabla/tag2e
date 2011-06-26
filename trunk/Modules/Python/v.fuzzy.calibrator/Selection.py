@@ -38,19 +38,19 @@ import grass.script as grass
 
 
 
-################################################################################
-################################################################################
-################################################################################
+Vector="n2o_emission"
+Factors=["sand","Twin","Paut", "fertN"]
+FuzzySets = [2]
+Target="n2o"
 
-globalError = 0
+
+################################################################################
+################################################################################
+################################################################################
 
 def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations):
 
     print "Running calibration ", inputvector, target, factornames, fuzzysets
-
-#    global globalError
-#    globalError += 1
-#    return globalError
 
     grass.run_command("v.fuzzy.calibrator", input=inputvector, factors=factornames,\
           target=target, fuzzysets=fuzzysets, iterations=iterations, \
@@ -61,11 +61,6 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
     logfile.close()
     return error
 
-
-Vector="n2o_emission"
-Factors=["sand","Twin","Paut", "fertN"]
-FuzzySets = [2,3]
-Target="n2o"
 
 Count = 0
 hierarchyFactors = []
@@ -100,7 +95,7 @@ while Count < len(Factors):
             for i in range(len(factorNames)):
                 id += str(factorNames[i]) + str(fuzzySetNums[i])
                 
-            error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, 30000)
+            error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, 10000)
 
             # Make a copy of the lists, otherwise the references get modified
             a = 1*factorNames
