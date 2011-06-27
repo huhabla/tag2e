@@ -36,14 +36,6 @@
 
 import grass.script as grass
 
-
-
-Vector="n2o_emission"
-Factors=["sand","Twin","Paut", "fertN"]
-FuzzySets = [2]
-Target="n2o"
-
-
 ################################################################################
 ################################################################################
 ################################################################################
@@ -52,7 +44,7 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
 
     print "Running calibration ", inputvector, target, factornames, fuzzysets
 
-    grass.run_command("v.fuzzy.calibrator", input=inputvector, factors=factornames,\
+    grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
           target=target, fuzzysets=fuzzysets, iterations=iterations, \
           parameter=(id + ".xml"), output=id, log=(id + ".log"))
 
@@ -62,71 +54,103 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
     return error
 
 
-Count = 0
-hierarchyFactors = []
-hierarchyFuzzySets = []
-StartFactors = Factors
+################################################################################
+################################################################################
+################################################################################
 
-hierarchy = {}
+def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations):
 
-while Count < len(Factors):
+    Count = 0
+    CalibrationResultFactors = []
+    CalibrationResultFuzzySets = []
+    StartFactors = Factors
 
-    factorNames = []
-    fuzzySetNums = []
-
-    hierarchyCount = len(hierarchyFactors)
-
-    # Insert the previous selected factors and fuzzy set numbers
-    for i in range(hierarchyCount):
-        factorNames.append(hierarchyFactors[i])
-        fuzzySetNums.append(hierarchyFuzzySets[i])
-
-    # Allocate the next entry
-    factorNames.append("")
-    fuzzySetNums.append("")
-
-    # For each factor left
-    for factor in StartFactors:
-        factorNames[hierarchyCount] = factor
-        for fuzzySet in FuzzySets:
-            fuzzySetNums[hierarchyCount] = fuzzySet
-
-            id = ""
-            for i in range(len(factorNames)):
-                id += str(factorNames[i]) + str(fuzzySetNums[i])
-                
-            error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, 10000)
-
-            # Make a copy of the lists, otherwise the references get modified
-            a = 1*factorNames
-            b = 1*fuzzySetNums
-            
-            hierarchy[id] = [a, b, error]
-
-    # Select the best result from the hierarchy
-    firstError = 9999
-    bestFitName = ""
-    for key in hierarchy.keys():
-        fact, fuset, error = hierarchy[key]
-        if error < firstError:
-            firstError = error
-            hierarchyFactors = fact
-            hierarchyFuzzySets = fuset
-            bestFitName = key
-
-    print "Selected ", bestFitName, firstError, hierarchyFactors, hierarchyFuzzySets
+    CalibrationResult = {}
     
-    # Build new StartFactor list
-    StartFactors = []
+    SelectedCalibration = ""
 
-    for factor in Factors:
-        if factor not in hierarchyFactors:
-            StartFactors.append(factor)
-            
-    Count += 1
+    while Count < len(Factors):
 
-print "Best fit ", bestFitName, " with error ", firstError
-file = open("BestFit.txt", 'w')
-file.write("Best fit: " + str(bestFitName) + ".xml\n")
-file.write("Error: " + str(firstError))
-file.close()
+        factorNames = []
+        fuzzySetNums = []
+
+        CalibrationResultCount = len(CalibrationResultFactors)
+
+        # Insert the previous selected factors and fuzzy set numbers
+        for i in range(CalibrationResultCount):
+            factorNames.append(CalibrationResultFactors[i])
+            fuzzySetNums.append(CalibrationResultFuzzySets[i])
+
+        # Allocate the next entry
+        factorNames.append("")
+        fuzzySetNums.append("")
+
+        # For each factor left
+        for factor in StartFactors:
+            factorNames[CalibrationResultCount] = factor
+            for fuzzySet in FuzzySets:
+                fuzzySetNums[CalibrationResultCount] = fuzzySet
+
+                # Create the unique id of the calibration
+                id = ""
+                for i in range(len(factorNames)):
+                    id += str(factorNames[i]) + str(fuzzySetNums[i])
+
+                error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, Iterations)
+
+                # Make a copy of the lists, otherwise the references get modified
+                a = 1*factorNames
+                b = 1*fuzzySetNums
+
+                CalibrationResult[id] = [a, b, error]
+
+        # Select the best result from the CalibrationResult
+        firstError = 9999
+        bestFitName = ""
+        for key in CalibrationResult.keys():
+            fact, fuset, error = CalibrationResult[key]
+            if error < firstError:
+                firstError = error
+                CalibrationResultFactors = fact
+                CalibrationResultFuzzySets = fuset
+                bestFitName = key
+
+        # Check if the step results in a new selection, if not break
+        if SelectedCalibration == bestFitName:
+            break
+
+        print "Selected ", bestFitName, firstError, CalibrationResultFactors, CalibrationResultFuzzySets
+
+        # Build new StartFactor list
+        StartFactors = []
+
+        for factor in Factors:
+            if factor not in CalibrationResultFactors:
+                StartFactors.append(factor)
+
+        Count += 1
+
+    # Write the best fit into a file
+    print "Best fit ", bestFitName, " with error ", firstError
+    file = open(bestFitName + "_BestFit.txt", 'w')
+    file.write("Best fit: " + str(bestFitName) + ".xml\n")
+    file.write("Error: " + str(firstError))
+    file.close()
+
+
+def main():
+    Vector="n2o_emission"
+    Factors=["sand","Twin","Paut", "fertN"]
+    FuzzySets = [2,3]
+    Target="n2o"
+    Iterations = 20000
+
+    SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations)
+    
+
+################################################################################
+################################################################################
+################################################################################
+
+if __name__ == "__main__":
+    main()
