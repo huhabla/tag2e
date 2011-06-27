@@ -136,3 +136,14 @@ class MetaModel():
         root = vtkXMLDataElement()
         self.GetXMLRepresentation(root)
         root.PrintXML(fileName)
+    
+    def GetModelAssessmentFactor(self):
+        """The assessment factor of the metamodel is the 
+           product of the model assessment factors.
+        """
+        modelAssessment = 1;
+        
+        for key in self.models.keys():
+            modelAssessment = modelAssessment * self.models[key].GetModelAssessmentFactor()
+            
+        return modelAssessment

@@ -55,7 +55,13 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent);
     static vtkTAG2EFuzzyInferenceModel *New(); 
      
-    virtual double GetModelAssessmentFactor(){return 1.0;}
+    virtual double GetModelAssessmentFactor(){return this->ModelAssessmentFactor;}
+    
+    //! Set the the desired lower limit for the applicability of the rules (0 - 100), default are 2%
+    //! 0 - rule to 0% in use, 100 - rule to 100% in use
+    //! This value affect directly the computation of the model assessment factor
+    vtkSetMacro(ApplicabilityRuleLimit, double);
+    vtkGetMacro(ApplicabilityRuleLimit, double);
     
     //!\brief Set the model parameter which must be of type vtkTAG2EFuzzyInferenceModelParameter
     //! This XML model parameter describes the fuzzy inference scheme which is used to compute 
@@ -76,6 +82,8 @@ protected:
     vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
     vtkIntArray *InputPorts;
     vtkStringArray *ArrayNames;
+    double ModelAssessmentFactor;
+    double ApplicabilityRuleLimit;
     
 private:
     vtkTAG2EFuzzyInferenceModel(const vtkTAG2EFuzzyInferenceModel& orig); // Not implemented.

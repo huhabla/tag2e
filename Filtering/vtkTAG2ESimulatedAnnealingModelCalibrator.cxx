@@ -63,6 +63,7 @@ vtkTAG2ESimulatedAnnealingModelCalibrator::vtkTAG2ESimulatedAnnealingModelCalibr
   this->Seed = (unsigned int) t;
   this->BestFitModelParameter = NULL;
   this->BestFitError = 999999;
+  this->BestFitModelAssessmentFactor = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -82,8 +83,10 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 {
   int i;
   double error;
+  double modelAssessment;
   double lastAcceptedError;
   double bestFitError;
+  double bestFitModelAssessment;
   vtkXMLDataElement *root = vtkXMLDataElement::New();
 
   // get the info objects
@@ -121,13 +124,14 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
   // The initial run of the model with initialization
   this->Model->SetModelParameter(this->ModelParameter);
   this->Model->Update();
+  bestFitModelAssessment = modelAssessment = this->Model->GetModelAssessmentFactor();
 
   // Make a shallow copy of the model output
   output->ShallowCopy(this->Model->GetOutput());
 
   // Compute the initial error
   error = vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(this->Model->GetOutput(),
-    input, this->Model->GetUseCellData(), 0);
+    input, this->Model->GetUseCellData(), 0) * modelAssessment;
 
   // Initialize the error variables
   bestFitError = lastAcceptedError = error;
@@ -154,10 +158,11 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
     // so we need to tell the model that its modified
     this->Model->Modified();
     this->Model->Update();
+    modelAssessment = this->Model->GetModelAssessmentFactor();
 
     // Compute the error between the model result and the target values
     error = vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(this->Model->GetOutput(),
-      input, this->Model->GetUseCellData(), 0);
+      input, this->Model->GetUseCellData(), 0) * modelAssessment;
     
     // The difference between last and current computation
     double diff = error - lastAcceptedError;
@@ -168,6 +173,7 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
       // Store the best fit
       if (error < bestFitError) {
         bestFitError = error;
+        bestFitModelAssessment = modelAssessment;
         std::cout << "Store best result at iteration " << i << " with error " << bestFitError << std::endl;
         output->ShallowCopy(this->Model->GetOutput());
         this->ModelParameter->GetXMLRepresentation(root);
@@ -200,8 +206,10 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
   }
 
   this->BestFitError = bestFitError;
+  this->BestFitModelAssessmentFactor = bestFitModelAssessment;
 
-  std::cout << "Finished after " << i << " iteration with best fit error " << bestFitError << std::endl;
+  std::cout << "Finished after " << i << " iteration with best fit error " << 
+      bestFitError << " model assessment factor " << bestFitModelAssessment << std::endl;
 
   root->Delete();
   
