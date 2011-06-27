@@ -59,6 +59,8 @@ vtkTAG2EFuzzyInferenceModel::vtkTAG2EFuzzyInferenceModel()
   this->FuzzyModelParameter = NULL;
   this->InputPorts = vtkIntArray::New();
   this->ArrayNames = vtkStringArray::New();
+  this->ModelAssessmentFactor = 1;
+  this->ApplicabilityRuleLimit = 2;
 }
 
 //----------------------------------------------------------------------------
@@ -163,6 +165,8 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
   unsigned int timeStep;
   int numberOfRules = 0;
   int numberOfFactors = 0;
+  int i;
+  int observationCount = 0;
 
   // get the info objects
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
@@ -182,6 +186,14 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
 
   // Create the rule code matrix
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
+  std::vector<double> DOFVector(numberOfRules);
+  std::vector<double> DOFSumVector(numberOfRules);
+  
+  /* Initialize the degree of fulfillment vectors */
+  for(i = 0; i < numberOfRules; i++) {
+      DOFVector[i] = 0;
+      DOFSumVector[i] = 0;
+  }
 
   // Compute the rule code matrix entries 
   tag2eFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, FIS);
@@ -198,7 +210,7 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
   // Iterate over each timestep of the first input
   // Timesteps must be equal in the inputs.
   for (timeStep = 0; timeStep < firstInput->GetNumberOfTimeSteps(); timeStep++) {
-    int i, j;
+    int j;
     int port;
 
     // The first input is used to create the ouput
@@ -287,7 +299,13 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
         Data[j]->GetTuple(i, &fuzzyInput[j]);
       }
 
-      double val = tag2eFIS::ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, FIS);
+      double val = tag2eFIS::ComputeFISResult(fuzzyInput, numberOfRules, RuleCodeMatrix, FIS, DOFVector);
+      /* Summarize the dof's for punishment function */
+      for(int k = 0; k < DOFSumVector.size(); k++)
+          DOFSumVector[k] += DOFVector[k];
+      
+      observationCount++;
+      
       result->SetValue(i, val);
       delete [] fuzzyInput;
     }
@@ -302,6 +320,23 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
     output->SetTimeStep(timeStep, outputDataSet);
     outputDataSet->Delete();
     result->Delete();
+  }
+  
+  /* Compute punishment function */
+  double v = observationCount * this->ApplicabilityRuleLimit/100.0;
+  this->ModelAssessmentFactor = 1;
+  
+  for(int rule = 0; rule < DOFSumVector.size(); rule++) {
+      // cout << "Rule " << rule << " DOF sum " << DOFSumVector[rule] << endl;
+      double value = 0;
+      value = (v - DOFSumVector[rule])/v;
+      // cout << "Value " << value << endl;
+      /* Continue if fullfilled */
+      if(value < 0)
+          continue;
+      /* assign the punishment for the current rule */
+      this->ModelAssessmentFactor *= 1 + value;
+      // cout << "Model assessment " << this->ModelAssessmentFactor << endl;
   }
 
   return 1;

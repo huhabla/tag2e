@@ -139,7 +139,7 @@ bool tag2eFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &Rul
 //----------------------------------------------------------------------------
 
 double tag2eFIS::ComputeFISResult(double *Input,
-  int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS)
+  int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS, std::vector<double> &DOFVector)
 {
   int rule;
   double result;
@@ -152,6 +152,8 @@ double tag2eFIS::ComputeFISResult(double *Input,
   for (rule = 0; rule < numberOfRules; rule++) {
 
     dof = tag2eFIS::ComputeDOF(Input, rule, RuleCodeMatrix, FIS);
+    
+    DOFVector[rule] = dof;
 
     sum_dofs = sum_dofs + dof;
     result = result + FIS.Responses.Responses[rule].value * dof;
@@ -490,6 +492,7 @@ bool tag2eFIS::TestFISComputation()
 
   // Create the rule code matrix
   std::vector< std::vector<int> > RuleCodeMatrix(numberOfRules, std::vector<int>(numberOfFactors));
+  std::vector<double> DOFVector(numberOfRules);
 
   tag2eFIS::ComputeRuleCodeMatrixEntries(RuleCodeMatrix, numberOfRules, FIS);
 
@@ -539,7 +542,7 @@ bool tag2eFIS::TestFISComputation()
   }
 
   std::cout << "ComputeFISResult Test 1" << std::endl;
-  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS, DOFVector);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 2.5) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 1");
@@ -573,7 +576,7 @@ bool tag2eFIS::TestFISComputation()
   }
 
   std::cout << "ComputeFISResult Test 2" << std::endl;
-  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS, DOFVector);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 1.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 2");
@@ -607,7 +610,7 @@ bool tag2eFIS::TestFISComputation()
   }
 
   std::cout << "ComputeFISResult Test 3" << std::endl;
-  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS);
+  result = tag2eFIS::ComputeFISResult(Input, numberOfRules, RuleCodeMatrix, FIS, DOFVector);
   std::cout << "Result = " << result << std::endl;
   if (fabs(result - 4.0) > TOLERANCE) {
     (std::cerr << "Wrong result in ComputeFISResult Test 3");

@@ -106,8 +106,9 @@ public:
     //!\param numberOfRules Number of rules
     //!\param RuleCodeMatrix The matrix of coded rules
     //!\param FIS The internal representation of the weighted fuzzy inference scheme
+    //!\param DOFVector Vector to store the rule specific deegrees of fulfillment, used to model assessment
     //!\return The result of the fuzzy inference scheme computation
-    static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS);
+    static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS, std::vector<double> &DOFVector);
     
     //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
     static bool CheckFuzzyFactor(FuzzyFactor &Factor);

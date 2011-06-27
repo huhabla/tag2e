@@ -287,7 +287,6 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
             fisc.Write()
             
-  
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)
     unittest.TextTestRunner(verbosity=2).run(suite1) 

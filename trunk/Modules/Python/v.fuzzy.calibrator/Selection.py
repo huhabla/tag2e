@@ -40,17 +40,25 @@ import grass.script as grass
 ################################################################################
 ################################################################################
 
-def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations):
+def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations, runs):
 
-    print "Running calibration ", inputvector, target, factornames, fuzzysets
+    error = 999
 
-    grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
-          target=target, fuzzysets=fuzzysets, iterations=iterations, \
-          parameter=(id + ".xml"), output=id, log=(id + ".log"))
+    for i in range(runs):
+        print "Running calibration", i, inputvector, target, factornames, fuzzysets
 
-    logfile = open(id + ".log")
-    error = float(logfile.readline())
-    logfile.close()
+        grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
+              target=target, fuzzysets=fuzzysets, iterations=iterations, \
+              parameter=(id + ".xml"), output=id, log=(id + ".log"))
+
+        logfile = open(id + ".log")
+        runerror = float(logfile.readline())
+        logfile.close()
+        
+        if runerror < error:
+            error = runerror
+        
+    print "Finished", runs, " calibration runs with best fit", error
     return error
 
 
@@ -58,7 +66,7 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
 ################################################################################
 ################################################################################
 
-def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations):
+def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs):
 
     Count = 0
     CalibrationResultFactors = []
@@ -96,7 +104,7 @@ def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations):
                 for i in range(len(factorNames)):
                     id += str(factorNames[i]) + str(fuzzySetNums[i])
 
-                error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, Iterations)
+                error = StartCalibration(id, Vector, Target, factorNames, fuzzySetNums, Iterations, runs)
 
                 # Make a copy of the lists, otherwise the references get modified
                 a = 1*factorNames
@@ -141,11 +149,12 @@ def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations):
 def main():
     Vector="n2o_emission"
     Factors=["sand","Twin","Paut", "fertN"]
-    FuzzySets = [2,3]
+    FuzzySets = [2, 3]
     Target="n2o"
     Iterations = 20000
+    runs = 10
 
-    SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations)
+    SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs)
     
 
 ################################################################################
