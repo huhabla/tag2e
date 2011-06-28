@@ -49,7 +49,8 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
 
         grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
               target=target, fuzzysets=fuzzysets, iterations=iterations, \
-              parameter=(id + ".xml"), output=id, log=(id + ".log"))
+              parameter=(id + ".xml"), output=id, log=(id + ".log"), \
+              treduce=1.1, sdreduce=1.1)
 
         logfile = open(id + ".log")
         runerror = float(logfile.readline())
@@ -66,18 +67,21 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
 ################################################################################
 ################################################################################
 
-def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs):
+def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs, searchDepth = 0):
 
-    Count = 0
+    Count = 1
     CalibrationResultFactors = []
     CalibrationResultFuzzySets = []
     StartFactors = Factors
+    
+    if searchDepth == 0:
+        searchDepth = len(Factors)
 
     CalibrationResult = {}
     
     SelectedCalibration = ""
 
-    while Count < len(Factors):
+    while Count < searchDepth:
 
         factorNames = []
         fuzzySetNums = []
@@ -147,14 +151,16 @@ def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, r
 
 
 def main():
-    Vector="n2o_emission"
-    Factors=["sand","Twin","Paut", "fertN"]
-    FuzzySets = [2, 3]
+    Vector="n2o_emission_param"
+    Factors=["clay", "silt","sand","ph", "soc", "Twin", "Paut_before","Twin_before", "Paut", "fertN"]
+    #Factors=["clay", "silt","sand", "fertN"]
+    FuzzySets = [2]
     Target="n2o"
-    Iterations = 20000
-    runs = 10
+    Iterations = 5000
+    runs = 1
+    searchDepth = 3
 
-    SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs)
+    SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs, searchDepth)
     
 
 ################################################################################

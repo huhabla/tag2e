@@ -128,6 +128,22 @@ def main():
     null.SetDescription("The value used fo no data")
     null.SetTypeToDouble()
     
+    treduce = vtkGRASSOption()
+    treduce.SetKey("treduce")
+    treduce.MultipleOff()
+    treduce.RequiredOff()
+    treduce.SetDefaultAnswer("1.01")
+    treduce.SetDescription("This factor is used to reduce the annealing temperature each step")
+    treduce.SetTypeToDouble()
+    
+    sdreduce = vtkGRASSOption()
+    sdreduce.SetKey("sdreduce")
+    sdreduce.MultipleOff()
+    sdreduce.RequiredOff()
+    sdreduce.SetDefaultAnswer("1.01")
+    sdreduce.SetDescription("This factor is used to reduce the standard deviation each step")
+    sdreduce.SetTypeToDouble()
+    
     logfile = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType())
     logfile.SetKey("log")
     logfile.RequiredOn()
@@ -255,8 +271,8 @@ def main():
                                            Calibration.MetaModelSimulatedAnnealingImproved(\
                                            meta, int(iterations.GetAnswer()),\
                                            1, float(sd.GetAnswer()),
-                                           float(breakcrit.GetAnswer()), 1.001,\
-                                           1.001)
+                                           float(breakcrit.GetAnswer()), float(treduce.GetAnswer()),\
+                                           float(sdreduce.GetAnswer()))
 
         bestFitParameter.PrintXML(paramXML.GetAnswer())
 
@@ -278,7 +294,7 @@ def main():
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
         caliModel.SetInitialT(1)
-        caliModel.SetTMinimizer(1.001)
+        caliModel.SetTMinimizer(float(treduce.GetAnswer()))
         caliModel.SetStandardDeviation(float(sd.GetAnswer()))
         caliModel.SetBreakCriteria(float(breakcrit.GetAnswer()))
         caliModel.Update()
