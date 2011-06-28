@@ -323,7 +323,8 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
   }
   
   /* Compute punishment function */
-  double v = observationCount * this->ApplicabilityRuleLimit/100.0;
+  //double v = observationCount * this->ApplicabilityRuleLimit/100.0;
+  double v = 0.1 * (double)observationCount/(double)numberOfRules;
   this->ModelAssessmentFactor = 1;
   
   for(int rule = 0; rule < DOFSumVector.size(); rule++) {
