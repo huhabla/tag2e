@@ -50,6 +50,10 @@
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 
+#define TDS_COMPARE_METHOD_NO_SCALED 1
+#define TDS_COMPARE_METHOD_SQRT_SCALED 2
+#define TDS_COMPARE_METHOD_LOG_SCALED 3
+
 class vtkDataSet;
 class vtkTemporalDataSet;
 class vtkDataArray;
@@ -83,9 +87,20 @@ public:
     static double CompareTemporalDataSets(vtkTemporalDataSet *tds1, vtkTemporalDataSet *tds2,
                                            bool useCellData, bool verbose);
     
+    //!\brief Extract a specific CellData or PointData array from a temporal dataset
+    //!\brief This array must be present in each time step
+    static bool ExtractArrayFromTemporalDataSet(vtkTemporalDataSet *tds,
+                vtkDataArray *extract, const char *ArrayName, bool useCellData);
+    
+    //!\brief Compute the residuals of the active data arrays in the temporal datasets
+    static bool ComputeTemporalDataSetsResiduals(vtkTemporalDataSet *tds1, vtkTemporalDataSet *tds2,
+                bool useCellData, vtkDataArray *residuals);
+    
     static double ArithmeticMean(vtkDataArray *data);
     static double StandardDeviation(vtkDataArray *data);
+    static double StandardDeviation(vtkTemporalDataSet *tds, const char *ArrayName, bool useCellData);
     static double Variance(vtkDataArray *data);
+    static double Variance(vtkTemporalDataSet *tds, const char *ArrayName, bool useCellData);
 
 protected:
     vtkTAG2EAbstractModelCalibrator();

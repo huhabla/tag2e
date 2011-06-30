@@ -68,9 +68,12 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
 {
   double result;
   unsigned int timeStep;
+  int method = TDS_COMPARE_METHOD_NO_SCALED;
   int id;
   double variance;
   double squareSum;
+  double val1, val2;
+  double shift = 10000;
   unsigned int numberOfValues = 0;
   vtkDataArray *array1;
   vtkDataArray *array2;
@@ -100,14 +103,24 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
       if (verbose)
         cout << array1->GetName() << " " << array1->GetTuple1(id) << "  " << array2->GetName() << " " << array2->GetTuple1(id) << endl;
 
-      squareSum += (array2->GetTuple1(id) - array1->GetTuple1(id)) *
-        (array2->GetTuple1(id) - array1->GetTuple1(id));
-      allMeasure->InsertNextTuple1(array2->GetTuple1(id));
+      val1 = array1->GetTuple1(id);
+      val2 = array2->GetTuple1(id);
+          
+      if(method = TDS_COMPARE_METHOD_LOG_SCALED) {
+          val1 = log(shift + val1);
+          val2 = log(shift + val2);
+      }else if(method = TDS_COMPARE_METHOD_SQRT_SCALED) {
+          val1 = sqrt(shift + val1);
+          val2 = sqrt(shift + val2);
+      } 
+      
+      squareSum += (val2 - val1) * (val2 - val1);
+      allMeasure->InsertNextTuple1(val2);
       numberOfValues++;
     }
   }
 
-  variance = vtkTAG2EAbstractModelCalibrator::Variance(array2);
+  variance = vtkTAG2EAbstractModelCalibrator::Variance(allMeasure);
 
   if(variance != 0)
     result = squareSum / (numberOfValues * variance);
@@ -122,6 +135,57 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
 
 //----------------------------------------------------------------------------
 
+bool vtkTAG2EAbstractModelCalibrator::ComputeTemporalDataSetsResiduals(vtkTemporalDataSet *tds1,
+  vtkTemporalDataSet *tds2,
+  bool useCellData, vtkDataArray *residuals)
+{
+  unsigned int timeStep;
+  int id;
+  double val1, val2;
+
+  vtkDataArray *array1;
+  vtkDataArray *array2;
+  
+  if(residuals == NULL)
+      return false;
+  
+  residuals->Initialize();
+  residuals->SetName("Residuals");
+  residuals->SetNumberOfComponents(1);
+
+
+  if (tds1->GetNumberOfTimeSteps() != tds2->GetNumberOfTimeSteps()) {
+    std::cerr << "Number of timesteps or input temporal data sets are different" << std::endl;
+    return false;
+  }
+
+  for (timeStep = 0; timeStep < tds1->GetNumberOfTimeSteps(); timeStep++) {
+    vtkDataSet *ds1 = vtkDataSet::SafeDownCast(tds1->GetTimeStep(timeStep));
+    vtkDataSet *ds2 = vtkDataSet::SafeDownCast(tds2->GetTimeStep(timeStep));
+
+    if (!useCellData) {
+      array1 = ds1->GetPointData()->GetScalars();
+      array2 = ds2->GetPointData()->GetScalars();
+    } else {
+      array1 = ds1->GetCellData()->GetScalars();
+      array2 = ds2->GetCellData()->GetScalars();
+    }
+
+    for (id = 0; id < array1->GetNumberOfTuples(); id++) {
+   
+      val1 = array1->GetTuple1(id);
+      val2 = array2->GetTuple1(id);
+      
+      residuals->InsertNextTuple1(val2 - val1);
+    }
+  }
+
+  return true;
+}
+
+
+//----------------------------------------------------------------------------
+
 double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataSet *tds,
   const char *ModelResultArrayName,
   const char *TargetArrayName,
@@ -130,8 +194,11 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   double result;
   unsigned int timeStep;
   int id;
+  int method = TDS_COMPARE_METHOD_SQRT_SCALED;
   double variance;
   double squareSum;
+  double val1, val2;
+  double shift = 10000;
   unsigned int numberOfValues = 0;
   vtkDataArray *array1;
   vtkDataArray *array2;
@@ -168,15 +235,24 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
       if (verbose)
         cout << array1->GetName() << " " << array1->GetTuple1(id) << "  " << array2->GetName() << " " << array2->GetTuple1(id) << endl;
 
-      squareSum += (array2->GetTuple1(id) - array1->GetTuple1(id)) *
-        (array2->GetTuple1(id) - array1->GetTuple1(id));
-      allMeasure->InsertNextTuple1(array2->GetTuple1(id));
+      val1 = array1->GetTuple1(id);
+      val2 = array2->GetTuple1(id);
+          
+      if(method = TDS_COMPARE_METHOD_LOG_SCALED) {
+          val1 = log(shift + val1);
+          val2 = log(shift + val2);
+      }else if(method = TDS_COMPARE_METHOD_SQRT_SCALED) {
+          val1 = sqrt(shift + val1);
+          val2 = sqrt(shift + val2);
+      } 
+      
+      squareSum += (val2 - val1) * (val2 - val1);
+      allMeasure->InsertNextTuple1(val2);
       numberOfValues++;
     }
   }
 
-  variance = vtkTAG2EAbstractModelCalibrator::Variance(array2);
-
+  variance = vtkTAG2EAbstractModelCalibrator::Variance(allMeasure);
 
   if(variance != 0)
     result = squareSum / (numberOfValues * variance);
@@ -190,10 +266,90 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
 
 //----------------------------------------------------------------------------
 
+bool vtkTAG2EAbstractModelCalibrator::ExtractArrayFromTemporalDataSet(vtkTemporalDataSet *tds,
+  vtkDataArray *extract, const char *ArrayName, bool useCellData)
+{
+  unsigned int timeStep;
+  int id;
+  vtkDataArray *array = NULL;
+  
+  if(extract == NULL)
+      return false;
+  
+  extract->Initialize();
+
+  for (timeStep = 0; timeStep < tds->GetNumberOfTimeSteps(); timeStep++) {
+    vtkDataSet *ds = vtkDataSet::SafeDownCast(tds->GetTimeStep(timeStep));
+
+    if (!useCellData) {
+
+      if (ds->GetPointData()->HasArray(ArrayName)) {
+        array = ds->GetPointData()->GetArray(ArrayName);
+      } else {
+        std::cerr << "Point data array not found in datasets at time step " << timeStep << std::endl;
+        continue;
+      }
+    } else {
+      if (ds->GetCellData()->HasArray(ArrayName)) {
+        array = ds->GetCellData()->GetArray(ArrayName);
+      } else {
+        std::cerr << "Cell data array not found in datasets at times tep " << timeStep << std::endl;
+        continue;
+      }
+    }
+    
+    if(timeStep == 0) {
+        extract->SetName(array->GetName());
+        extract->SetNumberOfComponents(array->GetNumberOfComponents());
+    }
+    
+    for (id = 0; id < array->GetNumberOfTuples(); id++) {
+      extract->InsertNextTuple(array->GetTuple(id));
+    }
+  }
+  
+  if(array == NULL) {
+        std::cerr << "Cell or point data array " << ArrayName << "not found in datasets" << std::endl;
+        return false;
+  }
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+
+double vtkTAG2EAbstractModelCalibrator::StandardDeviation(vtkTemporalDataSet *tds,
+  const char *ArrayName, bool useCellData)
+{
+    double sd;
+    vtkDoubleArray *array = vtkDoubleArray::New();
+    vtkTAG2EAbstractModelCalibrator::ExtractArrayFromTemporalDataSet(tds, array, ArrayName, useCellData);
+    
+    sd = vtkTAG2EAbstractModelCalibrator::StandardDeviation(array);
+    array->Delete();
+    return sd;
+}
+
+//----------------------------------------------------------------------------
+
 double vtkTAG2EAbstractModelCalibrator::StandardDeviation(vtkDataArray *data)
 {
   double val = sqrt(Variance(data));
   return val;
+}
+
+//----------------------------------------------------------------------------
+
+double vtkTAG2EAbstractModelCalibrator::Variance(vtkTemporalDataSet *tds,
+  const char *ArrayName, bool useCellData)
+{
+    double v;
+    vtkDoubleArray *array = vtkDoubleArray::New();
+    vtkTAG2EAbstractModelCalibrator::ExtractArrayFromTemporalDataSet(tds, array, ArrayName, useCellData);
+    
+    v = vtkTAG2EAbstractModelCalibrator::Variance(array);
+    array->Delete();
+    return v;
 }
 
 //----------------------------------------------------------------------------
