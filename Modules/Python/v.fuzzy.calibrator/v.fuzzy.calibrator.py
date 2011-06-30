@@ -49,6 +49,7 @@ import XMLFuzzyInferenceGenerator
 import BootstrapAggregating
 import MetaModel
 import Calibration
+import math
 
 ################################################################################
 ################################################################################
@@ -237,6 +238,9 @@ def main():
     outputTDS = vtkTemporalDataSet()
     
     bestFitError = 999999
+    AKAIKE = 999999
+    NumberOfModelParameter = 0
+    ModelAssessmentFactor = 0
 
     if weighting.GetAnswer():
 
@@ -246,6 +250,8 @@ def main():
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
         parameterFIS.SetXMLRepresentation(xmlRootFIS)
         parameterFIS.DebugOff()
+        
+        NumberOfModelParameter = parameterFIS.GetNumberOfCalibratableParameter()
 
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(timesource.GetOutputPort())
@@ -255,7 +261,9 @@ def main():
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
         parameterW.DebugOff()
-
+        
+        NumberOfModelParameter = NumberOfModelParameter + parameterW.GetNumberOfCalibratableParameter()
+        
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
@@ -282,6 +290,8 @@ def main():
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(xmlRootFIS)
+        
+        NumberOfModelParameter = parameter.GetNumberOfCalibratableParameter()
 
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(timesource.GetOutputPort())
@@ -303,6 +313,8 @@ def main():
         caliModel.GetBestFitModelParameter().Write()
         
         bestFitError = caliModel.GetBestFitError()
+        
+        ModelAssessmentFactor = caliModel.GetBestFitModelAssessmentFactor()
 
         outputTDS.ShallowCopy(caliModel.GetOutput())
 
@@ -333,11 +345,25 @@ def main():
         writer.BuildTopoOn()
         writer.Update()
         
+    # Compute the AKAIKE criteria
+    residuals = vtkDoubleArray()
+    vtkTAG2EAbstractModelCalibrator.ComputeTemporalDataSetsResiduals(timesource.GetOutput(), outputTDS, 1, residuals)
+                
+    vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
+    
+    AKAIKE = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
+
+    AKAIKE = AKAIKE * ModelAssessmentFactor
+    
     messages.Message("Writing result VTK poly data")
     
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
     log.write(str(bestFitError))
+    log.write(str("\n"))
+    log.write(str(AKAIKE))
+    log.write(str("\n"))
+    log.write(str(ModelAssessmentFactor))
     log.close()
     
     # Create the poly data output for paraview analysis
@@ -345,6 +371,9 @@ def main():
     pwriter.SetFileName(output.GetAnswer() + ".vtp")
     pwriter.SetInput(outputTDS.GetTimeStep(0))
     pwriter.Write()
+    
+    messages.Message("Finished calibration with best fit " + str(bestFitError) + \
+                     " and AKAIKE criteria " + str(AKAIKE))
 
 ################################################################################
 ################################################################################
