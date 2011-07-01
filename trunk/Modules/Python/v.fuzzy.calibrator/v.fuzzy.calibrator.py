@@ -51,6 +51,65 @@ import MetaModel
 import Calibration
 import math
 
+
+################################################################################
+################################################################################
+################################################################################
+def MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, target, polyData, null):
+        
+    xmlRoot = vtkXMLDataElement()
+    messages = vtkGRASSMessagingInterface()
+    
+    if xmlRootFIS and xmlRootFIS.GetName() == "FuzzyInferenceScheme":
+        xmlFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target, polyData, null, True)
+        # Save the factor XML elements
+        oldElementList = []
+        newElementList = []
+        
+        xmlRoot.DeepCopy(xmlFIS)
+        xmlRoot.RemoveAllNestedElements()
+
+        # Count the Factors from the file
+        for id in range(xmlRootFIS.GetNumberOfNestedElements()):
+            oldElement = xmlRootFIS.GetNestedElement(id)
+            if oldElement.GetName() == "Factor":
+                oldElementList.append(oldElement)
+                
+        # Count the generated Factors
+        for id in range(xmlFIS.GetNumberOfNestedElements()):
+            newElement = xmlFIS.GetNestedElement(id)
+            if newElement.GetName() == "Factor":
+                newElementList.append(newElement)
+                
+        # Remove Factors which are present in the init XML file from the generated ones
+        for oel in oldElementList:
+            for nel in newElementList:
+                if oel.GetAttribute("name") == nel.GetAttribute("name"):
+                    xmlFIS.RemoveNestedElement(nel)
+                    messages.Message("Factor " + nel.GetAttribute("name") + " removed")
+        
+        # Add the Factors from the init XML file
+        for oel in oldElementList:
+            xmlRoot.AddNestedElement(oel)
+            messages.Message("Factor " + oel.GetAttribute("name") + " added")
+
+        # Add all generated Factors and Responses
+        for id in range(xmlFIS.GetNumberOfNestedElements()):
+            newElement = xmlFIS.GetNestedElement(id)
+            xmlRoot.AddNestedElement(newElement)
+            if newElement.GetName() == "Factor":
+                messages.Message("Factor " + newElement.GetAttribute("name") + " added")
+            else:
+                messages.Message(newElement.GetName() + " added")
+      
+        xmlRootFIS.DeepCopy(xmlRoot)
+    else:
+        # FIS does not exists, so we create a new one
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target, polyData, null, True)
+
+    return xmlRootFIS
+    
+    
 ################################################################################
 ################################################################################
 ################################################################################
@@ -77,6 +136,10 @@ def main():
 
     target = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "target")
     target.SetDescription("Name of the table column of the target variable")
+
+    initparamXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "initparameter")
+    initparamXML.RequiredOff()
+    initparamXML.SetDescription("The name of the initial XML (weighted) fuzzy inference parameter file, including factors which are already calibrated.")
 
     weightingFactor = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "weightfactor")
     weightingFactor.SetDescription("Name of the table column of the weighting variable")
@@ -145,25 +208,29 @@ def main():
     sdreduce.SetDescription("This factor is used to reduce the standard deviation each step")
     sdreduce.SetTypeToDouble()
     
+    bagging = vtkGRASSFlag()
+    bagging.SetDescription("Use boostrap aggregation (bagging) for input data selection")
+    bagging.SetKey('b')
+
+    weighting = vtkGRASSFlag()
+    weighting.SetDescription("Use weighting for input data calibration. A weightingfactor and the number of weights must be provided.")
+    weighting.SetKey('w')
+
     logfile = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType())
     logfile.SetKey("log")
     logfile.RequiredOn()
     logfile.SetDefaultAnswer("error.log")
-    logfile.SetDescription("The name of the logfile to store the model error")
-
-    bagging = vtkGRASSFlag()
-    bagging.SetDescription("Use bagging for input data selection")
-    bagging.SetKey('b')
-
-    weighting = vtkGRASSFlag()
-    weighting.SetDescription("Use weighting for input data calibration")
-    weighting.SetKey('w')
+    logfile.SetDescription("The name of the logfile to store the model error and AKAIKE criteria")
 
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "parameter")
     paramXML.SetDescription("Output name of the calibrated XML (weighted) fuzzy inference parameter file")
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
-    output.SetDescription("The best fitted model result as vector map and VTK XML poly data output (.vtp added)")
+    output.SetDescription("The best fitted model result as vector map")
+
+    outputvtk = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType(), "vtkoutput")
+    outputvtk.RequiredOff()
+    outputvtk.SetDescription("The best fitted model result as VTK XML poly data output (.vtp added)")
 
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -233,19 +300,70 @@ def main():
     timesource.SetTimeRange(0, 3600*24, timesteps)
     timesource.SetInput(0, polyData)
 
-    xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
+    # In case an initial FIS or WFIS XML file is provided, add only the new factors
+    # to the XML representation
+    if initparamXML.GetAnswer():
+        # Read the XML file
+        reader = vtkXMLDataParser()
+        reader.SetFileName(initparamXML.GetAnswer())
+        reader.Parse()
 
+        xmlRootFIS = vtkXMLDataElement()
+        xmlRootW = vtkXMLDataElement()
+        
+        # in case weighting should be used, the meta model is required 
+        if weighting.GetAnswer():        
+
+            xmlRoot = vtkXMLDataElement()
+            xmlRoot.DeepCopy(reader.GetRootElement())
+            
+            if xmlRoot.GetName() != "MetaModel":
+                messages.FatalError("Wrong input XML file. Missing MetaModel element.")
+
+            if xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"):
+                xmlRootFIS.DeepCopy(xmlRoot.FindNestedElementWithName("FuzzyInferenceScheme"))
+            else:
+                xmlRootFIS = None
+
+            # In case the FIS exists, add only the factors which are not already present
+            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()))
+
+            if xmlRoot.FindNestedElementWithName("Weighting"):
+                xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
+            else:
+                xmlRootW = None
+
+            if xmlRootW and xmlRootW.GetName() == "Weighting":
+                pass
+            else:
+                 xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
+
+            pass
+        else:
+            xmlRootFIS.DeepCopy(reader.GetRootElement())
+            # In case the FIS exists, add only the factors which are not already present
+            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()))
+    else:
+        # Create the XML stuff in case no pinitial parameter is given
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
+ 
+        if weighting.GetAnswer():
+            xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
+
+    # xmlRootFIS.PrintXML("xmlRootFIS.xml")
+   
+    # The output dataset
     outputTDS = vtkTemporalDataSet()
     
     bestFitError = 999999
-    AKAIKE = 999999
+    AKAIKE = 999999 
     NumberOfModelParameter = 0
     ModelAssessmentFactor = 0
 
     if weighting.GetAnswer():
 
-        xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
-
+        # xmlRootW.PrintXML("xmlRootW.xml")
+        
         # Set up the parameter and the model of the meta model
         parameterFIS = vtkTAG2EFuzzyInferenceModelParameter()
         parameterFIS.SetXMLRepresentation(xmlRootFIS)
@@ -367,10 +485,11 @@ def main():
     log.close()
     
     # Create the poly data output for paraview analysis
-    pwriter = vtkXMLPolyDataWriter()
-    pwriter.SetFileName(output.GetAnswer() + ".vtp")
-    pwriter.SetInput(outputTDS.GetTimeStep(0))
-    pwriter.Write()
+    if outputvtk.GetAnswer():
+        pwriter = vtkXMLPolyDataWriter()
+        pwriter.SetFileName(outputvtk.GetAnswer() + ".vtp")
+        pwriter.SetInput(outputTDS.GetTimeStep(0))
+        pwriter.Write()
     
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
                      " and AKAIKE criteria " + str(AKAIKE))
