@@ -135,6 +135,9 @@ dev.set(dev.next())
 ###END
 """
 
+import os
+
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -149,10 +152,10 @@ def StartCalibration(id, inputvector, target, factornames, fuzzysets, iterations
 
         grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
               target=target, fuzzysets=fuzzysets, iterations=iterations, \
-              parameter=(id + ".xml"), output=id, log=(id + ".log"), \
-              treduce=1.1, sdreduce=1.1)
+              parameter=os.path.join("/tmp", (id + ".xml")), output=id, \
+              log=os.path.join("/tmp", (id + ".log")), treduce=1.1, sdreduce=1.1)
 
-        logfile = open(id + ".log")
+        logfile = open(os.path.join("/tmp", id + ".log"))
         runerror = float(logfile.readline())
         runakaike = float(logfile.readline())
         logfile.close()
@@ -273,14 +276,14 @@ def SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, r
 
 def main():
     Vector="n2o_emission_param"
-    Factors=["clay", "silt","sand","ph", "soc", "Twin", "Paut_before","Twin_before", "Paut", "fertN"]
-    # Factors=["Paut", "Twin_before","sand", "fertN", "soc"]
+    # Factors=["clay", "silt","sand","ph", "soc", "Twin", "Paut_before","Twin_before", "Paut", "fertN"]
+    Factors=["Paut", "Twin_before","sand", "fertN", "soc"]
     # Factors=["sand"]
-    FuzzySets = [2,3]
+    FuzzySets = [2]
     Target="n2o"
     Iterations = 5000
     runs = 1
-    searchDepth = 4
+    searchDepth = 2
 
     SequentialForwardSelection(Vector, Factors, FuzzySets, Target, Iterations, runs, searchDepth)
     
