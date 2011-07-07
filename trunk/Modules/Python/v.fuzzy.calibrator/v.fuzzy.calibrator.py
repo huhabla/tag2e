@@ -228,9 +228,9 @@ def main():
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The best fitted model result as vector map")
 
-    outputvtk = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType(), "vtkoutput")
+    outputvtk = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "vtkoutput")
     outputvtk.RequiredOff()
-    outputvtk.SetDescription("The best fitted model result as VTK XML poly data output (.vtp added)")
+    outputvtk.SetDescription("The file name of the best fitted model result exported as VTK XML poly data output (.vtp)")
 
     paramter = vtkStringArray()
     for arg in sys.argv:
