@@ -126,13 +126,13 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
 #      \/  \/
 #      /\  /\
 #     /  \/  \
-# 0   3   5   7  10
+# 0 3000 5000 7000  10000
 #
 # - 1 - - 2 - - 3 - 
 #
-# 1: left = 11 center = 3 right = 2
-# 2: left = 2  center = 5 right = 2
-# 3: left = 2  center = 7 right = 11
+# 1: left = 11000 center = 3000 right = 2000
+# 2: left = 2000  center = 5000 right = 2000
+# 3: left = 2000  center = 7000 right = 11000
 #       
                
 # Triangular test shape layout second Factor 0.0 - 150
@@ -150,19 +150,19 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
 # 3: left = 25  center = 100 right = 151
 #        
         tr11.SetName("Triangular")
-        tr11.SetDoubleAttribute("center", 3)
-        tr11.SetDoubleAttribute("left",   11)
-        tr11.SetDoubleAttribute("right",  2)
+        tr11.SetDoubleAttribute("center", 3000)
+        tr11.SetDoubleAttribute("left",   11000)
+        tr11.SetDoubleAttribute("right",  2000)
         
         tr12.SetName("Triangular")
-        tr12.SetDoubleAttribute("center", 5)
-        tr12.SetDoubleAttribute("left",   2)
-        tr12.SetDoubleAttribute("right",  2)
+        tr12.SetDoubleAttribute("center", 5000)
+        tr12.SetDoubleAttribute("left",   2000)
+        tr12.SetDoubleAttribute("right",  2000)
         
         tr13.SetName("Triangular")
-        tr13.SetDoubleAttribute("center",  7)
-        tr13.SetDoubleAttribute("left",    2)
-        tr13.SetDoubleAttribute("right",   11)
+        tr13.SetDoubleAttribute("center",  7000)
+        tr13.SetDoubleAttribute("left",    2000)
+        tr13.SetDoubleAttribute("right",   11000)
         
         
         tr21.SetName("Triangular")
@@ -227,7 +227,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         fss1.SetIntAttribute("portId", 0)
         fss1.SetAttribute("name", "pH")
         fss1.SetDoubleAttribute("min", 0.0)
-        fss1.SetDoubleAttribute("max", 10.0)
+        fss1.SetDoubleAttribute("max", 10000.0)
         fss1.AddNestedElement(fs11)
         fss1.AddNestedElement(fs12)
         fss1.AddNestedElement(fs13)
@@ -243,14 +243,14 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         resp.SetName("Responses")
         resp.SetDoubleAttribute("min", 0)
-        resp.SetDoubleAttribute("max", 160)
+        resp.SetDoubleAttribute("max", 1)
         
         for i in range(9):
             rval1 = vtkXMLDataElement()
             rval1.SetName("Response")
             rval1.SetIntAttribute("const", 0)
             rval1.SetIntAttribute("sd", 1)
-            rval1.SetCharacterData(str(i * 20), 6)
+            rval1.SetCharacterData(str(i * 0.1), 6)
             resp.AddNestedElement(rval1)
                 
         self.root.SetName("FuzzyInferenceScheme")
@@ -277,8 +277,8 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         model.SetModelParameter(fisc)
         model.SetInputConnection(self.timesource.GetOutputPort())
         
-        for i in range(10):
-            fisc.ModifyParameterRandomly(0.1)
+        for i in range(1000):
+            fisc.ModifyParameterRandomly(5)
             
             model.Modified()
             model.Update()
@@ -286,6 +286,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             fisc.GetXMLRepresentation(self.root)
             fisc.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest_" + str(i) + ".xml")
             fisc.Write()
+            fisc.Read()
             
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)
