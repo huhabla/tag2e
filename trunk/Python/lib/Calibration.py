@@ -67,6 +67,7 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
     metaModel.GetXMLRepresentation(bestFitModelParameter)
     bestFitDataSet = vtkTemporalDataSet()
     bestFitDataSet.ShallowCopy(metaModel.GetModelOutput())
+    bestFitModelAssessment = 1.0
     
     count = 0
 
@@ -84,10 +85,12 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
 
         # Run the model
         metaModel.Run()
+        # Get the model assessment factor
+        modelAssessment = metaModel.GetModelAssessmentFactor()
 
         # Measure the difference between old and new error
         error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(metaModel.GetModelOutput(), \
-                metaModel.GetTargetDataSet(), 1, 0) * metaModel.GetModelAssessmentFactor()
+                metaModel.GetTargetDataSet(), 1, 0) * modelAssessment
 
         diff = error - lastAcceptedError
 
@@ -96,6 +99,8 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
             lastAcceptedError = error
             if error < bestFitError:
                 bestFitError = error
+                
+                bestFitModelAssessment = modelAssessment;
                 print "Store best fit result at iteration ", i, " with error ", bestFitError
                 metaModel.GetXMLRepresentation(bestFitModelParameter)
                 bestFitDataSet.ShallowCopy(metaModel.GetModelOutput())
@@ -125,7 +130,7 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
             print "Best fit reached"
             break
 
-    print "Finished after ", count, " Iterations with best fit ", bestFitError
+    print "Finished after ", count, " Iterations with best fit ", bestFitError, " and Model assessment ", bestFitModelAssessment
     
-    return bestFitModelParameter, bestFitDataSet, bestFitError
+    return bestFitModelParameter, bestFitDataSet, bestFitError, bestFitModelAssessment
 

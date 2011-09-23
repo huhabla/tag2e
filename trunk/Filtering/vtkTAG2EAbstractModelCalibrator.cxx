@@ -259,6 +259,8 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   else
     result = squareSum / (numberOfValues);
 
+  cout << "Dataset difference measure: " << result << endl;
+  
   allMeasure->Delete();
 
   return result;
