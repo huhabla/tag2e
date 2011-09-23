@@ -139,7 +139,7 @@ def main():
 
     initparamXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "initparameter")
     initparamXML.RequiredOff()
-    initparamXML.SetDescription("The name of the initial XML (weighted) fuzzy inference parameter file, including factors which are already calibrated.")
+    initparamXML.SetDescription("The name of the initial XML (weighted) fuzzy inference parameter file, including factors (and weights) which are already calibrated.")
 
     weightingFactor = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetDataBaseColumnType(), "weightfactor")
     weightingFactor.SetDescription("Name of the table column of the weighting variable")
@@ -216,17 +216,15 @@ def main():
     weighting.SetDescription("Use weighting for input data calibration. A weightingfactor and the number of weights must be provided.")
     weighting.SetKey('w')
 
-    logfile = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType())
-    logfile.SetKey("log")
-    logfile.RequiredOn()
-    logfile.SetDefaultAnswer("error.log")
-    logfile.SetDescription("The name of the logfile to store the model error and AKAIKE criteria")
+    output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
+    output.RequiredOff()
+    output.SetDescription("The best fitted model result as vector map")
 
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "parameter")
     paramXML.SetDescription("Output name of the calibrated XML (weighted) fuzzy inference parameter file")
 
-    output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
-    output.SetDescription("The best fitted model result as vector map")
+    logfile = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "log")
+    logfile.SetDescription("The name of the logfile to store the model error and AKAIKE criteria")
 
     outputvtk = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "vtkoutput")
     outputvtk.RequiredOff()
@@ -261,6 +259,9 @@ def main():
     for i in range(setnums.GetNumberOfValues()):
         fuzzySetNum.append(int(setnums.GetValue(i)))
 
+    if columns.GetNumberOfValues() != setnums.GetNumberOfValues():
+        messages.FatalError("The number of factors must match the number of fuzzysets: factors=a,b,c fuzzysets=3,2,3")
+    
     columns.InsertNextValue(target.GetAnswer())
     
     if weighting.GetAnswer() == True:
@@ -393,7 +394,7 @@ def main():
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetTargetDataSet(timesource.GetOutput())
 
-        bestFitParameter, bestFitOutput, bestFitError = \
+        bestFitParameter, bestFitOutput, bestFitError, ModelAssessmentFactor = \
                                            Calibration.MetaModelSimulatedAnnealingImproved(\
                                            meta, int(iterations.GetAnswer()),\
                                            1, float(sd.GetAnswer()),
@@ -401,7 +402,7 @@ def main():
                                            float(sdreduce.GetAnswer()))
 
         bestFitParameter.PrintXML(paramXML.GetAnswer())
-
+        
         outputTDS.ShallowCopy(bestFitOutput)
 
     else:
@@ -436,32 +437,33 @@ def main():
 
         outputTDS.ShallowCopy(caliModel.GetOutput())
 
-    messages.Message("Writing result vector map")
     
-    # Areas must be treated in a specific way to garant correct topology
-    if feature.GetAnswer() == "area":
-        columns = vtkStringArray()
-        columns.InsertNextValue("cat")
-        # Read the centroids
-        boundaries = vtkGRASSVectorTopoPolyDataReader()
-        boundaries.SetVectorName(input.GetAnswer())
-        boundaries.SetColumnNames(columns)
-        boundaries.SetFeatureTypeToBoundary()
-        boundaries.Update()
-        
-        writer = vtkGRASSVectorPolyDataAreaWriter()
-        writer.SetInput(0, boundaries.GetOutput())
-        writer.SetInput(1, outputTDS.GetTimeStep(0))
-        writer.SetVectorName(output.GetAnswer())
-        writer.BuildTopoOn()
-        writer.Update()     
-    else:
-        # Write the result as vector map
-        writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInput(outputTDS.GetTimeStep(0))
-        writer.SetVectorName(output.GetAnswer())
-        writer.BuildTopoOn()
-        writer.Update()
+    if output.GetAnswer():
+        messages.Message("Writing result vector map")
+        # Areas must be treated in a specific way to garant correct topology
+        if feature.GetAnswer() == "area":
+            columns = vtkStringArray()
+            columns.InsertNextValue("cat")
+            # Read the centroids
+            boundaries = vtkGRASSVectorTopoPolyDataReader()
+            boundaries.SetVectorName(input.GetAnswer())
+            boundaries.SetColumnNames(columns)
+            boundaries.SetFeatureTypeToBoundary()
+            boundaries.Update()
+
+            writer = vtkGRASSVectorPolyDataAreaWriter()
+            writer.SetInput(0, boundaries.GetOutput())
+            writer.SetInput(1, outputTDS.GetTimeStep(0))
+            writer.SetVectorName(output.GetAnswer())
+            writer.BuildTopoOn()
+            writer.Update()     
+        else:
+            # Write the result as vector map
+            writer = vtkGRASSVectorPolyDataWriter()
+            writer.SetInput(outputTDS.GetTimeStep(0))
+            writer.SetVectorName(output.GetAnswer())
+            writer.BuildTopoOn()
+            writer.Update()
         
     # Compute the AKAIKE criteria
     residuals = vtkDoubleArray()
@@ -470,10 +472,8 @@ def main():
     vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
     
     AKAIKE = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
-
+    # We use the model assessment factor to fit the akaike criteria
     AKAIKE = AKAIKE * ModelAssessmentFactor
-    
-    messages.Message("Writing result VTK poly data")
     
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
@@ -486,6 +486,7 @@ def main():
     
     # Create the poly data output for paraview analysis
     if outputvtk.GetAnswer():
+        messages.Message("Writing result VTK poly data")
         pwriter = vtkXMLPolyDataWriter()
         pwriter.SetFileName(outputvtk.GetAnswer() + ".vtp")
         pwriter.SetInput(outputTDS.GetTimeStep(0))

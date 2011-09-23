@@ -86,7 +86,7 @@ bool tag2eFIS::ComputeRuleCodeMatrixEntries(std::vector< std::vector<int> > &Rul
   int numberOfFactors = FIS.Factors.size();
 
   // Compute the rule code matrix which contains the 
-  // permutation of all factors. The matrix enries are
+  // permutation of all factors. The matrix entries are
   // the ids of the fuzzy set shapes.
   // The size of the matrix is numberOfRules * numberOfFactors.
   // Example:

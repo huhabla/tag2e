@@ -44,18 +44,21 @@ from libvtkGRASSBridgeCommonPython import *
 def ComputeDoubleArrayRange(array, noData):
 
     min, max = array.GetRange()
+    
+    sum = 0.0
 
     if max == noData:
         max = min
 
     for i in range(array.GetNumberOfTuples()):
         val = array.GetValue(i)
+        sum += val
         if val < min:
             min = val
         elif val != noData and val > max:
             max = val
 
-    return min, max
+    return min, max, sum/array.GetNumberOfTuples()
 
 ################################################################################
 ################################################################################
@@ -76,9 +79,9 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
         numberOfRules *= fuzzySetNum[i]
 
         if useCellData == False:
-            min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
+            min, max, rmean = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(factorNames[i]), noData)
         else:
-            min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
+            min, max, rmean = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(factorNames[i]), noData)
 
         # Generate the initial shapes automatically
         if fuzzySetNum[i] == 2:
@@ -94,9 +97,9 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
             fuzzyRoot.AddNestedElement(GenerateFactor5(factorNames[i], min, max, mean))
 
     if useCellData == False:
-        min, max = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
+        min, max, rmean = ComputeDoubleArrayRange(dataset.GetPointData().GetArray(measureName), noData)
     else:
-        min, max = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
+        min, max, rmean = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
 
     print "Using ", numberOfRules, " number of rules "
 
@@ -109,7 +112,8 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)
         rval.SetIntAttribute("sd", 1)
-        rval.SetCharacterData(str(0), 6)
+        print "Response %i set to %f" % (i, rmean)
+        rval.SetCharacterData(str(rmean), 8)
 
         resp.AddNestedElement(rval)
 
@@ -126,7 +130,7 @@ def GenerateFactor5(factorName, min, max, mean):
     """
 
     Triangular test shape layout
-    _                _
+   _                _
     \  /\  /\  /\  /
      \/  \/  \/  \/
      /\  /\  /\  /\

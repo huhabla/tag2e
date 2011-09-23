@@ -4,7 +4,7 @@
 #
 # Program: r.fuzzy.model
 #
-# Purpose: Compute a weighted fuzzy inference model based on vector data
+# Purpose: Compute a weighted fuzzy inference model based on raster data
 #
 # Authors: Soeren Gebbert, soeren.gebbert@vti.bund.de
 #          Rene Dechow, rene.dechow@vti.bund.de
@@ -51,25 +51,20 @@ from libvtkGRASSBridgeTemporalPython import *
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("v.fuzzy.model")
+    init.Init("r.fuzzy.model")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
     module.SetDescription("Compute a (weighted) fuzzy inference model based on vector data")
-    module.AddKeyword("vector")
+    module.AddKeyword("raster")
     module.AddKeyword("fuzzy")
 
-    input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
-
-    feature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorFeatureType())
-    feature.SetDefaultOptions("point,centroid,area")
-    feature.SetDefaultAnswer("point")
-    feature.MultipleOff()
+    input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputsType())
     
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "parameter")
     paramXML.SetDescription("Name of the XML (weighted) fuzzy inference parameter file")
 
-    output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
+    output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     output.SetDescription("The model result")
 
     weighting = vtkGRASSFlag()
@@ -78,7 +73,7 @@ def main():
 
     vtkout = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "vtkout")
     vtkout.RequiredOff()
-    vtkout.SetDescription("The file name of the best fitted model result exported as VTK poly data output (.vtp is added automatically)")
+    vtkout.SetDescription("The file name of the best fitted model result exported as VTK image data output (.vtk)")
 
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -89,15 +84,29 @@ def main():
 
     messages = vtkGRASSMessagingInterface()
 
-    messages.Message("Reading vector map into memory")
-    # Reader
-    dataset = vtkGRASSVectorTopoPolyDataReader()
-    dataset.SetVectorName(input.GetAnswer())
-    if feature.GetAnswer() == "point":
-        dataset.SetFeatureTypeToPoint()
-    if feature.GetAnswer() == "centroid" or feature.GetAnswer() == "area":
-        dataset.SetFeatureTypeToCentroid()
-    dataset.Update()
+    messages.Message("Reading raster map into memory")
+    
+    raster_maps = vtkStringArray()
+    input.GetAnswers(raster_maps)
+    
+    dataset = vtkImageData()
+    
+    # Read all raster maps into memory
+    for count in range(raster_maps.GetNumberOfValues()):
+        map_name = raster_maps.GetValue(count)
+        map = vtkGRASSRasterImageReader()
+        map.SetRasterName(map_name)
+        map.UseCurrentRegion()
+        map.SetNullValue(9999)
+        map.UseNullValueOn()
+        map.ReadMapAsDouble()
+        map.Update()
+        map.GetOutput().GetPointData().GetScalars().SetName(map_name)
+
+        if count == 0:
+            dataset.DeepCopy(map.GetOutput())
+        else:
+            dataset.GetPointData().AddArray(map.GetOutput().GetPointData().GetScalars())
 
     # Generate the time steps
     timesteps = vtkDoubleArray()
@@ -108,7 +117,7 @@ def main():
     # Create the spatio-temporal source
     timesource = vtkTemporalDataSetSource()
     timesource.SetTimeRange(0, 3600*24, timesteps)
-    timesource.SetInputConnection(0, dataset.GetOutputPort())
+    timesource.SetInput(0, dataset)
 
     outputTDS = vtkTemporalDataSet()
 
@@ -145,7 +154,7 @@ def main():
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(timesource.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
-        modelFIS.UseCellDataOn()
+        modelFIS.UseCellDataOff()
 
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
@@ -154,7 +163,7 @@ def main():
         modelW = vtkTAG2EWeightingModel()
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
-        modelW.UseCellDataOn()
+        modelW.UseCellDataOff()
         modelW.Update()
 
         outputTDS.ShallowCopy(modelW.GetOutput())
@@ -168,44 +177,25 @@ def main():
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(timesource.GetOutputPort())
         model.SetModelParameter(parameter)
-        model.UseCellDataOn()
+        model.UseCellDataOff()
         model.Update()
 
         outputTDS.ShallowCopy(model.GetOutput())
 
-    messages.Message("Writing result vector map")
-    
-    # Areas must be treated in a specific way to garant correct topology
-    if feature.GetAnswer() == "area":
-        columns = vtkStringArray()
-        columns.InsertNextValue("cat")
-        # Read the centroids
-        boundaries = vtkGRASSVectorTopoPolyDataReader()
-        boundaries.SetVectorName(input.GetAnswer())
-        boundaries.SetColumnNames(columns)
-        boundaries.SetFeatureTypeToBoundary()
-        boundaries.Update()
-        
-        writer = vtkGRASSVectorPolyDataAreaWriter()
-        writer.SetInput(0, boundaries.GetOutput())
-        writer.SetInput(1, outputTDS.GetTimeStep(0))
-        writer.SetVectorName(output.GetAnswer())
-        writer.BuildTopoOn()
-        writer.Update()     
-    else:
-        # Write the result as vector map
-        writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInput(outputTDS.GetTimeStep(0))
-        writer.SetVectorName(output.GetAnswer())
-        writer.BuildTopoOn()
-        writer.Update()
+    messages.Message("Writing first result raster map")
+
+    # Write the result as vector map
+    writer = vtkGRASSRasterImageWriter()
+    writer.SetInput(outputTDS.GetTimeStep(0))
+    writer.SetRasterName(output.GetAnswer())
+    writer.Update()
 
     messages.Message("Writing result VTK poly data")
     
     # Create the poly data output for paraview analysis
     if vtkout.GetAnswer():
-        pwriter = vtkXMLPolyDataWriter()
-        pwriter.SetFileName(vtkout.GetAnswer() + ".vtp")
+        pwriter = vtkXMLImageDataWriter()
+        pwriter.SetFileName(vtkout.GetAnswer() + ".vti")
         pwriter.SetInput(outputTDS.GetTimeStep(0))
         pwriter.Write()
     
