@@ -1,7 +1,7 @@
 # @preprocess
 
 # Create a region which works in UTM, LL and other projections
-g.region n=80 s=0 e=120 w=0 res=1
+g.region n=80 s=0 e=120 w=0 res=10
 # Generate the value maps
 #r.mapcalc --o expr="map1 = 5 + 1*row()*sin(row()) + 1*col()*cos(col())"
 #r.mapcalc --o expr="map1 = row()"
@@ -38,14 +38,14 @@ r.fuzzy.model --o input=map1,result1 param=result1_param.xml output=model1 vtkou
 r.mapcalc --o expr="diff1 = result1 - model1"
 r.univar diff1
 
-v.fuzzy.calibrator --o input=result2 output=result2_cal factors=map1,map2 target=result2 fuzzysets=2,3 parameter=result2_param.xml log=result2.log vtkoutput=result2 treduce=1.001 sd=5 sdreduce=1.005 iter=15000 breakcrit=0.01
+v.fuzzy.calibrator --o input=result2 output=result2_cal factors=map1,map2 target=result2 fuzzysets=2,3 parameter=result2_param.xml log=result2.log vtkoutput=result2  fuzzyvtk=result2 treduce=1.001 sd=5 sdreduce=1.005 iter=1500 breakcrit=0.01
 v.db.select map=result2_cal columns=result,result2 > result2.txt
 v.fuzzy.model --o input=result2 param=result2_param.xml output=model2 vtkout=model2_vect
 r.fuzzy.model --o input=map1,map2,result2 param=result2_param.xml output=model2 vtkout=model2_rast
 r.mapcalc --o expr="diff2 = result2 - model2"
 r.univar diff2
 
-v.fuzzy.calibrator --o input=result3 output=result3_cal factors=map1,map2,map3 target=result3 fuzzysets=3,3,3 parameter=result3_param.xml log=result3.log vtkoutput=result3 treduce=1.0002 sd=25 sdreduce=1.001 iter=50000 breakcrit=0.1
+v.fuzzy.calibrator --o input=result3 output=result3_cal factors=map1,map2,map3 target=result3 fuzzysets=3,3,3 parameter=result3_param.xml log=result3.log vtkoutput=result3 fuzzyvtk=result3 treduce=1.0002 sd=25 sdreduce=1.001 iter=5000 breakcrit=0.1
 v.db.select map=result3_cal columns=result,result3 > result3.txt
 v.fuzzy.model --o input=result3 param=result3_param.xml output=model3 vtkout=model3_vect
 r.fuzzy.model --o input=map1,map2,map3,result3 param=result3_param.xml output=model3 vtkout=model3_rast

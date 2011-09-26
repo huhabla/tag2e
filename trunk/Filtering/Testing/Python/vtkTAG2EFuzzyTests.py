@@ -288,6 +288,20 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
             fisc.Write()
             fisc.Read()
             
+        fim = vtkTAG2EFuzzyInferenceModelParameterToImageData()
+        fim.SetFuzzyModelParameter(fisc)
+        fim.SetXAxisExtent(50)
+        fim.SetYAxisExtent(50)
+        fim.SetZAxisExtent(50)
+        fim.Update()
+        
+        pwriter = vtkXMLImageDataWriter()
+        pwriter.SetFileName("/tmp/vtkTAG2EFuzzyInferenceModelParameterTest.vti")
+        pwriter.SetInput(fim.GetOutput())
+        pwriter.Write()
+        
+        print(fim.GetOutput())
+            
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EDFuzzyTest)
     unittest.TextTestRunner(verbosity=2).run(suite1) 
