@@ -25,6 +25,7 @@ v.db.join  map=result_mapcalc column=cat otable=map2 ocolumn=cat --v
 v.db.join  map=result_mapcalc column=cat otable=map3 ocolumn=cat --v
 v.db.join  map=result_mapcalc column=cat otable=weight ocolumn=cat --v
 
+# @test
 v.fuzzy.select --o input=result_mapcalc output=result_best_fit factors=map1,map2,map3 \
                    target=result_mapcalc fuzzysets=2 parameter=result_best_fit.xml \
                    log=result1.log iter=5000 runs=1 sdepth=3 weightnum=12 weightfactor=weight \

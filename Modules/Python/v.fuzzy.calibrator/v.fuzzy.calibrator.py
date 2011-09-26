@@ -230,6 +230,10 @@ def main():
     outputvtk.RequiredOff()
     outputvtk.SetDescription("The file name of the best fitted model result exported as VTK XML poly data output (.vtp)")
 
+    fuzzyvtk = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "fuzzyvtk")
+    fuzzyvtk.RequiredOff()
+    fuzzyvtk.SetDescription("The file name of the best fitted fuzzy model exported as VTK XML image data output (.vti)")
+
     paramter = vtkStringArray()
     for arg in sys.argv:
         paramter.InsertNextValue(str(arg))
@@ -491,6 +495,22 @@ def main():
         pwriter.SetFileName(outputvtk.GetAnswer() + ".vtp")
         pwriter.SetInput(outputTDS.GetTimeStep(0))
         pwriter.Write()
+    
+    # Create the poly data output for paraview analysis
+    if fuzzyvtk.GetAnswer() and not weighting.GetAnswer():
+        messages.Message("Writing Fuzzy Inference Scheme XML represenation as VTK image data")
+        
+        fim = vtkTAG2EFuzzyInferenceModelParameterToImageData()
+        fim.SetFuzzyModelParameter(parameter)
+        fim.SetXAxisExtent(50)
+        fim.SetYAxisExtent(50)
+        fim.SetZAxisExtent(50)
+        fim.Update()
+        
+        iwriter = vtkXMLImageDataWriter()
+        iwriter.SetFileName(fuzzyvtk.GetAnswer() + ".vti")
+        iwriter.SetInput(fim.GetOutput())
+        iwriter.Write()
     
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
                      " and AKAIKE criteria " + str(AKAIKE))
