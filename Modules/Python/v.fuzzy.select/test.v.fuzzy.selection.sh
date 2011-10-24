@@ -1,7 +1,7 @@
 # @preprocess
 
 # Create a region which works in UTM, LL and other projections
-g.region n=15 s=0 e=12 w=0 res=0.5
+g.region n=15 s=0 e=12 w=0 res=1
 # Generate the value maps
 #r.mapcalc --o expr="map1 = 5 + 1*row()*sin(row()) + 1*col()*cos(col())"
 #r.mapcalc --o expr="map1 = row()"
@@ -26,7 +26,13 @@ v.db.join  map=result_mapcalc column=cat otable=map3 ocolumn=cat --v
 v.db.join  map=result_mapcalc column=cat otable=weight ocolumn=cat --v
 
 # @test
-v.fuzzy.select --o input=result_mapcalc output=result_best_fit factors=map1,map2,map3 \
-                   target=result_mapcalc fuzzysets=2 parameter=result_best_fit.xml \
-                   log=result1.log iter=5000 runs=1 sdepth=3 weightnum=12 weightfactor=weight \
-                   resultlist=result_list.txt -w
+v.fuzzy.select --o input=result_mapcalc factors=map1,map2,map3 \
+                   target=result_mapcalc fuzzysets=2,3 rsum=RSummary.txt rpdf=RSummary.pdf \
+                   iter=6000 runs=1 sdepth=3 result=Result.txt  treduce=1.02 sdreduce=1.02\
+                   breakcrit=0.0001
+
+v.fuzzy.select --o input=result_mapcalc factors=map1,map2,map3 \
+                   target=result_mapcalc fuzzysets=2,3 rsum=RSummary_weitght.txt rpdf=RSummary_weight.pdf \
+                   iter=5000 runs=1 sdepth=3 weightnum=12 weightfactor=weight \
+                   result=Result_weight.txt  treduce=1.02 sdreduce=1.02 -w \
+                   breakcrit=0.0001
