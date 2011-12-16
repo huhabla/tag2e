@@ -165,7 +165,7 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
   unsigned int timeStep;
   int numberOfRules = 0;
   int numberOfFactors = 0;
-  int i;
+  int i, j;
   int observationCount = 0;
 
   // get the info objects
@@ -210,7 +210,6 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
   // Iterate over each timestep of the first input
   // Timesteps must be equal in the inputs.
   for (timeStep = 0; timeStep < firstInput->GetNumberOfTimeSteps(); timeStep++) {
-    int j;
     int port;
 
     // The first input is used to create the ouput
@@ -283,13 +282,34 @@ int vtkTAG2EFuzzyInferenceModel::RequestData(
       // Put the array pointer into the vector template
       Data.push_back(inputData->GetArray(this->ArrayNames->GetValue(i)));
     }
-    
+
     int num;
     if(this->UseCellData)
       num = firstInputDataSet->GetNumberOfCells();
     else
       num = firstInputDataSet->GetNumberOfPoints();
-    
+ 
+    /* We need to adjust the value range in case of a none-calibration model run */
+    for (i = 0; i < this->FuzzyModelParameter->GetNumberOfFactors(); i++) {
+
+      if(strcmp(FIS.Factors[i].name.c_str(),Data[i]->GetName()) != 0) {
+        vtkErrorMacro( << "Array names are different, unable to adjust data range");
+        return -1;
+      }
+      double min = FIS.Factors[i].min;
+      double max = FIS.Factors[i].max;
+      double value = 0.0;
+      
+      for (j = 0; j < num; j++) {
+        value = Data[i]->GetTuple1(j);
+        if(value < min)
+          Data[i]->SetTuple1(j, min);
+        if(value > max)
+          Data[i]->SetTuple1(j, max);
+      }
+    }
+
+   
     for (i = 0; i < num; i++) {
 
       // Input array for fuzzy logic computation

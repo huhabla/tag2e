@@ -277,7 +277,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         model.SetModelParameter(fisc)
         model.SetInputConnection(self.timesource.GetOutputPort())
         
-        for i in range(1000):
+        for i in range(5000):
             fisc.ModifyParameterRandomly(5)
             
             model.Modified()

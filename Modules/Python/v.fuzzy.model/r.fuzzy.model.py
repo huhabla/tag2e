@@ -60,6 +60,13 @@ def main():
     module.AddKeyword("fuzzy")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputsType())
+
+    alias = vtkGRASSOption()
+    alias.SetKey("alias")
+    alias.SetDescription("Alias name of the input raster maps in the XML fuzzy inference scheme file")
+    alias.RequiredOff()
+    alias.MultipleOn()
+    alias.SetTypeToString()
     
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "parameter")
     paramXML.SetDescription("Name of the XML (weighted) fuzzy inference parameter file")
@@ -88,12 +95,24 @@ def main():
     
     raster_maps = vtkStringArray()
     input.GetAnswers(raster_maps)
+     
+    raster_alias = vtkStringArray()
+    alias.GetAnswers(raster_alias)
     
+    if raster_alias.GetNumberOfValues() > 0 and raster_alias.GetNumberOfValues() != raster_maps.GetNumberOfValues():
+        messages.FatalError("The number of inputs and alias must be equal")
+    
+    # Use raster map names in case no alias is provided
+    if raster_alias.GetNumberOfValues() == 0:
+        input.GetAnswers(raster_alias)
+
     dataset = vtkImageData()
     
     # Read all raster maps into memory
     for count in range(raster_maps.GetNumberOfValues()):
         map_name = raster_maps.GetValue(count)
+        alias_name = raster_alias.GetValue(count)
+        print map_name,alias_name
         map = vtkGRASSRasterImageReader()
         map.SetRasterName(map_name)
         map.UseCurrentRegion()
@@ -101,12 +120,14 @@ def main():
         map.UseNullValueOn()
         map.ReadMapAsDouble()
         map.Update()
-        map.GetOutput().GetPointData().GetScalars().SetName(map_name)
+        map.GetOutput().GetPointData().GetScalars().SetName(alias_name)
 
         if count == 0:
             dataset.DeepCopy(map.GetOutput())
         else:
             dataset.GetPointData().AddArray(map.GetOutput().GetPointData().GetScalars())
+            print "Add", map.GetOutput().GetPointData().GetScalars().GetName()
+
 
     # Generate the time steps
     timesteps = vtkDoubleArray()
