@@ -31,10 +31,13 @@
  */
 
 #include <iostream>
+#include <iomanip>
 #include <math.h>
 #include "tag2eFIS.h"
 
-#define TOLERANCE 0.001
+using namespace std;
+
+#define TOLERANCE 0.000001
 
 /* This is a static array with smapling points and associated values
  * of the standard normal distribution. It is
@@ -163,7 +166,7 @@ double tag2eFIS::ComputeFISResult(double *Input,
 
   // Check for wrong results and apply the deegrees of fullfillment
   if (sum_dofs == 0) {
-    std::cerr << "Sum of deegrees of fullfillments is 0. Expect wrong model results. Factors: ";
+    std::cerr << "Warning: Sum of deegrees of fullfillments is 0. Expect wrong model results. Factors: ";
     for(unsigned int i = 0; i < FIS.Factors.size(); i++)
       std::cerr << Input[i] << " ";
     std::cerr << std::endl;
@@ -276,48 +279,64 @@ bool tag2eFIS::CheckFuzzyFactor(FuzzyFactor& Factor)
     if (Set.type == FUZZY_SET_TYPE_TRIANGULAR) {
       
       if(Set.Triangular.center > Factor.max){
-          std::cerr << "ERROR: Center is larger then max:" << Factor.max << " < " << Set.Triangular.center << std::endl;
+          std::cerr << "ERROR: Center is larger then max:" << setprecision(15) << Factor.max << " < " 
+                    << setprecision(15) << Set.Triangular.center << std::endl;
           return false;
         }        
       
       if(Set.Triangular.center < Factor.min){
-          std::cerr << "ERROR: Center is lower then min:" << Factor.min << " > " << Set.Triangular.center << std::endl;
+          std::cerr << "ERROR: Center is lower then min:" << setprecision(15) << Factor.min << " > " 
+                    << setprecision(15) << Set.Triangular.center << std::endl;
           return false;
         }        
       
       // Check the center position
       if (Set.position == FUZZY_SET_POISITION_LEFT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j + 1].Triangular.center <= Set.Triangular.center) {
-          //std::cerr << "ERROR: Wrong center in fuzzy Sets " << j << " > " << j + 1 
-          //         << " : " << Set.Triangular.center << " and " << Factor.Sets[j + 1].Triangular.center << std::endl;
+          //std::cerr << "WARNING: Wrong center in fuzzy Sets " << j << " > " << j + 1 
+          //          << " : " << setprecision(15) << Set.Triangular.center << " and " 
+          //          << setprecision(15) << Factor.Sets[j + 1].Triangular.center << std::endl;
           return false;
         }  
         if (fabs(Factor.Sets[j + 1].Triangular.left - Set.Triangular.right) > TOLERANCE) {
-          std::cerr << "ERROR: Triangle shapes are different between fuzzy sets " << j << " and " << j + 1 << std::endl;
+          std::cerr << "WARNING: Triangle shapes are different between fuzzy sets " << j << " and " 
+                    << j + 1 << " : " << setprecision(15) << Set.Triangular.right << " and " 
+                    << setprecision(15) << Factor.Sets[j + 1].Triangular.left << std::endl;
           return false;
         } 
         double value = Set.Triangular.right + Set.Triangular.center;
         double diff = fabs(Factor.Sets[j + 1].Triangular.center - value);
         if( diff > TOLERANCE){
-          std::cerr << "ERROR: Triangle shapes of fuzzy sets " << j << " and " << j + 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          std::cerr << "WARNING: Triangle shapes of fuzzy sets " << j << " and " 
+                    << j + 1 << " are incorrect positioned, difference: " 
+                    << setprecision(15) << diff << " center[j]+right " << setprecision(15) << value
+                    << " center[j + 1] "  << setprecision(15) << Factor.Sets[j + 1].Triangular.center
+                    << std::endl;
           return false;
         }
       }
       
       if (Set.position == FUZZY_SET_POISITION_RIGHT || Set.position == FUZZY_SET_POISITION_INT) {
         if (Factor.Sets[j - 1].Triangular.center >= Set.Triangular.center) {
-          //std::cerr << "ERROR: Wrong center in fuzzy Sets " << j << " < " << j - 1 
-          //         << " : " << Set.Triangular.center << " and " << Factor.Sets[j - 1].Triangular.center << std::endl;
+          //std::cerr << "WARNING: Wrong center in fuzzy Sets " << j << " < " << j - 1 
+          //          << " : " << setprecision(15) << Set.Triangular.center << " and " 
+          //          << setprecision(15) << Factor.Sets[j - 1].Triangular.center << std::endl;
           return false;
         }        
         if (fabs(Factor.Sets[j - 1].Triangular.right - Set.Triangular.left) > TOLERANCE) {
-          std::cerr << "ERROR: Triangle shapes are different between fuzzy sets " << j << " and " << j - 1 << std::endl;
+          std::cerr << "WARNING: Triangle shapes are different between fuzzy sets " 
+                    << j << " and " << j - 1 << " : " << setprecision(15) << Set.Triangular.left << " and " 
+                    << setprecision(15) << Factor.Sets[j - 1].Triangular.right << std::endl;
           return false;
         } 
         double value = Set.Triangular.center - Set.Triangular.left;
         double diff = fabs(Factor.Sets[j - 1].Triangular.center - value);
         if( diff > TOLERANCE){
-          std::cerr << "ERROR: Triangle shapes of fuzzy sets " << j << " and " << j - 1 << " are incorrect positioned, difference: " << diff << std::endl;
+          std::cerr << "WARNING: Triangle shapes of fuzzy sets " << j << " and " 
+                    << j - 1 << " are incorrect positioned, difference: " 
+                    << setprecision(15) << diff << " center[j]+left " << setprecision(15) << value
+                    << " center[j - 1] " << setprecision(15) << Factor.Sets[j - 1].Triangular.center
+                    << std::endl;
           return false;
         }
       }

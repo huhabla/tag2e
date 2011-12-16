@@ -44,7 +44,7 @@ sfs = read.table("input.txt", header=TRUE, sep="|")
 
 ################################################################################
 # Compute linear regression model
-sfslm = lm(sfs$target_variable ~ 0 + sfs$result_variable)
+sfslm = lm(sfs$target_variable ~ sfs$result_variable)
 sfslmsum = summary(sfslm)
 sfslmsum
 paste("AKAIKE: " , AIC(sfslm))

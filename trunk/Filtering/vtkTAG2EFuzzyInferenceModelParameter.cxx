@@ -108,11 +108,11 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         std::ostringstream value1;
         std::ostringstream value2;
         std::ostringstream value3;
-        value1 << setprecision(15) << Set.Triangular.center;
+        value1 << setprecision(20) << Set.Triangular.center;
         triangular->SetAttribute("center", value1.str().c_str());
-        value2 << setprecision(15) << Set.Triangular.left;
+        value2 << setprecision(20) << Set.Triangular.left;
         triangular->SetAttribute("left",   value2.str().c_str());
-        value3 << setprecision(15) << Set.Triangular.right;
+        value3 << setprecision(20) << Set.Triangular.right;
         triangular->SetAttribute("right",  value3.str().c_str());
 
         set->AddNestedElement(triangular);
@@ -124,9 +124,9 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         crisp->SetName("Crisp");
         std::ostringstream value1;
         std::ostringstream value2;
-        value1 << setprecision(15) << Set.Crisp.right;
+        value1 << setprecision(20) << Set.Crisp.right;
         crisp->SetAttribute("right", value1.str().c_str());
-        value2 << setprecision(15) << Set.Crisp.left;
+        value2 << setprecision(20) << Set.Crisp.left;
         crisp->SetAttribute("left", value2.str().c_str());
 
         set->AddNestedElement(crisp);
@@ -139,11 +139,11 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
         std::ostringstream value1;
         std::ostringstream value2;
         std::ostringstream value3;
-        value1 << setprecision(15) << Set.BellShape.center;
+        value1 << setprecision(20) << Set.BellShape.center;
         bellshape->SetAttribute("center", value1.str().c_str());
-        value2 << setprecision(15) << Set.BellShape.sdLeft;
+        value2 << setprecision(20) << Set.BellShape.sdLeft;
         bellshape->SetAttribute("sdLeft", value2.str().c_str());
-        value3 << setprecision(15) << Set.BellShape.sdRight;
+        value3 << setprecision(20) << Set.BellShape.sdRight;
         bellshape->SetAttribute("sdRight", value3.str().c_str());
 
         set->AddNestedElement(bellshape);
@@ -159,8 +159,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   vtkXMLDataElement *responses = vtkXMLDataElement::New();
 
   responses->SetName("Responses");
-  responses->SetIntAttribute("min", this->FIS.Responses.min);
-  responses->SetIntAttribute("max", this->FIS.Responses.max);
+  responses->SetDoubleAttribute("min", this->FIS.Responses.min);
+  responses->SetDoubleAttribute("max", this->FIS.Responses.max);
 
   for (i = 0; i < this->FIS.Responses.Responses.size(); i++) {
     FuzzyResponse &Response = this->FIS.Responses.Responses[i];
@@ -170,7 +170,7 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
     response->SetIntAttribute("const", (int) Response.constant);
     response->SetDoubleAttribute("sd", Response.sd);
     std::ostringstream value;
-    value << setprecision(15) << Response.value;
+    value << setprecision(20) << Response.value;
     response->SetCharacterData(value.str().c_str(), value.str().size());
 
     responses->AddNestedElement(response);

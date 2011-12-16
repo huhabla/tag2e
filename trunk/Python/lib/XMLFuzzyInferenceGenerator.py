@@ -1,4 +1,4 @@
-0,#!/usr/bin/env python
+#!/usr/bin/env python
 #
 # Toolkit for Agriculture Greenhouse Gas Emission Estimation TAG2E
 #
