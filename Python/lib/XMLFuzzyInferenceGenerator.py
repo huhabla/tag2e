@@ -112,8 +112,7 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
         rval.SetName("Response")
         rval.SetIntAttribute("const", 0)
         rval.SetIntAttribute("sd", 1)
-        print "Response %i set to %f" % (i, rmean)
-        rval.SetCharacterData(str(rmean), 8)
+        rval.SetCharacterData(str(rmean), 15)
 
         resp.AddNestedElement(rval)
 
@@ -125,6 +124,9 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
     
     return fuzzyRoot
 
+################################################################################
+################################################################################
+################################################################################
 
 def GenerateFactor5(factorName, min, max, mean):
     """
@@ -160,29 +162,29 @@ def GenerateFactor5(factorName, min, max, mean):
     fss = vtkXMLDataElement()
 
     tr1.SetName("Triangular")
-    tr1.SetDoubleAttribute("left",   shapeL[0])
-    tr1.SetDoubleAttribute("center", shapeL[1])
-    tr1.SetDoubleAttribute("right",  shapeL[2])
+    tr1.SetAttribute("left",   "%.15f" % shapeL[0])
+    tr1.SetAttribute("center", "%.15f" % shapeL[1])
+    tr1.SetAttribute("right",  "%.15f" % shapeL[2])
 
     tr2.SetName("Triangular")
-    tr2.SetDoubleAttribute("left",    shapeI1[0])
-    tr2.SetDoubleAttribute("center",  shapeI1[1])
-    tr2.SetDoubleAttribute("right",   shapeI1[2])
+    tr2.SetAttribute("left",    "%.15f" % shapeI1[0])
+    tr2.SetAttribute("center",  "%.15f" % shapeI1[1])
+    tr2.SetAttribute("right",   "%.15f" % shapeI1[2])
 
     tr3.SetName("Triangular")
-    tr3.SetDoubleAttribute("left",    shapeI2[0])
-    tr3.SetDoubleAttribute("center",  shapeI2[1])
-    tr3.SetDoubleAttribute("right",   shapeI2[2])
+    tr3.SetAttribute("left",    "%.15f" % shapeI2[0])
+    tr3.SetAttribute("center",  "%.15f" % shapeI2[1])
+    tr3.SetAttribute("right",   "%.15f" % shapeI2[2])
 
     tr4.SetName("Triangular")
-    tr4.SetDoubleAttribute("left",    shapeI3[0])
-    tr4.SetDoubleAttribute("center",  shapeI3[1])
-    tr4.SetDoubleAttribute("right",   shapeI3[2])
+    tr4.SetAttribute("left",    "%.15f" % shapeI3[0])
+    tr4.SetAttribute("center",  "%.15f" % shapeI3[1])
+    tr4.SetAttribute("right",   "%.15f" % shapeI3[2])
 
     tr5.SetName("Triangular")
-    tr5.SetDoubleAttribute("left",    shapeR[0])
-    tr5.SetDoubleAttribute("center",  shapeR[1])
-    tr5.SetDoubleAttribute("right",   shapeR[2])
+    tr5.SetAttribute("left",    "%.15f" % shapeR[0])
+    tr5.SetAttribute("center",  "%.15f" % shapeR[1])
+    tr5.SetAttribute("right",   "%.15f" % shapeR[2])
 
     fs1.SetName("FuzzySet")
     fs1.SetAttribute("type", "Triangular")
@@ -266,24 +268,24 @@ def GenerateFactor4(factorName, min, max, mean):
     fss = vtkXMLDataElement()
 
     tr1.SetName("Triangular")
-    tr1.SetDoubleAttribute("left",   shapeL[0])
-    tr1.SetDoubleAttribute("center", shapeL[1])
-    tr1.SetDoubleAttribute("right",  shapeL[2])
+    tr1.SetAttribute("left",   "%.15f" % shapeL[0])
+    tr1.SetAttribute("center", "%.15f" % shapeL[1])
+    tr1.SetAttribute("right",  "%.15f" % shapeL[2])
 
     tr2.SetName("Triangular")
-    tr2.SetDoubleAttribute("left",    shapeI1[0])
-    tr2.SetDoubleAttribute("center",  shapeI1[1])
-    tr2.SetDoubleAttribute("right",   shapeI1[2])
+    tr2.SetAttribute("left",    "%.15f" % shapeI1[0])
+    tr2.SetAttribute("center",  "%.15f" % shapeI1[1])
+    tr2.SetAttribute("right",   "%.15f" % shapeI1[2])
 
     tr3.SetName("Triangular")
-    tr3.SetDoubleAttribute("left",    shapeI2[0])
-    tr3.SetDoubleAttribute("center",  shapeI2[1])
-    tr3.SetDoubleAttribute("right",   shapeI2[2])
+    tr3.SetAttribute("left",    "%.15f" % shapeI2[0])
+    tr3.SetAttribute("center",  "%.15f" % shapeI2[1])
+    tr3.SetAttribute("right",   "%.15f" % shapeI2[2])
 
     tr4.SetName("Triangular")
-    tr4.SetDoubleAttribute("left",    shapeR[0])
-    tr4.SetDoubleAttribute("center",  shapeR[1])
-    tr4.SetDoubleAttribute("right",   shapeR[2])
+    tr4.SetAttribute("left",    "%.15f" % shapeR[0])
+    tr4.SetAttribute("center",  "%.15f" % shapeR[1])
+    tr4.SetAttribute("right",   "%.15f" % shapeR[2])
 
     fs1.SetName("FuzzySet")
     fs1.SetAttribute("type", "Triangular")
@@ -354,19 +356,19 @@ def GenerateFactor3(factorName, min, max, mean):
     fss = vtkXMLDataElement()
 
     tr1.SetName("Triangular")
-    tr1.SetDoubleAttribute("left",   shapeL[0])
-    tr1.SetDoubleAttribute("center", shapeL[1])
-    tr1.SetDoubleAttribute("right",  shapeL[2])
+    tr1.SetAttribute("left",   "%.15f" % shapeL[0])
+    tr1.SetAttribute("center", "%.15f" % shapeL[1])
+    tr1.SetAttribute("right",  "%.15f" % shapeL[2])
 
     tr2.SetName("Triangular")
-    tr2.SetDoubleAttribute("left",    shapeI[0])
-    tr2.SetDoubleAttribute("center",  shapeI[1])
-    tr2.SetDoubleAttribute("right",   shapeI[2])
+    tr2.SetAttribute("left",    "%.15f" % shapeI[0])
+    tr2.SetAttribute("center",  "%.15f" % shapeI[1])
+    tr2.SetAttribute("right",   "%.15f" % shapeI[2])
 
     tr3.SetName("Triangular")
-    tr3.SetDoubleAttribute("left",    shapeR[0])
-    tr3.SetDoubleAttribute("center",  shapeR[1])
-    tr3.SetDoubleAttribute("right",   shapeR[2])
+    tr3.SetAttribute("left",    "%.15f" % shapeR[0])
+    tr3.SetAttribute("center",  "%.15f" % shapeR[1])
+    tr3.SetAttribute("right",   "%.15f" % shapeR[2])
 
     fs1.SetName("FuzzySet")
     fs1.SetAttribute("type", "Triangular")
@@ -427,14 +429,14 @@ def GenerateFactor2(factorName, min, max, mean):
     fss = vtkXMLDataElement()
 
     tr1.SetName("Triangular")
-    tr1.SetDoubleAttribute("center", shapeL[0])
-    tr1.SetDoubleAttribute("left",   shapeL[1])
-    tr1.SetDoubleAttribute("right",  shapeL[2])
+    tr1.SetAttribute("center", "%.15f" % shapeL[0])
+    tr1.SetAttribute("left",   "%.15f" % shapeL[1])
+    tr1.SetAttribute("right",  "%.15f" % shapeL[2])
 
     tr3.SetName("Triangular")
-    tr3.SetDoubleAttribute("center",  shapeR[0])
-    tr3.SetDoubleAttribute("left",    shapeR[1])
-    tr3.SetDoubleAttribute("right",   shapeR[2])
+    tr3.SetAttribute("center",  "%.15f" % shapeR[0])
+    tr3.SetAttribute("left",    "%.15f" % shapeR[1])
+    tr3.SetAttribute("right",   "%.15f" % shapeR[2])
 
     fs1.SetName("FuzzySet")
     fs1.SetAttribute("type", "Triangular")
