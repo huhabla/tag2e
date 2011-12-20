@@ -133,5 +133,5 @@ if __name__ == "__main__":
     cal.TMinimizer = 1.002
     cal.SdMinimizer = 1.0001
     cal.numberOfWeights = 6
-    cal.enableBagging = False
+    cal.enableBagging = True
     cal.Run()

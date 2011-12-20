@@ -1,4 +1,4 @@
-MODULE_TOPDIR = /home/soeren/src/grass7.0/grass_trunk
+MODULE_TOPDIR = ../../../../grass7.0/grass_trunk
 
 PGM = v.fuzzy.calibrator
 

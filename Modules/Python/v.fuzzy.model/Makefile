@@ -1,6 +1,6 @@
-MODULE_TOPDIR = /home/soeren/src/grass7.0/grass_trunk
+MODULE_TOPDIR = ../../../../grass7.0/grass_trunk
 
-PGM = r.fuzzy.model
+PGM = v.fuzzy.model
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
