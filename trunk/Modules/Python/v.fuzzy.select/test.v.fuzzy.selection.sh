@@ -13,12 +13,12 @@ r.mapcalc --o expr="map3 = sin(row() + col())"
 # r = x + y*y + z * x
 r.mapcalc --o expr="result_mapcalc = map1 + map2*map2 + map3 * map1"
 
-r.to.vect --o input=map1 output=map1 type=point column=map1
-r.to.vect --o input=map2 output=map2 type=point column=map2
-r.to.vect --o input=map3 output=map3 type=point column=map3
-r.to.vect --o input=weight output=weight type=point column=weight
+r.to.vect --o input=map1 output=map1 feature=point column=map1
+r.to.vect --o input=map2 output=map2 feature=point column=map2
+r.to.vect --o input=map3 output=map3 feature=point column=map3
+r.to.vect --o input=weight output=weight feature=point column=weight
 
-r.to.vect --o input=result_mapcalc output=result_mapcalc type=point column=result_mapcalc
+r.to.vect --o input=result_mapcalc output=result_mapcalc feature=point column=result_mapcalc
 
 v.db.join  map=result_mapcalc column=cat otable=map1 ocolumn=cat --v
 v.db.join  map=result_mapcalc column=cat otable=map2 ocolumn=cat --v

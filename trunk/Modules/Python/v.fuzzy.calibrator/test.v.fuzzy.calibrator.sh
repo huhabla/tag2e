@@ -16,13 +16,13 @@ r.mapcalc --o expr="result2 = 1*map1 + 5 * map2*map2"
 # r = 1 * x + 5 * y*y + 0.5 * z * x
 r.mapcalc --o expr="result3 = 1*map1 + 5 * map2*map2 + 0.5 * map3 * map1"
 
-r.to.vect --o input=map1 output=map1 type=point column=map1
-r.to.vect --o input=map2 output=map2 type=point column=map2
-r.to.vect --o input=map3 output=map3 type=point column=map3
+r.to.vect --o input=map1 output=map1 feature=point column=map1
+r.to.vect --o input=map2 output=map2 feature=point column=map2
+r.to.vect --o input=map3 output=map3 feature=point column=map3
 
-r.to.vect --o input=result1 output=result1 type=point column=result1
-r.to.vect --o input=result2 output=result2 type=point column=result2
-r.to.vect --o input=result3 output=result3 type=point column=result3
+r.to.vect --o input=result1 output=result1 feature=point column=result1
+r.to.vect --o input=result2 output=result2 feature=point column=result2
+r.to.vect --o input=result3 output=result3 feature=point column=result3
 
 v.db.join  map=result1 column=cat otable=map1 ocolumn=cat --v
 v.db.join  map=result2 column=cat otable=map1 ocolumn=cat --v

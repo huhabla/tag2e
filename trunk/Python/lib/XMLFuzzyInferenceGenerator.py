@@ -104,8 +104,8 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
     print "Using ", numberOfRules, " number of rules "
 
     resp.SetName("Responses")
-    resp.SetDoubleAttribute("min", min)
-    resp.SetDoubleAttribute("max", max)
+    resp.SetAttribute("min", "%.15f" % min)
+    resp.SetAttribute("max", "%.15f" % max)
 
     for i in range(numberOfRules):
         rval = vtkXMLDataElement()
@@ -318,8 +318,8 @@ def GenerateFactor4(factorName, min, max, mean):
     fss.SetName("Factor")
     fss.SetIntAttribute("portId", 0)
     fss.SetAttribute("name", factorName)
-    fss.SetDoubleAttribute("min", min)
-    fss.SetDoubleAttribute("max",  max)
+    fss.SetAttribute("min", "%.15f" % min)
+    fss.SetAttribute("max", "%.15f" % max)
     fss.AddNestedElement(fs1)
     fss.AddNestedElement(fs2)
     fss.AddNestedElement(fs3)
@@ -394,8 +394,8 @@ def GenerateFactor3(factorName, min, max, mean):
     fss.SetName("Factor")
     fss.SetIntAttribute("portId", 0)
     fss.SetAttribute("name", factorName)
-    fss.SetDoubleAttribute("min", min)
-    fss.SetDoubleAttribute("max",  max)
+    fss.SetAttribute("min", "%.15f" % min)
+    fss.SetAttribute("max", "%.15f" % max)
     fss.AddNestedElement(fs1)
     fss.AddNestedElement(fs2)
     fss.AddNestedElement(fs3)
@@ -455,8 +455,8 @@ def GenerateFactor2(factorName, min, max, mean):
     fss.SetName("Factor")
     fss.SetIntAttribute("portId", 0)
     fss.SetAttribute("name", factorName)
-    fss.SetDoubleAttribute("min", min)
-    fss.SetDoubleAttribute("max",  max)
+    fss.SetAttribute("min", "%.15f" % min)
+    fss.SetAttribute("max", "%.15f" % max)
     fss.AddNestedElement(fs1)
     fss.AddNestedElement(fs3)
 
