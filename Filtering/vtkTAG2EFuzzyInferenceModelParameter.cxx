@@ -72,10 +72,14 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
     FuzzyFactor &Factor = this->FIS.Factors[i];
     vtkXMLDataElement *factor = vtkXMLDataElement::New();
 
+    std::ostringstream factmin;
+    std::ostringstream factmax;
+    factmin << setprecision(20) << Factor.min;
+    factmax << setprecision(20) << Factor.max;
     factor->SetName("Factor");
     factor->SetAttribute("name", Factor.name.c_str());
-    factor->SetDoubleAttribute("min", Factor.min);
-    factor->SetDoubleAttribute("max", Factor.max);
+    factor->SetAttribute("min", factmin.str().c_str());
+    factor->SetAttribute("max", factmax.str().c_str());
     factor->SetIntAttribute("portId", Factor.portId);
 
     for (j = 0; j < Factor.Sets.size(); j++) {
@@ -158,9 +162,13 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
 
   vtkXMLDataElement *responses = vtkXMLDataElement::New();
 
+  std::ostringstream respmin;
+  std::ostringstream respmax;
+  respmin << setprecision(20) << this->FIS.Responses.min;
+  respmax << setprecision(20) << this->FIS.Responses.max;
   responses->SetName("Responses");
-  responses->SetDoubleAttribute("min", this->FIS.Responses.min);
-  responses->SetDoubleAttribute("max", this->FIS.Responses.max);
+  responses->SetDoubleAttribute("min", respmin.str().size());
+  responses->SetDoubleAttribute("max", respmax.str().size());
 
   for (i = 0; i < this->FIS.Responses.Responses.size(); i++) {
     FuzzyResponse &Response = this->FIS.Responses.Responses[i];
