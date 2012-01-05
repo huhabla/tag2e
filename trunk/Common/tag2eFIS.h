@@ -111,7 +111,7 @@ public:
     static double ComputeFISResult(double *Input, int numberOfRules, std::vector< std::vector<int> > &RuleCodeMatrix, FuzzyInferenceScheme &FIS, std::vector<double> &DOFVector);
     
     //!\brief Check if the fuzzy factor has correct alligned fuzzy sets
-    static bool CheckFuzzyFactor(FuzzyFactor &Factor);
+    static bool CheckFuzzyFactor(FuzzyFactor &Factor, bool verbose=false);
     
     //!\brief Internal unit test of all computational functions. Returns true on success.
     static bool TestFISComputation();

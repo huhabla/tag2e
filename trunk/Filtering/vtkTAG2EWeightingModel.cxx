@@ -220,7 +220,7 @@ int vtkTAG2EWeightingModel::RequestData(
         val = scalars->GetTuple1(i);
         id = (int)factors->GetTuple1(i);
         if(id < 0 || id > W.Weights.size()) {
-            vtkErrorMacro(<<"Factor id is out of range " << id);
+            result->SetValue(i, 0.0);
             continue;
         }
         val = W.Weights[id].value * val;
