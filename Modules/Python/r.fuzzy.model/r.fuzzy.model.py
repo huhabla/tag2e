@@ -112,7 +112,6 @@ def main():
     for count in range(raster_maps.GetNumberOfValues()):
         map_name = raster_maps.GetValue(count)
         alias_name = raster_alias.GetValue(count)
-        print map_name,alias_name
         map = vtkGRASSRasterImageReader()
         map.SetRasterName(map_name)
         map.UseCurrentRegion()

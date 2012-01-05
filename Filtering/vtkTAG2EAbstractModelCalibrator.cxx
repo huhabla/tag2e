@@ -194,7 +194,7 @@ double vtkTAG2EAbstractModelCalibrator::CompareTemporalDataSets(vtkTemporalDataS
   double result;
   unsigned int timeStep;
   int id;
-  int method = TDS_COMPARE_METHOD_SQRT_SCALED;
+  int method = TDS_COMPARE_METHOD_NO_SCALED;
   double variance;
   double squareSum;
   double val1, val2;
