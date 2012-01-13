@@ -46,6 +46,7 @@ vtkTAG2EAbstractModel::vtkTAG2EAbstractModel()
   this->ResultArrayName = NULL;
   this->SetResultArrayName("result");
   this->UseCellDataOff();
+  this->NullValue = -999999;
 }
 
 //----------------------------------------------------------------------------

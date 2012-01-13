@@ -91,7 +91,7 @@ def main():
 
     messages = vtkGRASSMessagingInterface()
 
-    messages.Message("Reading raster map into memory")
+    messages.VerboseMessage("Reading raster maps into memory")
     
     raster_maps = vtkStringArray()
     input.GetAnswers(raster_maps)
@@ -107,6 +107,7 @@ def main():
         input.GetAnswers(raster_alias)
 
     dataset = vtkImageData()
+    nullValue = -999999
     
     # Read all raster maps into memory
     for count in range(raster_maps.GetNumberOfValues()):
@@ -115,7 +116,7 @@ def main():
         map = vtkGRASSRasterImageReader()
         map.SetRasterName(map_name)
         map.UseCurrentRegion()
-        map.SetNullValue(9999)
+        map.SetNullValue(nullValue)
         map.UseNullValueOn()
         map.ReadMapAsDouble()
         map.Update()
@@ -125,8 +126,6 @@ def main():
             dataset.DeepCopy(map.GetOutput())
         else:
             dataset.GetPointData().AddArray(map.GetOutput().GetPointData().GetScalars())
-            print "Add", map.GetOutput().GetPointData().GetScalars().GetName()
-
 
     # Generate the time steps
     timesteps = vtkDoubleArray()
@@ -175,6 +174,7 @@ def main():
         modelFIS.SetInputConnection(timesource.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
         modelFIS.UseCellDataOff()
+        modelFIS.SetNullValue(nullValue)
 
         parameterW = vtkTAG2EWeightingModelParameter()
         parameterW.SetXMLRepresentation(xmlRootW)
@@ -184,6 +184,7 @@ def main():
         modelW.SetInputConnection(modelFIS.GetOutputPort())
         modelW.SetModelParameter(parameterW)
         modelW.UseCellDataOff()
+        modelW.SetNullValue(nullValue)
         modelW.Update()
 
         outputTDS.ShallowCopy(modelW.GetOutput())
@@ -198,22 +199,24 @@ def main():
         model.SetInputConnection(timesource.GetOutputPort())
         model.SetModelParameter(parameter)
         model.UseCellDataOff()
+        model.SetNullValue(nullValue)
         model.Update()
 
         outputTDS.ShallowCopy(model.GetOutput())
 
-    messages.Message("Writing first result raster map")
+    messages.VerboseMessage("Writing first result raster map")
 
     # Write the result as vector map
     writer = vtkGRASSRasterImageWriter()
     writer.SetInput(outputTDS.GetTimeStep(0))
     writer.SetRasterName(output.GetAnswer())
+    writer.SetNullValue(nullValue)
     writer.Update()
 
-    messages.Message("Writing result VTK poly data")
     
     # Create the poly data output for paraview analysis
     if vtkout.GetAnswer():
+        messages.Message("Writing result VTK image data")
         pwriter = vtkXMLImageDataWriter()
         pwriter.SetFileName(vtkout.GetAnswer() + ".vti")
         pwriter.SetInput(outputTDS.GetTimeStep(0))

@@ -90,6 +90,11 @@ public:
     //! spatio-temporal input data set on/off. Default is off.
     vtkBooleanMacro(UseCellData, int);
     
+    //! \brief The value which represents no data, default is -999999
+    vtkSetMacro(NullValue, double);
+    //! \brief The value which represents no data, default is -999999
+    vtkGetMacro(NullValue, double);
+
 protected:
     vtkTAG2EAbstractModel();
     ~vtkTAG2EAbstractModel();
@@ -105,6 +110,7 @@ protected:
     
     int UseCellData;
     char *ResultArrayName;
+    double NullValue;
 
 private:
     vtkTAG2EAbstractModel(const vtkTAG2EAbstractModel& orig); // Not implemented.

@@ -208,6 +208,16 @@ def main():
     sdreduce.SetDescription("This factor is used to reduce the standard deviation each step")
     sdreduce.SetTypeToDouble()
     
+    rulelimit = vtkGRASSOption()
+    rulelimit.SetKey("rulelimit")
+    rulelimit.MultipleOff()
+    rulelimit.RequiredOff()
+    rulelimit.SetDefaultAnswer("2")
+    rulelimit.SetDescription("The rule limit specifies the minimum percentage of data that " + \
+                             "should be located in a single rule. " + \
+                             "This value affect directly the computation of the model assessment factor")
+    rulelimit.SetTypeToDouble()
+    
     bagging = vtkGRASSFlag()
     bagging.SetDescription("Use boostrap aggregation (bagging) for input data selection")
     bagging.SetKey('b')
@@ -379,6 +389,7 @@ def main():
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(timesource.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
+        model.SetApplicabilityRuleLimit(float(rulelimit.GetAnswer()))
         modelFIS.UseCellDataOn()
 
         parameterW = vtkTAG2EWeightingModelParameter()
@@ -419,6 +430,7 @@ def main():
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(timesource.GetOutputPort())
         model.SetModelParameter(parameter)
+        model.SetApplicabilityRuleLimit(float(rulelimit.GetAnswer()))
         model.UseCellDataOn()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
