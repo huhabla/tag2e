@@ -304,17 +304,6 @@ def main():
     # compares the active scalars to compute the best fit
     polyData.GetCellData().SetActiveScalars(target.GetAnswer())
 
-    # Generate the time steps
-    timesteps = vtkDoubleArray()
-    timesteps.SetNumberOfTuples(1)
-    timesteps.SetNumberOfComponents(1)
-    timesteps.SetValue(0, 3600*24)
-
-    # Create the spatio-temporal source
-    timesource = vtkTemporalDataSetSource()
-    timesource.SetTimeRange(0, 3600*24, timesteps)
-    timesource.SetInput(0, polyData)
-
     # In case an initial FIS or WFIS XML file is provided, add only the new factors
     # to the XML representation
     if initparamXML.GetAnswer():
@@ -368,7 +357,7 @@ def main():
     # xmlRootFIS.PrintXML("xmlRootFIS.xml")
    
     # The output dataset
-    outputTDS = vtkTemporalDataSet()
+    outputDS = vtkPolyData()
     
     bestFitError = 999999
     AKAIKE = 999999 
@@ -387,9 +376,9 @@ def main():
         NumberOfModelParameter = parameterFIS.GetNumberOfCalibratableParameter()
 
         modelFIS = vtkTAG2EFuzzyInferenceModel()
-        modelFIS.SetInputConnection(timesource.GetOutputPort())
+        modelFIS.SetInput(polyData)
         modelFIS.SetModelParameter(parameterFIS)
-        model.SetApplicabilityRuleLimit(float(rulelimit.GetAnswer()))
+        modelFIS.SetApplicabilityRuleLimit(float(rulelimit.GetAnswer()))
         modelFIS.UseCellDataOn()
 
         parameterW = vtkTAG2EWeightingModelParameter()
@@ -407,7 +396,7 @@ def main():
         meta.InsertModelParameter(modelFIS, parameterFIS, "vtkTAG2EFuzzyInferenceModel")
         meta.InsertModelParameter(modelW, parameterW, "vtkTAG2EWeightingModel")
         meta.SetLastModelParameterInPipeline(modelW, parameterW, "vtkTAG2EWeightingModel")
-        meta.SetTargetDataSet(timesource.GetOutput())
+        meta.SetTargetDataSet(polyData)
 
         bestFitParameter, bestFitOutput, bestFitError, ModelAssessmentFactor = \
                                            Calibration.MetaModelSimulatedAnnealingImproved(\
@@ -418,7 +407,7 @@ def main():
 
         bestFitParameter.PrintXML(paramXML.GetAnswer())
         
-        outputTDS.ShallowCopy(bestFitOutput)
+        outputDS.ShallowCopy(bestFitOutput)
 
     else:
         # Set up the parameter and the model
@@ -428,13 +417,13 @@ def main():
         NumberOfModelParameter = parameter.GetNumberOfCalibratableParameter()
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(timesource.GetOutputPort())
+        model.SetInput(polyData)
         model.SetModelParameter(parameter)
         model.SetApplicabilityRuleLimit(float(rulelimit.GetAnswer()))
         model.UseCellDataOn()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(timesource.GetOutputPort())
+        caliModel.SetInput(polyData)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(int(iterations.GetAnswer()))
@@ -451,7 +440,7 @@ def main():
         
         ModelAssessmentFactor = caliModel.GetBestFitModelAssessmentFactor()
 
-        outputTDS.ShallowCopy(caliModel.GetOutput())
+        outputDS.ShallowCopy(caliModel.GetOutput())
 
     
     if output.GetAnswer():
@@ -469,21 +458,21 @@ def main():
 
             writer = vtkGRASSVectorPolyDataAreaWriter()
             writer.SetInput(0, boundaries.GetOutput())
-            writer.SetInput(1, outputTDS.GetTimeStep(0))
+            writer.SetInput(1, outputDS)
             writer.SetVectorName(output.GetAnswer())
             writer.BuildTopoOn()
             writer.Update()     
         else:
             # Write the result as vector map
             writer = vtkGRASSVectorPolyDataWriter()
-            writer.SetInput(outputTDS.GetTimeStep(0))
+            writer.SetInput(outputDS)
             writer.SetVectorName(output.GetAnswer())
             writer.BuildTopoOn()
             writer.Update()
         
     # Compute the AKAIKE criteria
     residuals = vtkDoubleArray()
-    vtkTAG2EAbstractModelCalibrator.ComputeTemporalDataSetsResiduals(timesource.GetOutput(), outputTDS, 1, residuals)
+    vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(polyData, outputDS, 1, residuals)
                 
     vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
     
@@ -505,7 +494,7 @@ def main():
         messages.Message("Writing result VTK poly data")
         pwriter = vtkXMLPolyDataWriter()
         pwriter.SetFileName(outputvtk.GetAnswer() + ".vtp")
-        pwriter.SetInput(outputTDS.GetTimeStep(0))
+        pwriter.SetInput(outputDS)
         pwriter.Write()
     
     # Create the poly data output for paraview analysis

@@ -34,19 +34,19 @@
  * \brief This abstract class is the base class for all classes which define 
  * specific model parameter.
  *
- * Model parameter are textual and numerical description of satistical or 
+ * Model parameter are textual and numerical description of statistical or
  * numerical formulars. A model is the generalization of a statistical or
  * numerical method for spatio-temporal data processing, like linear or 
- * non-linear regression. The specific parameter of these models are desribed in this
+ * non-linear regression. The specific parameter of these models are described in this
  * class using the XML.
  * 
  * Example:
  * A concrete model class implements a generalized linear regression model. Because 
- * there are so many different specific lineare regression models the parameter 
+ * there are so many different specific linear regression models the parameter
  * of the generalized linear regression must be defined somewhere, i.e: temp = 0.5 + 3prec.
  * 
  * In this case a simple linear regression model which connects the precipitation
- * with the temperatur specifies a concrete linear regression model. 
+ * with the temperature specifies a concrete linear regression model.
  * The parameter "temp", "0.5", "3" and "prec" are specified in a subclass of 
  * this class using XML elements and attributes to describe the model parameter.
  *  
@@ -77,13 +77,17 @@ public:
     
     static vtkTAG2EAbstractModelParameter *New();
     
-    //!\brief Read the XML file with model parameter definitions specified by FileName
+    //!\brief Read the XML file with model parameter
+    //!definitions specified by FileName
     virtual bool Read();
-    //!\brief Write the XML file with model parameter definitions as file specified by FileName
+    //!\brief Write the XML file with model parameter
+    //!definitions as file specified by FileName
     virtual void Write();
-    //\brief filename of the XML model parameter definitions which should be read or written
+    //\brief filename of the XML model parameter
+    //!definitions which should be read or written
     vtkSetStringMacro(FileName);
-    //\brief filename of the XML model parameter definitions which should be read or written
+    //\brief filename of the XML model parameter
+    //!definitions which should be read or written
     vtkGetStringMacro(FileName);
     //!\brief Return the XML representation as vtkXMLDataElement
     //!\param root the XML element which will be overwritten

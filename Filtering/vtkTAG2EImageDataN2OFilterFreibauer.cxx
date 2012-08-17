@@ -30,7 +30,6 @@
  * GNU General Public License for more details.
  */
 
-
 #include <vtkImageData.h>
 #include <vtkImageProgressIterator.h>
 #include <vtkInformation.h>
@@ -44,92 +43,92 @@ vtkStandardNewMacro(vtkTAG2EImageDataN2OFilterFreibauer);
 
 //----------------------------------------------------------------------------
 
-vtkTAG2EImageDataN2OFilterFreibauer::vtkTAG2EImageDataN2OFilterFreibauer() {
-    this->SetNumberOfInputPorts(4);
-    this->NullValue = -999999;
-    this->ClimateType = VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE;
-    this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
+vtkTAG2EImageDataN2OFilterFreibauer::vtkTAG2EImageDataN2OFilterFreibauer()
+{
+  this->SetNumberOfInputPorts(4);
+  this->NullValue = -999999;
+  this->ClimateType = VTK_TAG2E_CLIMATETYPE_FREIBAUER_TWE;
+  this->CropType = VTK_TAG2E_CROPTYPE_GRASS;
 }
 
 //----------------------------------------------------------------------------
 
 int vtkTAG2EImageDataN2OFilterFreibauer::RequestInformation(
-        vtkInformation * vtkNotUsed(request),
-        vtkInformationVector ** vtkNotUsed(inputVector),
-        vtkInformationVector *outputVector) {
-    vtkDataObject::SetPointDataActiveScalarInfo(
-            outputVector->GetInformationObject(0), -1, 1);
-    return 1;
+    vtkInformation * vtkNotUsed(request),
+    vtkInformationVector ** vtkNotUsed(inputVector),
+    vtkInformationVector *outputVector)
+{
+  vtkDataObject::SetPointDataActiveScalarInfo(
+      outputVector->GetInformationObject(0), -1, 1);
+  return 1;
 }
-
 
 //----------------------------------------------------------------------------
 // This templated function executes the filter for any type of data.
 // Handles the six input
 
-template <class T>
-void vtkTAG2EImageDataN2OFilterFreibauerExecute(vtkTAG2EImageDataN2OFilterFreibauer *self,
-vtkImageData *NrateData,
-vtkImageData *sandFractData,
-vtkImageData *soilOrgFractData,
-vtkImageData *soilNData,
-int cropType,
-int climateType,
-vtkImageData *outData,
-int outExt[6], int id, T *) {
-    vtkImageIterator<T> NrateIt(NrateData, outExt);
-    vtkImageIterator<T> sandFractIt(sandFractData, outExt);
-    vtkImageIterator<T> soilOrgFractIt(soilOrgFractData, outExt);
-    vtkImageIterator<T> soilNIt(soilNData, outExt);
-    vtkImageProgressIterator<T> outIt(outData, outExt, self, id);
+template<class T>
+void vtkTAG2EImageDataN2OFilterFreibauerExecute(
+    vtkTAG2EImageDataN2OFilterFreibauer *self, vtkImageData *NrateData,
+    vtkImageData *sandFractData, vtkImageData *soilOrgFractData,
+    vtkImageData *soilNData, int cropType, int climateType,
+    vtkImageData *outData, int outExt[6], int id, T *)
+{
+  vtkImageIterator<T> NrateIt(NrateData, outExt);
+  vtkImageIterator<T> sandFractIt(sandFractData, outExt);
+  vtkImageIterator<T> soilOrgFractIt(soilOrgFractData, outExt);
+  vtkImageIterator<T> soilNIt(soilNData, outExt);
+  vtkImageProgressIterator<T> outIt(outData, outExt, self, id);
 
-    double result;
-    double Nrate;
-    double sandFract;
-    double soilOrgFract;
-    double soilN;
+  double result;
+  double Nrate;
+  double sandFract;
+  double soilOrgFract;
+  double soilN;
 
-    // Loop through ouput pixels
-    while (!outIt.IsAtEnd()) {
-        T* NrateSI = NrateIt.BeginSpan();
-        T* sandFractSI = sandFractIt.BeginSpan();
-        T* soilOrgFractSI = soilOrgFractIt.BeginSpan();
-        T* soilNSI = soilNIt.BeginSpan();
+  // Loop through ouput pixels
+  while (!outIt.IsAtEnd())
+    {
+    T* NrateSI = NrateIt.BeginSpan();
+    T* sandFractSI = sandFractIt.BeginSpan();
+    T* soilOrgFractSI = soilOrgFractIt.BeginSpan();
+    T* soilNSI = soilNIt.BeginSpan();
 
-        T* outSI = outIt.BeginSpan();
-        T* outSIEnd = outIt.EndSpan();
+    T* outSI = outIt.BeginSpan();
+    T* outSIEnd = outIt.EndSpan();
 
-        while (outSI != outSIEnd) {
-            Nrate= static_cast<double> (*NrateSI);
-            sandFract = static_cast<double> (*sandFractSI);
-            soilOrgFract = static_cast<double> (*soilOrgFractSI);
-            soilN = static_cast<double> (*soilNSI);
+    while (outSI != outSIEnd)
+      {
+      Nrate = static_cast<double>(*NrateSI);
+      sandFract = static_cast<double>(*sandFractSI);
+      soilOrgFract = static_cast<double>(*soilOrgFractSI);
+      soilN = static_cast<double>(*soilNSI);
 
-            if (Nrate        == self->GetNullValue() ||
-                sandFract    == self->GetNullValue() ||
-                soilOrgFract == self->GetNullValue() ||
-                soilN        == self->GetNullValue()) {
-                result = self->GetNullValue();
-            } else {
-                result = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(Nrate,
-                        sandFract, soilOrgFract, soilN, cropType, climateType);
-            }
-
-            *outSI = static_cast<T> (result);
-            ++NrateSI;
-            ++sandFractSI;
-            ++soilOrgFractSI;
-            ++soilNSI;
-            ++outSI;
+      if (Nrate == self->GetNullValue() || sandFract == self->GetNullValue()
+          || soilOrgFract == self->GetNullValue()
+          || soilN == self->GetNullValue())
+        {
+        result = self->GetNullValue();
+        } else
+        {
+        result = vtkTAG2EAlternativeN2OPredictionModules::Freibauer(Nrate,
+            sandFract, soilOrgFract, soilN, cropType, climateType);
         }
-        NrateIt.NextSpan();
-        sandFractIt.NextSpan();
-        soilOrgFractIt.NextSpan();
-        soilNIt.NextSpan();
-        outIt.NextSpan();
+
+      *outSI = static_cast<T>(result);
+      ++NrateSI;
+      ++sandFractSI;
+      ++soilOrgFractSI;
+      ++soilNSI;
+      ++outSI;
+      }
+    NrateIt.NextSpan();
+    sandFractIt.NextSpan();
+    soilOrgFractIt.NextSpan();
+    soilNIt.NextSpan();
+    outIt.NextSpan();
     }
 }
-
 
 //----------------------------------------------------------------------------
 // This method is passed a input and output regions, and executes the filter
@@ -138,49 +137,33 @@ int outExt[6], int id, T *) {
 // the regions data types.
 
 void vtkTAG2EImageDataN2OFilterFreibauer::ThreadedRequestData(
-        vtkInformation * vtkNotUsed(request),
-        vtkInformationVector ** vtkNotUsed(inputVector),
-        vtkInformationVector * vtkNotUsed(outputVector),
-        vtkImageData ***inData,
-        vtkImageData **outData,
-        int outExt[6], int id) {
-    int i;
+    vtkInformation * vtkNotUsed(request),
+    vtkInformationVector ** vtkNotUsed(inputVector),
+    vtkInformationVector * vtkNotUsed(outputVector), vtkImageData ***inData,
+    vtkImageData **outData, int outExt[6], int id)
+{
+  int i;
 
-    for (i = 0; i < this->GetNumberOfInputPorts(); i++) {
-        // this filter expects that input is the same type as output.
-        if (inData[i][0]->GetScalarType() != outData[0]->GetScalarType()) {
-            vtkErrorMacro( << "Execute: input " << i << " ScalarType, "
-                    << inData[i][0]->GetScalarType()
-                    << ", must match output ScalarType "
-                    << outData[0]->GetScalarType());
-            return;
-        }
-        if (inData[i][0]->GetNumberOfScalarComponents() > 1)
-            vtkErrorMacro( << "Execute: only one scalar component is supported");
+  for (i = 0; i < this->GetNumberOfInputPorts(); i++)
+    {
+    // this filter expects that input is the same type as output.
+    if (inData[i][0]->GetScalarType() != outData[0]->GetScalarType())
+      {
+      vtkErrorMacro(
+          << "Execute: input " << i << " ScalarType, " << inData[i][0]->GetScalarType() << ", must match output ScalarType " << outData[0]->GetScalarType());
+      return;
+      }
+    if (inData[i][0]->GetNumberOfScalarComponents() > 1)
+      vtkErrorMacro( << "Execute: only one scalar component is supported");
     }
 
-    switch (inData[0][0]->GetScalarType()) {
-            vtkTemplateMacro(
-                    vtkTAG2EImageDataN2OFilterFreibauerExecute(this, inData[0][0],
-                    inData[1][0], inData[2][0], inData[3][0], this->CropType,
-                    this->ClimateType, outData[0], outExt, id,
-                    static_cast<VTK_TT *> (0)));
-        default:
-            vtkErrorMacro( << "Execute: Unknown ScalarType");
-            return;
+  switch (inData[0][0]->GetScalarType())
+    {
+  vtkTemplateMacro(
+      vtkTAG2EImageDataN2OFilterFreibauerExecute(this, inData[0][0], inData[1][0], inData[2][0], inData[3][0], this->CropType, this->ClimateType, outData[0], outExt, id, static_cast<VTK_TT *> (0)));
+  default:
+    vtkErrorMacro( << "Execute: Unknown ScalarType");
+    return;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 

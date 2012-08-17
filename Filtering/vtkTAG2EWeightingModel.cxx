@@ -49,7 +49,6 @@
 #include "vtkTAG2EWeightingModelParameter.h"
 #include "vtkTAG2EAbstractModelParameter.h"
 
-
 vtkCxxRevisionMacro(vtkTAG2EWeightingModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2EWeightingModel);
 
@@ -59,75 +58,53 @@ vtkTAG2EWeightingModel::vtkTAG2EWeightingModel()
 {
   this->WeightingModelParameter = NULL;
   this->SetNumberOfInputPorts(1);
+  this->SetNumberOfOutputPorts(1);
 }
 
 //----------------------------------------------------------------------------
 
 vtkTAG2EWeightingModel::~vtkTAG2EWeightingModel()
 {
-    ;
+  ;
 }
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EWeightingModel::FillInputPortInformation(
-  int vtkNotUsed(port),
-  vtkInformation* info)
+int vtkTAG2EWeightingModel::FillInputPortInformation(int vtkNotUsed(port),
+    vtkInformation* info)
 {
-  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkTemporalDataSet");
+  info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkDataSet");
   return 1;
 }
 
-
 //----------------------------------------------------------------------------
-
-int vtkTAG2EWeightingModel::RequestUpdateExtent(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
+int vtkTAG2EWeightingModel::FillOutputPortInformation(int vtkNotUsed(port),
+    vtkInformation* info)
 {
-  int numInputs = this->GetNumberOfInputPorts();
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-  //cerr << "Setting UPDATE_TIME_STEPS for " << numInputs << " inputs" << endl;
-
-  // Remove any existing output UPDATE_TIME_STEPS, beacuse we will set them from 
-  // the first input
-  if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-    outInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
-
-  if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())) {
-    int i;
-    double *timeSteps = inputVector[0]->GetInformationObject(0)->Get(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
-    int numTimeSteps = inputVector[0]->GetInformationObject(0)->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
-
-    // We request for each input the same number of update timesteps as for the first input
-    for (i = 1; i < numInputs; i++) {
-      //cerr << "Setting from first input numTimeSteps: "<< numTimeSteps << " for input " << i << endl;
-      inputVector[i]->GetInformationObject(0)->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), timeSteps, numTimeSteps);
-    }
-
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), timeSteps, numTimeSteps);
-  }
-
+  // now add our info
+  info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkDataSet");
   return 1;
 }
 
-
 //----------------------------------------------------------------------------
 
-void vtkTAG2EWeightingModel::SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter)
+void vtkTAG2EWeightingModel::SetModelParameter(
+    vtkTAG2EAbstractModelParameter* modelParameter)
 {
   this->Superclass::SetModelParameter(modelParameter);
 
   // Check if the ModelParameter is of correct type
-  if (this->ModelParameter->IsA("vtkTAG2EWeightingModelParameter")) {
-    this->WeightingModelParameter = static_cast<vtkTAG2EWeightingModelParameter *> (this->ModelParameter);
-  } else {
-    vtkErrorMacro( << "The ModelParameter is not of type vtkTAG2EWeightingModelParameter");
+  if (this->ModelParameter->IsA("vtkTAG2EWeightingModelParameter"))
+    {
+    this->WeightingModelParameter =
+        static_cast<vtkTAG2EWeightingModelParameter *>(this->ModelParameter);
+    } else
+    {
+    vtkErrorMacro(
+        << "The ModelParameter is not of type vtkTAG2EWeightingModelParameter");
     this->SetModelParameter(NULL);
     return;
-  }
+    }
 
   // Generate the internal representation
   this->WeightingModelParameter->GenerateInternalSchemeFromXML();
@@ -137,109 +114,97 @@ void vtkTAG2EWeightingModel::SetModelParameter(vtkTAG2EAbstractModelParameter* m
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EWeightingModel::RequestData(
-  vtkInformation * vtkNotUsed(request),
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
+int vtkTAG2EWeightingModel::RequestData(vtkInformation * vtkNotUsed(request),
+    vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
-  unsigned int timeStep;
-
-  // get the info objects
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  unsigned int i;
+  double val, value;
+  unsigned int id;
+  int num = 0;
+  vtkDataArray *scalars, *factors;
+  vtkDataSetAttributes *attrData;
 
   // Check for model parameter
-  if (this->ModelParameter == NULL) {
+  if (this->ModelParameter == NULL)
+    {
     vtkErrorMacro("Model parameter not set or invalid.");
     return -1;
-  }
+    }
 
+  // the internal parameter object for fast access
   Weighting &W = this->WeightingModelParameter->GetInternalScheme();
 
-  // get the first input and ouptut
-  vtkTemporalDataSet *input = vtkTemporalDataSet::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkDataSet* input = vtkDataSet::GetData(inputVector[0]);
+  vtkDataSet* output = vtkDataSet::GetData(outputVector);
 
-  vtkTemporalDataSet *output = vtkTemporalDataSet::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  output->DeepCopy(input);
 
-  output->SetNumberOfTimeSteps(input->GetNumberOfTimeSteps());
+  // Result array
+  vtkDoubleArray *result = vtkDoubleArray::New();
+  result->SetNumberOfComponents(1);
+  result->SetName(this->ResultArrayName);
 
-  // Iterate over each timestep of the first input
-  // Timesteps must be equal in the inputs.
-  for (timeStep = 0; timeStep < input->GetNumberOfTimeSteps(); timeStep++) {
-    int i;
+  if (this->UseCellData)
+    result->SetNumberOfTuples(input->GetNumberOfCells());
+  else
+    result->SetNumberOfTuples(input->GetNumberOfPoints());
+  result->FillComponent(0, 0.0);
 
-    // The first input is used to create the ouput
-    // It is assumed that each input has the same number of points and the same topology
-    // The number of point data arrays can/should differ
-    vtkDataSet *inputDataSet = vtkDataSet::SafeDownCast(input->GetTimeStep(timeStep));
-    vtkDataSet *outputDataSet = inputDataSet->NewInstance();
-    //outputDataSet->CopyStructure(inputDataSet);
-    outputDataSet->DeepCopy(inputDataSet);
-
-    // Result for the current time step
-    vtkDoubleArray *result = vtkDoubleArray::New();
-    result->SetNumberOfComponents(0);
-    result->SetName(this->ResultArrayName);
-    
-    if(this->UseCellData)
-      result->SetNumberOfTuples(inputDataSet->GetNumberOfCells());
-    else
-      result->SetNumberOfTuples(inputDataSet->GetNumberOfPoints());
-    result->FillComponent(0,0.0);
-
-    vtkDataArray *scalars, *factors;
-    vtkDataSetAttributes *attrData;
-    int num = 0;
-    
-    if(this->UseCellData) {
-        attrData = inputDataSet->GetCellData();
-        num = inputDataSet->GetNumberOfCells();
-    } else {
-        attrData = inputDataSet->GetPointData();
-        num = inputDataSet->GetNumberOfPoints();
-    }
-
-    scalars = attrData->GetScalars();
-    if(attrData->HasArray(W.Factor.name.c_str())) {
-        factors = attrData->GetArray(W.Factor.name.c_str());
-    } else {
-        if(this->UseCellData) {
-            vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in cell data of dataset at time step " << timeStep);
-        } else {
-            vtkErrorMacro(<<"Factor array " << W.Factor.name.c_str() << " does not exist in point data of dataset at time step " << timeStep);
-        }
-        return -1;
-    }
-
-    double val, value;
-    unsigned int id;
-    for(i = 0; i < num; i++)
+  if (this->UseCellData)
     {
-        val = scalars->GetTuple1(i);
-        id = (int)factors->GetTuple1(i);
-        if(val == this->NullValue || id < 0 || id > W.Weights.size()) {
-            result->SetValue(i, this->NullValue);
-            continue;
-        }
-        value = W.Weights[id].value * val;
-        //std::cout << "Factor " << i << " with id: " << id << " Weight: " <<  W.Weights[id].value <<
-        //             " value " << val << " result: " << value<< std::endl;
-        result->SetValue(i, value);
+    attrData = input->GetCellData();
+    num = input->GetNumberOfCells();
+    } else
+    {
+    attrData = input->GetPointData();
+    num = input->GetNumberOfPoints();
     }
 
-    if(this->UseCellData) {
-        outputDataSet->GetCellData()->AddArray(result);
-        outputDataSet->GetCellData()->SetActiveScalars(result->GetName());
-    } else {
-        outputDataSet->GetPointData()->AddArray(result);
-        outputDataSet->GetPointData()->SetActiveScalars(result->GetName());
+  scalars = attrData->GetScalars();
+  if (attrData->HasArray(W.Factor.name.c_str()))
+    {
+    factors = attrData->GetArray(W.Factor.name.c_str());
+    } else
+    {
+    if (this->UseCellData)
+      {
+      vtkErrorMacro(
+          <<"Factor array " << W.Factor.name.c_str()
+          << " does not exist in cell data of dataset");
+      } else
+      {
+      vtkErrorMacro(
+          <<"Factor array " << W.Factor.name.c_str()
+          << " does not exist in point data of dataset");
+      }
+    return -1;
     }
-    output->SetTimeStep(timeStep, outputDataSet);
-    outputDataSet->Delete();
-    result->Delete();
-  }
+
+  for (i = 0; i < num; i++)
+    {
+    val = scalars->GetTuple1(i);
+    id = (int) factors->GetTuple1(i);
+    if (val == this->NullValue || id < 0 || id > W.Weights.size())
+      {
+      result->SetValue(i, this->NullValue);
+      continue;
+      }
+    value = W.Weights[id].value * val;
+    //std::cout << "Factor " << i << " with id: " << id << " Weight: " <<  W.Weights[id].value <<
+    //             " value " << val << " result: " << value<< std::endl;
+    result->SetValue(i, value);
+    }
+
+  if (this->UseCellData)
+    {
+    output->GetCellData()->AddArray(result);
+    output->GetCellData()->SetActiveScalars(result->GetName());
+    } else
+    {
+    output->GetPointData()->AddArray(result);
+    output->GetPointData()->SetActiveScalars(result->GetName());
+    };
+  result->Delete();
 
   return 1;
 }

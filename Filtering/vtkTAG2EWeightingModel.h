@@ -43,33 +43,39 @@
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2EWeightingModelParameter.h"
 
-class vtkTAG2EWeightingModel : public vtkTAG2EAbstractCalibratableModel {
+class vtkTAG2EWeightingModel: public vtkTAG2EAbstractCalibratableModel
+{
 public:
-    vtkTypeRevisionMacro(vtkTAG2EWeightingModel, vtkTAG2EAbstractCalibratableModel);
-    
-    void PrintSelf(ostream& os, vtkIndent indent);
-    static vtkTAG2EWeightingModel *New();
-     
-    virtual double GetModelAssessmentFactor(){return 1.0;}
-    
-    //!\brief Set the model parameter which must be of type vtkTAG2EWeightingModelParameter
-    //! This XML model parameter describes the weighting scheme which is used to compute
-    //! the input data.
-    void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
-    
+vtkTypeRevisionMacro(vtkTAG2EWeightingModel, vtkTAG2EAbstractCalibratableModel)
+  ;
+
+  void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkTAG2EWeightingModel *New();
+
+  virtual double GetModelAssessmentFactor()
+  {
+    return 1.0;
+  }
+
+  //!\brief Set the model parameter which must be of type vtkTAG2EWeightingModelParameter
+  //! This XML model parameter describes the weighting scheme which is used to compute
+  //! the input data.
+  void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
+
 protected:
-    vtkTAG2EWeightingModel();
-    ~vtkTAG2EWeightingModel();
-    
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-    virtual int FillInputPortInformation(int port, vtkInformation* info);
-    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-        
-    vtkTAG2EWeightingModelParameter *WeightingModelParameter;
-    
+  vtkTAG2EWeightingModel();
+  ~vtkTAG2EWeightingModel();
+
+  virtual int RequestData(vtkInformation *, vtkInformationVector **,
+      vtkInformationVector *);
+  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+
+  vtkTAG2EWeightingModelParameter *WeightingModelParameter;
+
 private:
-    vtkTAG2EWeightingModel(const vtkTAG2EWeightingModel& orig); // Not implemented.
-    void operator=(const vtkTAG2EWeightingModel&); // Not implemented.
+  vtkTAG2EWeightingModel(const vtkTAG2EWeightingModel& orig); // Not implemented.
+  void operator=(const vtkTAG2EWeightingModel&); // Not implemented.
 };
 
 #endif	/* vtkTAG2EWeightingModel_H */

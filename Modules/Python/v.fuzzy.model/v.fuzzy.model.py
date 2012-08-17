@@ -99,18 +99,7 @@ def main():
         dataset.SetFeatureTypeToCentroid()
     dataset.Update()
 
-    # Generate the time steps
-    timesteps = vtkDoubleArray()
-    timesteps.SetNumberOfTuples(1)
-    timesteps.SetNumberOfComponents(1)
-    timesteps.SetValue(0, 3600*24)
-
-    # Create the spatio-temporal source
-    timesource = vtkTemporalDataSetSource()
-    timesource.SetTimeRange(0, 3600*24, timesteps)
-    timesource.SetInputConnection(0, dataset.GetOutputPort())
-
-    outputTDS = vtkTemporalDataSet()
+    outputDS = vtkPolyData()
 
     if weighting.GetAnswer():
 
@@ -143,7 +132,7 @@ def main():
         parameterFIS.DebugOff()
 
         modelFIS = vtkTAG2EFuzzyInferenceModel()
-        modelFIS.SetInputConnection(timesource.GetOutputPort())
+        modelFIS.SetInputConnection(dataset.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
         modelFIS.UseCellDataOn()
 
@@ -157,7 +146,7 @@ def main():
         modelW.UseCellDataOn()
         modelW.Update()
 
-        outputTDS.ShallowCopy(modelW.GetOutput())
+        outputDS.ShallowCopy(modelW.GetOutput())
 
     else:
         # Set up the parameter and the model
@@ -166,12 +155,12 @@ def main():
         parameter.Read()
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(timesource.GetOutputPort())
+        model.SetInputConnection(dataset.GetOutputPort())
         model.SetModelParameter(parameter)
         model.UseCellDataOn()
         model.Update()
 
-        outputTDS.ShallowCopy(model.GetOutput())
+        outputDS.ShallowCopy(model.GetOutput())
 
     messages.Message("Writing result vector map")
     
@@ -188,14 +177,14 @@ def main():
         
         writer = vtkGRASSVectorPolyDataAreaWriter()
         writer.SetInput(0, boundaries.GetOutput())
-        writer.SetInput(1, outputTDS.GetTimeStep(0))
+        writer.SetInput(1, outputDS)
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()     
     else:
         # Write the result as vector map
         writer = vtkGRASSVectorPolyDataWriter()
-        writer.SetInput(outputTDS.GetTimeStep(0))
+        writer.SetInput(outputDS)
         writer.SetVectorName(output.GetAnswer())
         writer.BuildTopoOn()
         writer.Update()
@@ -206,7 +195,7 @@ def main():
     if vtkout.GetAnswer():
         pwriter = vtkXMLPolyDataWriter()
         pwriter.SetFileName(vtkout.GetAnswer() + ".vtp")
-        pwriter.SetInput(outputTDS.GetTimeStep(0))
+        pwriter.SetInput(outputDS)
         pwriter.Write()
     
 ################################################################################

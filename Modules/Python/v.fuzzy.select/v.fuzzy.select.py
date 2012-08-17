@@ -431,7 +431,7 @@ def main():
     
     global RScript
     
-    # Replace some palceholder in the R-script
+    # Replace some placeholder in the R-script
     newRScript = RScript.replace("current", bestFitName)
     newRScript = newRScript.replace("Summary.txt", rsum.GetAnswer())
     newRScript = newRScript.replace("Result.pdf", rpdf.GetAnswer())

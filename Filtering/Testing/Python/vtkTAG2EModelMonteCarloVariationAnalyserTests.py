@@ -68,7 +68,7 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/LinearRegressionScheme http://tag2e.googlecode.com/files/LinearRegressionScheme.xsd")
         root.SetAttribute("name", "Test1")
-        root.SetIntAttribute("numberOfCoefficients", 3)
+        root.SetIntAttribute("numberOfCoefficients", 1)
         root.SetIntAttribute("hasIntercept", 1)
         root.AddNestedElement(intercept)
         root.AddNestedElement(coefficient)
@@ -78,6 +78,23 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
         
+        self.points = vtkPoints()
+        
+        for i in range(5):
+            for j in range(5):
+                self.points.InsertNextPoint(i, j, 0)
+
+        # Set up the temporal dataset
+        data = vtkDoubleArray()
+        data.SetNumberOfTuples(25)
+        data.SetName("data")
+        data.FillComponent(0,3)
+
+        self.ds = vtkPolyData()
+        self.ds.Allocate(5,5)
+        self.ds.GetPointData().SetScalars(data)
+        self.ds.SetPoints(self.points)   
+                
         # Set up the model
         self.Model = vtkTAG2ELinearRegressionModel()
         self.Model.SetModelParameter(self.lrs)
@@ -113,21 +130,13 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
         analyser.SetNumberOfRandomValues(50)
-        analyser.SetNumberOfTimeSteps(5)
+        analyser.SetInput(self.ds)
         analyser.Update()
         
-        output = analyser.GetOutput()
-        
-        # Generate the output        
-        num = output.GetNumberOfTimeSteps()
-        
         writer = vtkXMLPolyDataWriter()
-        
-        for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloTest_0_" + str(i) + ".vtp")
-            writer.SetInput(output.GetTimeStep(i))
-            writer.Write()
-            
+        writer.SetFileName("/tmp/TAG2EMonteCarloTest_1.vtp")
+        writer.SetInput(analyser.GetOutput())
+        writer.Write()
 
     def test2(self):
         
@@ -160,21 +169,13 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
         analyser.SetNumberOfRandomValues(50)
-        analyser.SetNumberOfTimeSteps(5)
+        analyser.SetInput(self.ds)
         analyser.Update()
         
-        output = analyser.GetOutput()
-        
-        # Generate the output        
-        num = output.GetNumberOfTimeSteps()
-        
         writer = vtkXMLPolyDataWriter()
-        
-        for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloTest_1_" + str(i) + ".vtp")
-            writer.SetInput(output.GetTimeStep(i))
-            writer.Write()
-            
+        writer.SetFileName("/tmp/TAG2EMonteCarloTest_2.vtp")
+        writer.SetInputConnection(analyser.GetOutputPort())
+        writer.Write()
 
     def test3(self):
         
@@ -207,20 +208,13 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTests(unittest.TestCase):
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
         analyser.SetNumberOfRandomValues(50)
-        analyser.SetNumberOfTimeSteps(5)
+        analyser.SetInput(self.ds)
         analyser.Update()
         
-        output = analyser.GetOutput()
-        
-        # Generate the output        
-        num = output.GetNumberOfTimeSteps()
-        
         writer = vtkXMLPolyDataWriter()
-        
-        for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloTest_2_" + str(i) + ".vtp")
-            writer.SetInput(output.GetTimeStep(i))
-            writer.Write()
+        writer.SetFileName("/tmp/TAG2EMonteCarloTest_3.vtp")
+        writer.SetInputConnection(analyser.GetOutputPort())
+        writer.Write()
         
 
 # test a complex linear regression scheme with monte carlo analysis
@@ -274,13 +268,12 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         coefficient3.SetDoubleAttribute("power", 1)
         coefficient3.SetCharacterData("45.0", 4)
         
-        
         root.SetName("LinearRegressionScheme")
         root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/LinearRegressionScheme")
         root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
         root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/LinearRegressionScheme http://tag2e.googlecode.com/files/LinearRegressionScheme.xsd")
         root.SetAttribute("name", "Test1")
-        root.SetIntAttribute("numberOfCoefficients", 3)
+        root.SetIntAttribute("numberOfCoefficients", 4)
         root.SetIntAttribute("hasIntercept", 1)
         root.AddNestedElement(intercept)
         root.AddNestedElement(coefficient0)
@@ -293,6 +286,23 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         self.lrs.SetXMLRepresentation(root)
         self.lrs.Write()
 
+        self.points = vtkPoints()
+        
+        for i in range(5):
+            for j in range(5):
+                self.points.InsertNextPoint(i, j, 0)
+
+        # Set up the temporal dataset
+        data = vtkDoubleArray()
+        data.SetNumberOfTuples(25)
+        data.SetName("data")
+        data.FillComponent(0,3)
+
+        self.ds = vtkPolyData()
+        self.ds.Allocate(5,5)
+        self.ds.GetPointData().SetScalars(data)
+        self.ds.SetPoints(self.points)   
+        
         # Set up the model
         self.Model = vtkTAG2ELinearRegressionModel()
         self.Model.SetModelParameter(self.lrs)
@@ -352,22 +362,17 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsComplex(unittest.TestCase):
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
         analyser.SetNumberOfRandomValues(10000)
-        analyser.SetNumberOfTimeSteps(10)
         analyser.SetMaxNumberOfIterations(20000)
         analyser.SetBreakCriterion(0.001)
+        analyser.SetInput(self.ds)
         analyser.Update()
         
-        output = analyser.GetOutput()
-        
-        # Generate the output        
-        num = output.GetNumberOfTimeSteps()
-        
         writer = vtkXMLPolyDataWriter()
+        writer.SetFileName("/tmp/TAG2EMonteCarloLRComplexTest_1.vtp")
+        writer.SetInputConnection(analyser.GetOutputPort())
+        writer.Write()
         
-        for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloLRComplexTest_1_" + str(i) + ".vtp")
-            writer.SetInput(output.GetTimeStep(i))
-            writer.Write()
+        output = analyser.GetOutput()
             
         print output.GetFieldData().GetArray(self.Model.GetResultArrayName())
         print output.GetFieldData().GetArray(self.Model.GetResultArrayName()).GetRange()
@@ -555,16 +560,45 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsFIS(unittest.TestCase):
         fisc.SetFileName("/tmp/FuzzyInferenceScheme1.xml")
         fisc.SetXMLRepresentation(self.root)
         
+        self.points = vtkPoints()
+        
+        for i in range(5):
+            for j in range(5):
+                self.points.InsertNextPoint(i, j, 0)
+
+        # Set up the temporal dataset
+        data = vtkDoubleArray()
+        data.SetNumberOfTuples(25)
+        data.SetName("data")
+        data.FillComponent(0,3)
+
+        self.ds = vtkPolyData()
+        self.ds.Allocate(5,5)
+        self.ds.GetPointData().SetScalars(data)
+        self.ds.SetPoints(self.points)   
+                
         # Set up the model
         self.Model = vtkTAG2EFuzzyInferenceModel()
         self.Model.SetModelParameter(fisc)
+        
+        fim = vtkTAG2EFuzzyInferenceModelParameterToImageData()
+        fim.SetFuzzyModelParameter(fisc)
+        fim.SetXAxisExtent(50)
+        fim.SetYAxisExtent(50)
+        fim.SetZAxisExtent(50)
+        fim.Update()
+        
+        pwriter = vtkXMLImageDataWriter()
+        pwriter.SetFileName("/tmp/vtkTAG2EModelMonteCarloVariationAnalyserTestsFIS.vti")
+        pwriter.SetInput(fim.GetOutput())
+        pwriter.Write()
         
     def test1(self):
         
         self.ddd = vtkTAG2EAbstractModelParameter()
                 
         df1 = vtkXMLDataElement()
-        df1.SetName("norm")
+        df1.SetName("Norm")
         df1.SetDoubleAttribute("mean", 75)
         df1.SetDoubleAttribute("sd", 15)
         
@@ -602,22 +636,17 @@ class vtkTAG2EModelMonteCarloVariationAnalyserTestsFIS(unittest.TestCase):
         analyser.SetDataDistributionDescription(self.ddd)
         analyser.SetModel(self.Model)
         analyser.SetNumberOfRandomValues(1000)
-        analyser.SetNumberOfTimeSteps(5)
         analyser.SetMaxNumberOfIterations(2000)
         analyser.SetBreakCriterion(0.001)
+        analyser.SetInput(self.ds)
         analyser.Update()
         
         output = analyser.GetOutput()
         
-        # Generate the output        
-        num = output.GetNumberOfTimeSteps()
-        
         writer = vtkXMLPolyDataWriter()
-        
-        for i in range(1):
-            writer.SetFileName("/tmp/TAG2EMonteCarloFISTest_1_" + str(i) + ".vtp")
-            writer.SetInput(output.GetTimeStep(i))
-            writer.Write()
+        writer.SetFileName("/tmp/TAG2EMonteCarloFISTest_1.vtp")
+        writer.SetInput(output)
+        writer.Write()
             
         print output.GetFieldData().GetArray(self.Model.GetResultArrayName())
         print output.GetFieldData().GetArray(self.Model.GetResultArrayName()).GetRange()

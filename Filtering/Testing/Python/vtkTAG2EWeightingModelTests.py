@@ -69,9 +69,8 @@ class vtkTAG2EWeightingModelTests(unittest.TestCase):
             for j in range(yext):
                 ids = vtkIdList()
                 ids.InsertNextId(points.InsertNextPoint(i, j, 0))
-                # Data range [1:100] -> linear function x
-                self.model.SetValue(count, count + 1)
-                r = random.randint(1, 9)
+                self.model.SetValue(count, 1)
+                r = random.randint(0, 8)
                 self.factor.SetValue(count, r)
                 self.ds.InsertNextCell(vtk.VTK_VERTEX, ids)
                 count += 1
@@ -80,25 +79,6 @@ class vtkTAG2EWeightingModelTests(unittest.TestCase):
         self.ds.GetCellData().AddArray(self.model)
         self.ds.GetCellData().SetActiveScalars(self.model.GetName())
         self.ds.SetPoints(points)
-
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
 
         self._BuildXML()
 
@@ -113,6 +93,7 @@ class vtkTAG2EWeightingModelTests(unittest.TestCase):
         weights = vtkXMLDataElement()
         weights.SetName("Weights")
 
+        # We use the same range as the factors
         for i in range(9):
             weight = vtkXMLDataElement()
             weight.SetName("Weight")
@@ -138,10 +119,16 @@ class vtkTAG2EWeightingModelTests(unittest.TestCase):
         w.SetXMLRepresentation(self.root)
 
         model = vtkTAG2EWeightingModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(w)
         model.UseCellDataOn()
         model.Update()
+
+        diff = vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), 
+                                                               "factor", "result", 
+                                                               1, 1)
+        if diff != 0.0:
+            print "ERROR: difference should be 0.0 but is", diff
         
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2EWeightingModelTests)

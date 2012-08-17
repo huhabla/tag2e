@@ -28,8 +28,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-*/
-
+ */
 
 #include <vtkCellData.h>
 #include <vtkIntArray.h>
@@ -51,18 +50,17 @@ vtkStandardNewMacro(vtkTAG2EDataSetN2OFilterBouwman);
 
 vtkTAG2EDataSetN2OFilterBouwman::vtkTAG2EDataSetN2OFilterBouwman()
 {
-    this->UsePointData = 0;
-    this->NullValue = -999999;
-    this->NitrogenRateArrayName = NULL;
-    this->CategoryArrayName = NULL;
+  this->UsePointData = 0;
+  this->NullValue = -999999;
+  this->NitrogenRateArrayName = NULL;
+  this->CategoryArrayName = NULL;
 }
 
 //----------------------------------------------------------------------------
 
 int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
+    vtkInformation *vtkNotUsed(request), vtkInformationVector **inputVector,
+    vtkInformationVector *outputVector)
 {
   // get the info objects
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
@@ -70,26 +68,30 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
 
   // get the input and ouptut
   vtkDataSet *input = vtkDataSet::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+      inInfo->Get(vtkDataObject::DATA_OBJECT()));
   vtkDataSet *output = vtkDataSet::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT()));
+      outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   // Check for all arrays
-  if(this->UsePointData) {
-      if(!input->GetPointData()->HasArray(this->CategoryArrayName) ||
-         !input->GetPointData()->HasArray(this->NitrogenRateArrayName)) {
-          vtkErrorMacro(<< "Missing point data input array, abort.");
-          return 0;
+  if (this->UsePointData)
+    {
+    if (!input->GetPointData()->HasArray(this->CategoryArrayName)
+        || !input->GetPointData()->HasArray(this->NitrogenRateArrayName))
+      {
+      vtkErrorMacro(<< "Missing point data input array, abort.");
+      return 0;
       }
-  }else {
-      if(!input->GetCellData()->HasArray(this->CategoryArrayName) ||
-         !input->GetCellData()->HasArray(this->NitrogenRateArrayName)) {
-          vtkErrorMacro(<< "Missing cell data input array, abort.");
-          return 0;
+    } else
+    {
+    if (!input->GetCellData()->HasArray(this->CategoryArrayName)
+        || !input->GetCellData()->HasArray(this->NitrogenRateArrayName))
+      {
+      vtkErrorMacro(<< "Missing cell data input array, abort.");
+      return 0;
       }
-  }
-  
- // First, copy the input to the output as a starting point
+    }
+
+  // First, copy the input to the output as a starting point
   output->CopyStructure(input);
 
   // We compute the N2O emission only for each category
@@ -101,22 +103,26 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
   catN2O->SetNumberOfComponents(1);
   // The size of the arrays is dependent from the range of the categories, so we
   // use the maximum category number to allocate the arrays
-  if(this->UsePointData) {
-    double *range = input->GetPointData()->GetArray(this->CategoryArrayName)->GetRange();
-    cats->SetNumberOfTuples((int)range[1] + 1);
-    catN2O->SetNumberOfTuples((int)range[1] + 1);
-  }else {
-    double *range = input->GetCellData()->GetArray(this->CategoryArrayName)->GetRange();
-    cats->SetNumberOfTuples((int)range[1] + 1);
-    catN2O->SetNumberOfTuples((int)range[1] + 1);
-  }
+  if (this->UsePointData)
+    {
+    double *range =
+        input->GetPointData()->GetArray(this->CategoryArrayName)->GetRange();
+    cats->SetNumberOfTuples((int) range[1] + 1);
+    catN2O->SetNumberOfTuples((int) range[1] + 1);
+    } else
+    {
+    double *range =
+        input->GetCellData()->GetArray(this->CategoryArrayName)->GetRange();
+    cats->SetNumberOfTuples((int) range[1] + 1);
+    catN2O->SetNumberOfTuples((int) range[1] + 1);
+    }
   cats->FillComponent(0, 0);
   catN2O->FillComponent(0, 0);
 
   // The resulting array
   vtkDoubleArray *N2Oemission = vtkDoubleArray::New();
   N2Oemission->SetName("N2O");
-  if(this->UsePointData)
+  if (this->UsePointData)
     N2Oemission->SetNumberOfTuples(input->GetNumberOfPoints());
   else
     N2Oemission->SetNumberOfTuples(input->GetNumberOfCells());
@@ -127,57 +133,61 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
   int num;
   vtkDataSetAttributes *data = NULL;
 
-
   // Sweitch between Point or Cell data
-  if(this->UsePointData) {
-      num = input->GetNumberOfPoints();
-      data = input->GetPointData();
-  }else {
-      num = input->GetNumberOfCells();
-      data = input->GetCellData();
-  }
+  if (this->UsePointData)
+    {
+    num = input->GetNumberOfPoints();
+    data = input->GetPointData();
+    } else
+    {
+    num = input->GetNumberOfCells();
+    data = input->GetCellData();
+    }
 
   // Compute the emission
-  for(i = 0; i < num; i++) {
-      // Get the category
-      cat = (int)data->GetArray(this->CategoryArrayName)->GetTuple1(i);
+  for (i = 0; i < num; i++)
+    {
+    // Get the category
+    cat = (int) data->GetArray(this->CategoryArrayName)->GetTuple1(i);
 
-      if(cat < 0)
+    if (cat < 0)
       {
-          N2Oemission->InsertValue(i, this->NullValue);
-          continue;
+      N2Oemission->InsertValue(i, this->NullValue);
+      continue;
       }
 
-      // Check if the result was computed befor
-      if(cats->GetValue(cat) == 0)
+    // Check if the result was computed befor
+    if (cats->GetValue(cat) == 0)
       {
-          // Gather the input data
-          n = data->GetArray(this->NitrogenRateArrayName)->GetTuple1(i);
-          // Compute the model
-          n2o = vtkTAG2EAlternativeN2OPredictionModules::Bouwman(n);
-          // Save the value for the cat
-          catN2O->InsertValue(cat, n2o);
-          // Mark as computed
-          cats->InsertValue(cat, 1);
-          // Debug output
-          //cout << "new:" << i << " cat: " << cat << " n2o: " << n2o << endl;
-      }
-      // Store the result in the result array
-      N2Oemission->InsertValue(i, catN2O->GetValue(cat));
+      // Gather the input data
+      n = data->GetArray(this->NitrogenRateArrayName)->GetTuple1(i);
+      // Compute the model
+      n2o = vtkTAG2EAlternativeN2OPredictionModules::Bouwman(n);
+      // Save the value for the cat
+      catN2O->InsertValue(cat, n2o);
+      // Mark as computed
+      cats->InsertValue(cat, 1);
       // Debug output
-      //cout << "old: " << i << " cat: " << cat << " n2o: " << n2o << endl;
-  }
+      //cout << "new:" << i << " cat: " << cat << " n2o: " << n2o << endl;
+      }
+    // Store the result in the result array
+    N2Oemission->InsertValue(i, catN2O->GetValue(cat));
+    // Debug output
+    //cout << "old: " << i << " cat: " << cat << " n2o: " << n2o << endl;
+    }
 
   output->GetPointData()->CopyScalarsOff();
   output->GetPointData()->PassData(input->GetPointData());
   output->GetCellData()->PassData(input->GetCellData());
-  if(this->UsePointData) {
+  if (this->UsePointData)
+    {
     output->GetPointData()->AddArray(N2Oemission);
     output->GetPointData()->SetActiveScalars(N2Oemission->GetName());
-  } else {
+    } else
+    {
     output->GetCellData()->AddArray(N2Oemission);
     output->GetCellData()->SetActiveScalars(N2Oemission->GetName());
-  }
+    }
   N2Oemission->Delete();
   catN2O->Delete();
   cats->Delete();
@@ -189,5 +199,5 @@ int vtkTAG2EDataSetN2OFilterBouwman::RequestData(
 
 void vtkTAG2EDataSetN2OFilterBouwman::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  this->Superclass::PrintSelf(os, indent);
 }

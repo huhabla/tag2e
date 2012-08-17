@@ -41,14 +41,17 @@
 #ifndef vtkTAG2EAbstractModelEstimator_H
 #define	vtkTAG2EAbstractModelEstimator_H
 
-#include <vtkTemporalDataSetAlgorithm.h>
-#include <assert.h>
+#include <vtkDataSetAlgorithm.h>
 #include "vtkTAG2EAbstractModelParameter.h"
 #include "vtkTAG2EAbstractModel.h"
 
-class vtkTAG2EAbstractModelEstimator : public vtkTemporalDataSetAlgorithm {
+extern "C" {
+#include <assert.h>
+}
+
+class vtkTAG2EAbstractModelEstimator : public vtkDataSetAlgorithm {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EAbstractModelEstimator, vtkTemporalDataSetAlgorithm);
+    vtkTypeRevisionMacro(vtkTAG2EAbstractModelEstimator, vtkDataSetAlgorithm);
     static vtkTAG2EAbstractModelEstimator *New(); 
     
     vtkSetObjectMacro(Model, vtkTAG2EAbstractModel);
@@ -61,7 +64,8 @@ protected:
     vtkTAG2EAbstractModelEstimator();
     ~vtkTAG2EAbstractModelEstimator();
 
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
+    virtual int RequestData(vtkInformation *, vtkInformationVector **,
+    		vtkInformationVector *) {
         assert("RequestData must be implemented in a subclass");
         return -1;
     }

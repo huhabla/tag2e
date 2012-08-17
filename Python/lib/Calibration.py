@@ -58,14 +58,14 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
         
     metaModel.Run()
 
-    error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(metaModel.GetModelOutput(), metaModel.GetTargetDataSet(), 1, 0)
+    error = vtkTAG2EAbstractModelCalibrator.CompareDataSets(metaModel.GetModelOutput(), metaModel.GetTargetDataSet(), 1, 0)
     lastAcceptedError = error
     bestFitError = error
     
     # Initialize the best fit parameter and model output
     bestFitModelParameter = vtkXMLDataElement()
     metaModel.GetXMLRepresentation(bestFitModelParameter)
-    bestFitDataSet = vtkTemporalDataSet()
+    bestFitDataSet = metaModel.GetTargetDataSet().NewInstance()
     bestFitDataSet.ShallowCopy(metaModel.GetModelOutput())
     bestFitModelAssessment = 1.0
     
@@ -89,7 +89,7 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
         modelAssessment = metaModel.GetModelAssessmentFactor()
 
         # Measure the difference between old and new error
-        error = vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(metaModel.GetModelOutput(), \
+        error = vtkTAG2EAbstractModelCalibrator.CompareDataSets(metaModel.GetModelOutput(), \
                 metaModel.GetTargetDataSet(), 1, 0) * modelAssessment
 
         diff = error - lastAcceptedError

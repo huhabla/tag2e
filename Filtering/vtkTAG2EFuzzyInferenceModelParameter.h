@@ -50,7 +50,8 @@ class vtkXMLDataElement;
 
 class vtkTAG2EFuzzyInferenceModelParameter : public vtkTAG2EAbstractCalibratableModelParameter {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
+    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModelParameter,
+    		vtkTAG2EAbstractCalibratableModelParameter);
 
     void PrintSelf(ostream& os, vtkIndent indent) {
         ;

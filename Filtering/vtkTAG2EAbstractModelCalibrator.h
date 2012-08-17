@@ -35,8 +35,8 @@
  * statistical models. 
  * 
  * A subclass might be the simulated annealing algorithm, which is used to 
- * calibrate fuzzy inference models. This class expects calibartable models and 
- * model parameter as well as an spatio-temporal input with measured data 
+ * calibrate fuzzy inference models. This class expects calibratable models and
+ * model parameter as well as an input with measured data
  * to validate the model quality. The output should contain the best fit of the model
  * result and the measured data as well as the differences.
  * 
@@ -46,7 +46,7 @@
 #ifndef vtkTAG2EAbstractModelCalibrator_H
 #define	vtkTAG2EAbstractModelCalibrator_H
 
-#include <vtkTemporalDataSetAlgorithm.h>
+#include <vtkDataSetAlgorithm.h>
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
 
@@ -55,15 +55,20 @@
 #define TDS_COMPARE_METHOD_LOG_SCALED 3
 
 class vtkDataSet;
-class vtkTemporalDataSet;
+class vtkDataSet;
 class vtkDataArray;
 
-class vtkTAG2EAbstractModelCalibrator : public vtkTemporalDataSetAlgorithm {
+class vtkTAG2EAbstractModelCalibrator : public vtkDataSetAlgorithm {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EAbstractModelCalibrator, vtkTemporalDataSetAlgorithm);
+    vtkTypeRevisionMacro(vtkTAG2EAbstractModelCalibrator, vtkDataSetAlgorithm);
     static vtkTAG2EAbstractModelCalibrator *New(); 
     
     //!\brief Set the model which should be calibrated
+    /**
+     * @desc Set the model which should be calibrated
+     * 
+     * @param Model is of type vtkTAG2EAbstractCalibratableModel 
+     */
     vtkSetObjectMacro(Model, vtkTAG2EAbstractCalibratableModel);
     //!\brief Get the calibrated model
     vtkGetObjectMacro(Model, vtkTAG2EAbstractCalibratableModel);
@@ -73,34 +78,29 @@ public:
     //!\brief Get the calibrated model parameter
     vtkGetObjectMacro(ModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
     
-    //!\brief Compare two data arrays of a temporal dataset 
+    //!\brief Compare two data arrays of a dataset
     //! using the normative least squares algorithm
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
-    static double CompareTemporalDataSets(vtkTemporalDataSet *tds, 
+    static double CompareDataSets(vtkDataSet *ds,
                                            const char *ModelResultArrayName, 
                                            const char *TargetArrayName, 
                                            bool useCellData, bool verbose);
     
-    //!\brief Compare the active scalar data arrays of two temporal dataset 
+    //!\brief Compare the active scalar data arrays of two dataset
     //! using the normative least squares algorithm
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
-    static double CompareTemporalDataSets(vtkTemporalDataSet *tds1, vtkTemporalDataSet *tds2,
+    static double CompareDataSets(vtkDataSet *ds1, vtkDataSet *ds2,
                                            bool useCellData, bool verbose);
     
-    //!\brief Extract a specific CellData or PointData array from a temporal dataset
-    //!\brief This array must be present in each time step
-    static bool ExtractArrayFromTemporalDataSet(vtkTemporalDataSet *tds,
-                vtkDataArray *extract, const char *ArrayName, bool useCellData);
-    
-    //!\brief Compute the residuals of the active data arrays in the temporal datasets
-    static bool ComputeTemporalDataSetsResiduals(vtkTemporalDataSet *tds1, vtkTemporalDataSet *tds2,
+    //!\brief Compute the residuals of the active data arrays in the datasets
+    static bool ComputeDataSetsResiduals(vtkDataSet *tds1, vtkDataSet *tds2,
                 bool useCellData, vtkDataArray *residuals);
     
     static double ArithmeticMean(vtkDataArray *data);
     static double StandardDeviation(vtkDataArray *data);
-    static double StandardDeviation(vtkTemporalDataSet *tds, const char *ArrayName, bool useCellData);
+    static double StandardDeviation(vtkDataSet *ds, const char *ArrayName, bool useCellData);
     static double Variance(vtkDataArray *data);
-    static double Variance(vtkTemporalDataSet *tds, const char *ArrayName, bool useCellData);
+    static double Variance(vtkDataSet *ds, const char *ArrayName, bool useCellData);
 
 protected:
     vtkTAG2EAbstractModelCalibrator();

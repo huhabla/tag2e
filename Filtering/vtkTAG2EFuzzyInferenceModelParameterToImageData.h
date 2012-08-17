@@ -49,46 +49,48 @@ class vtkStringArray;
 class vtkTAG2EFuzzyInferenceModelParameterToImageDataParameter;
 class FuzzyInferenceScheme;
 
-class vtkTAG2EFuzzyInferenceModelParameterToImageData : public vtkImageAlgorithm {
+class vtkTAG2EFuzzyInferenceModelParameterToImageData: public vtkImageAlgorithm
+{
 public:
-    vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModelParameterToImageData, vtkImageAlgorithm);
-    
-    void PrintSelf(ostream& os, vtkIndent indent);
-    static vtkTAG2EFuzzyInferenceModelParameterToImageData *New(); 
-    
-    //!\brief Set the model parameter which must be of type vtkTAG2EFuzzyInferenceModelParameter
-    //! This XML model parameter describes the fuzzy inference scheme which is used to compute 
-    //! the input point data.
-    vtkSetObjectMacro(FuzzyModelParameter, vtkTAG2EFuzzyInferenceModelParameter);
-    
-    vtkSetMacro(XAxisExtent, unsigned int);
-    vtkSetMacro(YAxisExtent, unsigned int);
-    vtkSetMacro(ZAxisExtent, unsigned int);
+vtkTypeRevisionMacro(vtkTAG2EFuzzyInferenceModelParameterToImageData, vtkImageAlgorithm)
+  ;
 
-    vtkGetMacro(XAxisExtent, unsigned int);
-    vtkGetMacro(YAxisExtent, unsigned int);
-    vtkGetMacro(ZAxisExtent, unsigned int);
+  void PrintSelf(ostream& os, vtkIndent indent);
+  static vtkTAG2EFuzzyInferenceModelParameterToImageData *New();
+
+  //!\brief Set the model parameter which must be of type vtkTAG2EFuzzyInferenceModelParameter
+  //! This XML model parameter describes the fuzzy inference scheme which is used to compute
+  //! the input point data.
+  vtkSetObjectMacro(FuzzyModelParameter, vtkTAG2EFuzzyInferenceModelParameter);
+
+  vtkSetMacro(XAxisExtent, unsigned int);
+  vtkSetMacro(YAxisExtent, unsigned int);
+  vtkSetMacro(ZAxisExtent, unsigned int);
+
+  vtkGetMacro(XAxisExtent, unsigned int);
+  vtkGetMacro(YAxisExtent, unsigned int);
+  vtkGetMacro(ZAxisExtent, unsigned int);
+
 
 protected:
-    vtkTAG2EFuzzyInferenceModelParameterToImageData();
-    ~vtkTAG2EFuzzyInferenceModelParameterToImageData();
-    
+  vtkTAG2EFuzzyInferenceModelParameterToImageData();
+  ~vtkTAG2EFuzzyInferenceModelParameterToImageData();
+
   virtual int RequestInformation(vtkInformation* request,
-                                 vtkInformationVector** inputVector,
-                                 vtkInformationVector* outputVector);
-    
-  virtual int RequestData(vtkInformation *,
-                          vtkInformationVector **,
-                          vtkInformationVector *);
-    
-    vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
-    unsigned int XAxisExtent;
-    unsigned int YAxisExtent;
-    unsigned int ZAxisExtent;
-    
+      vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+
+  virtual int RequestData(vtkInformation *, vtkInformationVector **,
+      vtkInformationVector *);
+
+  vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
+  unsigned int XAxisExtent;
+  unsigned int YAxisExtent;
+  unsigned int ZAxisExtent;
+
 private:
-    vtkTAG2EFuzzyInferenceModelParameterToImageData(const vtkTAG2EFuzzyInferenceModelParameterToImageData& orig); // Not implemented.
-    void operator=(const vtkTAG2EFuzzyInferenceModelParameterToImageData&); // Not implemented.
+  vtkTAG2EFuzzyInferenceModelParameterToImageData(
+      const vtkTAG2EFuzzyInferenceModelParameterToImageData& orig); // Not implemented.
+  void operator=(const vtkTAG2EFuzzyInferenceModelParameterToImageData&); // Not implemented.
 };
 
 #endif	/* vtkTAG2EFuzzyInferenceModelParameterToImageData_H */

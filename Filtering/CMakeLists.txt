@@ -25,7 +25,7 @@ SET (Filtering_SRCS
     vtkTAG2EFuzzyInferenceModel.cxx
     vtkTAG2EFuzzyInferenceModelParameterToImageData.cxx
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
-    vtkTAG2ERSpaceTimeModel.cxx
+#    vtkTAG2ERSpaceTimeModel.cxx
     vtkTAG2EWeightingModelParameter.cxx
     vtkTAG2EWeightingModel.cxx
 )
@@ -50,7 +50,7 @@ SET (Filtering_H
     vtkTAG2EFuzzyInferenceModel.h
     vtkTAG2EFuzzyInferenceModelParameterToImageData.h
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
-    vtkTAG2ERSpaceTimeModel.h
+#    vtkTAG2ERSpaceTimeModel.h
     vtkTAG2EWeightingModelParameter.h
     vtkTAG2EWeightingModel.h
 )

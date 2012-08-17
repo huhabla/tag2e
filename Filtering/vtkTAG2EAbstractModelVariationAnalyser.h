@@ -33,7 +33,7 @@
 #ifndef vtkTAG2EAbstractModelVariationAnalyser_H
 #define	vtkTAG2EAbstractModelVariationAnalyser_H
 
-#include <vtkTemporalDataSetAlgorithm.h>
+#include <vtkDataSetAlgorithm.h>
 #include <assert.h>
 #include "vtkTAG2EAbstractModel.h"
 
@@ -50,9 +50,10 @@ class vtkStringArray;
 class vtkIntArray;
 class vtkDoubleArray;
 
-class vtkTAG2EAbstractModelVariationAnalyser : public vtkTemporalDataSetAlgorithm {
+class vtkTAG2EAbstractModelVariationAnalyser : public vtkDataSetAlgorithm {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EAbstractModelVariationAnalyser, vtkTemporalDataSetAlgorithm);
+    vtkTypeRevisionMacro(vtkTAG2EAbstractModelVariationAnalyser,
+    		vtkDataSetAlgorithm);
     static vtkTAG2EAbstractModelVariationAnalyser *New(); 
     
     //!\brief Set the model which should be analyzed
@@ -68,14 +69,10 @@ public:
 protected:
     vtkTAG2EAbstractModelVariationAnalyser();
     ~vtkTAG2EAbstractModelVariationAnalyser();
-
-    vtkGetMacro(NumberOfTimeSteps, int);
-    vtkSetMacro(NumberOfTimeSteps, int);
     vtkSetMacro(MaxNumberOfIterations, int);
     
-    virtual int RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
-    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
+    virtual int RequestData(vtkInformation *, vtkInformationVector **,
+    		                vtkInformationVector *) {
         this->BuildDataDistributionDescriptionArrays();
         vtkErrorMacro(<<"RequestData must be implemented in a subclass");
         return -1;
@@ -90,9 +87,7 @@ protected:
     vtkIntArray *VariableDistributionType;
     vtkDoubleArray *DistributionParameter;
 
-    int NumberOfTimeSteps;
     int MaxNumberOfIterations;
-    double *TimeSteps;
     
 private:
     vtkTAG2EAbstractModelVariationAnalyser(const vtkTAG2EAbstractModelVariationAnalyser& orig); // Not implemented.
