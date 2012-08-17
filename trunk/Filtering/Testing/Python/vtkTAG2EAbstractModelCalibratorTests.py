@@ -86,25 +86,6 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         self.ds.GetCellData().AddArray(self.measure)
         self.ds.SetPoints(points) 
         
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-        
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
-        
         self._BuildXML()
         
     def _BuildXML(self):
@@ -202,12 +183,12 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         parameter.SetXMLRepresentation(self.root)
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(parameter)
         model.Update()
 
         caliModel = vtkTAG2EAbstractModelCalibrator()
-        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetInput(self.ds)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.Update()
@@ -221,13 +202,8 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.model)
         print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.measure)
         
-        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), "model", "measure", 0, 1)
-        
-        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), self.timesource.GetOutput(), 0, 1)
-
-        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), "model", "measure", 1, 1)
-
-        print vtkTAG2EAbstractModelCalibrator.CompareTemporalDataSets(self.timesource.GetOutput(), self.timesource.GetOutput(), 1, 1)
+        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), "model", "measure", 0, 1)
+        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), "model", "measure", 1, 1)
 
   
 if __name__ == '__main__':

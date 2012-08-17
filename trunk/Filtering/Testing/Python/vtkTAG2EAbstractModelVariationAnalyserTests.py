@@ -57,28 +57,10 @@ class vtkTAG2EAbstractModelVariationAnalyzerTests(unittest.TestCase):
         data.SetName("data")
         data.FillComponent(0,3)
 
-        self.ds1 = vtkPolyData()
-        self.ds1.Allocate(5,5)
-        self.ds1.GetPointData().SetScalars(data)
-        
-        self.ds2 = vtkPolyData()
-        self.ds2.Allocate(5,5)
-        self.ds2.GetPointData().SetScalars(data)
-
-        self.ds1.SetPoints(self.points)    
-        self.ds2.SetPoints(self.points)     
-        
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(2)
-        timesteps.SetNumberOfComponents(1)
-        timesteps.SetValue(0, 0.5)
-        timesteps.SetValue(1, 1.5)
-
-        # Use the temporal data source to create the temporal dataset
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 2, timesteps)
-        self.timesource.SetInput(0, self.ds1)
-        self.timesource.SetInput(1, self.ds2)
+        self.ds = vtkPolyData()
+        self.ds.Allocate(5,5)
+        self.ds.GetPointData().SetScalars(data)
+        self.ds.SetPoints(self.points)   
 
     def testXMLDataDistributionDescription(self):
         
@@ -121,7 +103,7 @@ class vtkTAG2EAbstractModelVariationAnalyzerTests(unittest.TestCase):
                 
         analyser = vtkTAG2EAbstractModelVariationAnalyser()
         analyser.SetDataDistributionDescription(self.ddd)
-        analyser.SetInputConnection(self.timesource.GetOutputPort())
+        analyser.SetInput(self.ds)
         analyser.Update()
         
 if __name__ == '__main__':

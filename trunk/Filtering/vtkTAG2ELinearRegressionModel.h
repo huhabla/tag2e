@@ -44,35 +44,36 @@ class vtkDoubleArray;
 class vtkStringArray;
 class vtkIntArray;
 
-class vtkTAG2ELinearRegressionModel : public vtkTAG2EAbstractModel {
+class vtkTAG2ELinearRegressionModel: public vtkTAG2EAbstractModel
+{
 public:
-    vtkTypeRevisionMacro(vtkTAG2ELinearRegressionModel, vtkTAG2EAbstractModel);
-    
-    void PrintSelf(ostream& os, vtkIndent indent) ;
-    
-    virtual void SetModelParameter(vtkTAG2EAbstractModelParameter* modelParameter);
-    
-    static vtkTAG2ELinearRegressionModel *New(); 
-    
+vtkTypeRevisionMacro(vtkTAG2ELinearRegressionModel, vtkTAG2EAbstractModel);
+
+  void PrintSelf(ostream& os, vtkIndent indent);
+
+  virtual void SetModelParameter(
+      vtkTAG2EAbstractModelParameter* modelParameter);
+
+  static vtkTAG2ELinearRegressionModel *New();
+
 protected:
-    vtkTAG2ELinearRegressionModel();
-    ~vtkTAG2ELinearRegressionModel();
+  vtkTAG2ELinearRegressionModel();
+  ~vtkTAG2ELinearRegressionModel();
 
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-    virtual int FillInputPortInformation(int port, vtkInformation* info);
-    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  virtual int RequestData(vtkInformation *, vtkInformationVector **,
+      vtkInformationVector *);
 
-    virtual bool BuildLRValueArrays();
-    
-    vtkIntArray *InputPorts;
-    vtkDoubleArray *Coefficents;
-    vtkDoubleArray *Power;
-    vtkStringArray *ArrayNames;
-    double Intercept;
-    
+  virtual bool BuildLRValueArrays();
+
+  vtkIntArray *InputPorts;
+  vtkDoubleArray *Coefficents;
+  vtkDoubleArray *Power;
+  vtkStringArray *ArrayNames;
+  double Intercept;
+
 private:
-    vtkTAG2ELinearRegressionModel(const vtkTAG2ELinearRegressionModel& orig); // Not implemented.
-    void operator=(const vtkTAG2ELinearRegressionModel&); // Not implemented.
+  vtkTAG2ELinearRegressionModel(const vtkTAG2ELinearRegressionModel& orig); // Not implemented.
+  void operator=(const vtkTAG2ELinearRegressionModel&); // Not implemented.
 };
 
 #endif	/* vtkTAG2ELinearRegressionModel_H */

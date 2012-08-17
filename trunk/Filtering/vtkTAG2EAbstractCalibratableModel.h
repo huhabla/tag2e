@@ -51,7 +51,8 @@
 
 class vtkTAG2EAbstractCalibratableModel : public vtkTAG2EAbstractModel {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModel, vtkTAG2EAbstractModel);
+    vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModel,
+    		             vtkTAG2EAbstractModel);
     
     //!\brief Return the model assessment factor [1, inf[
     virtual double GetModelAssessmentFactor() = 0;
@@ -60,7 +61,8 @@ protected:
     vtkTAG2EAbstractCalibratableModel();
     ~vtkTAG2EAbstractCalibratableModel();
 
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) {
+    virtual int RequestData(vtkInformation *, vtkInformationVector **,
+    		                vtkInformationVector *) {
         assert("RequestData must be implemented in a subclass");
         return -1;
     }

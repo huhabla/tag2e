@@ -85,25 +85,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         self.ds.GetCellData().SetActiveScalars(self.measure.GetName())
         self.ds.SetPoints(points) 
         
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-        
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
-        
         self._BuildXML()
         
     def _BuildXML(self):
@@ -201,12 +182,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTests(unittest.TestCase):
         parameter.SetXMLRepresentation(self.root)
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(parameter)
         model.UseCellDataOn()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetInput(self.ds)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(100)
@@ -269,25 +250,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         self.ds.GetPointData().AddArray(self.yarray)
         self.ds.SetPoints(points)
         self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
-
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
 
 
     def _BuildXML(self):
@@ -449,11 +411,11 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsComplex(unittest.TestCase):
         parameter.SetXMLRepresentation(self.root)
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(parameter)
         
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetInput(self.ds)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(100)
@@ -532,27 +494,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
         self.ds.GetPointData().AddArray(self.zarray)
         self.ds.SetPoints(points)
         self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
-
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
-
-
 
     def _BuildXML(self):
 
@@ -656,11 +597,11 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsBenchmark(unittest.TestCase)
         parameter.SetXMLRepresentation(self.root)
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(parameter)
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetInput(self.ds)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(100)
@@ -756,26 +697,6 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
         self.ds.GetPointData().AddArray(self.zarray)
         self.ds.SetPoints(points)
         self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
-
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, self.ds)
-        self.timesource.Update()
-
 
     def _BuildXML(self):
 
@@ -891,12 +812,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsHuge(unittest.TestCase):
         parameter.DebugOff()
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         model.SetModelParameter(parameter)
         model.UseCellDataOff()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(self.timesource.GetOutputPort())
+        caliModel.SetInput(self.ds)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(100)
@@ -960,33 +881,7 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting(unittest.TestCase)
         self.ds2.GetCellData().AddArray(self.target)
         self.ds2.GetCellData().SetActiveScalars(self.target.GetName())
         self.ds2.SetPoints(points)
-                
-        # Create the temporal data
-
-        # We have 10 time steps!
-        time = 1
-
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource1 = vtkTemporalDataSetSource()
-        self.timesource1.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource1.SetInput(i, self.ds1)
-        self.timesource1.Update()
-
-        # Create the spatio-temporal source
-        self.timesource2 = vtkTemporalDataSetSource()
-        self.timesource2.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource2.SetInput(i, self.ds2)
-        self.timesource2.Update()
-        
+                        
         self._BuildXML()
 
     def _BuildXML(self):
@@ -1032,12 +927,12 @@ class vtkTAG2ESimulatedAnnealingModelCalibratorTestsWeighting(unittest.TestCase)
         parameter.Write()
 
         model = vtkTAG2EWeightingModel()
-        model.SetInputConnection(self.timesource1.GetOutputPort())
+        model.SetInput(self.ds1)
         model.SetModelParameter(parameter)
         model.UseCellDataOn()
 
         caliModel = vtkTAG2ESimulatedAnnealingModelCalibrator()
-        caliModel.SetInputConnection(self.timesource2.GetOutputPort())
+        caliModel.SetInput(self.ds2)
         caliModel.SetModel(model)
         caliModel.SetModelParameter(parameter)
         caliModel.SetMaxNumberOfIterations(1000)

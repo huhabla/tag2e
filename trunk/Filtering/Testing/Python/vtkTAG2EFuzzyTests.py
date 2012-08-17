@@ -70,31 +70,13 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
                 ids.InsertNextId(count)
                 count += 1
 
-        ds = vtkPolyData()
-        ds.Allocate(xext,yext)
-        ds.GetPointData().SetScalars(pH)
-        ds.GetPointData().AddArray(nmin)
-        ds.SetPoints(points)    
-        ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
-        
-        # Create the temporal data
+        self.ds = vtkPolyData()
+        self.ds.Allocate(xext,yext)
+        self.ds.GetPointData().SetScalars(pH)
+        self.ds.GetPointData().AddArray(nmin)
+        self.ds.SetPoints(points)    
+        self.ds.InsertNextCell(vtk.VTK_POLY_VERTEX, ids)
 
-        # We have 10 time steps!
-        time = 2
-        
-        # Generate the time steps
-        timesteps = vtkDoubleArray()
-        timesteps.SetNumberOfTuples(time)
-        timesteps.SetNumberOfComponents(1)
-        for i in range(time):
-            timesteps.SetValue(i, 3600*24*i)
-
-        # Create the spatio-temporal source
-        self.timesource = vtkTemporalDataSetSource()
-        self.timesource.SetTimeRange(0, 3600*24*time, timesteps)
-        for i in range(time):
-            self.timesource.SetInput(i, ds)
-        self.timesource.Update()
         
         self._BuildXML()
         
@@ -275,7 +257,7 @@ class vtkTAG2EDFuzzyTest(unittest.TestCase):
         
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetModelParameter(fisc)
-        model.SetInputConnection(self.timesource.GetOutputPort())
+        model.SetInput(self.ds)
         
         for i in range(5000):
             fisc.ModifyParameterRandomly(5)

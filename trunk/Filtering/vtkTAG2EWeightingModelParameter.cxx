@@ -64,12 +64,14 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
   w->SetAttribute("name", this->W.name.c_str());
   w->SetAttribute("xmlns", "http://tag2e.googlecode.com/files/Weighting");
   w->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-  w->SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/Weighting http://tag2e.googlecode.com/files/Weighting.xsd");
+  w->SetAttribute("xsi:schemaLocation",
+      "http://tag2e.googlecode.com/files/Weighting http://tag2e.googlecode.com/files/Weighting.xsd");
 
   vtkXMLDataElement *weights = vtkXMLDataElement::New();
   weights->SetName("Weights");
 
-  for (i = 0; i < this->W.Weights.size(); i++) {
+  for (i = 0; i < this->W.Weights.size(); i++)
+    {
     WeightingWeight &Weight = this->W.Weights[i];
     vtkXMLDataElement *weight = vtkXMLDataElement::New();
     weight->SetName("Weight");
@@ -84,12 +86,12 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
 
     weights->AddNestedElement(weight);
     weight->Delete();
-  }
+    }
 
   vtkXMLDataElement *factor = vtkXMLDataElement::New();
   factor->SetName("Factor");
   factor->SetAttribute("name", this->W.Factor.name.c_str());
-  
+
   w->AddNestedElement(factor);
   w->AddNestedElement(weights);
   weights->Delete();
@@ -103,23 +105,27 @@ bool vtkTAG2EWeightingModelParameter::GenerateXMLFromInternalScheme()
 
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EWeightingModelParameter::SetParameter(unsigned int index, double value)
+bool vtkTAG2EWeightingModelParameter::SetParameter(unsigned int index,
+    double value)
 {
   unsigned int count = 0;
   unsigned int i;
 
-  for (i = 0; i < this->W.Weights.size(); i++) {
+  for (i = 0; i < this->W.Weights.size(); i++)
+    {
     WeightingWeight &Weight = this->W.Weights[i];
-    if (Weight.constant == false) {
-      if (count == index) {
+    if (Weight.constant == false)
+      {
+      if (count == index)
+        {
 
         this->UpdateParameterState(index, Weight.value, value);
         Weight.value = value;
         return true;
-      }
+        }
       count++;
+      }
     }
-  }
 
   return false;
 }
@@ -132,19 +138,21 @@ bool vtkTAG2EWeightingModelParameter::CreateParameterIndex()
   unsigned int count = 0;
 
   // ATTENTION:
-  // The count mechanism of CreateParameterIndex and SetParemter must be identical
+  // The count mechanism of CreateParameterIndex and SetParamter must be identical
 
   this->ParameterIndex.clear();
 
-  for (i = 0; i < this->W.Weights.size(); i++) {
+  for (i = 0; i < this->W.Weights.size(); i++)
+    {
     WeightingWeight &Weight = this->W.Weights[i];
 
-    if (Weight.constant == false) {
+    if (Weight.constant == false)
+      {
 
       this->AppendParameterState(count, Weight.value, Weight.min, Weight.max);
       count++;
+      }
     }
-  }
 
   return true;
 }
@@ -157,41 +165,50 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
   int i;
 
   // Check for correct name
-  if (strncasecmp(root->GetName(), "Weighting", strlen("Weighting")) != 0) {
-    vtkErrorMacro("The model parameter does not contain a valid Weighting scheme");
+  if (strncasecmp(root->GetName(), "Weighting", strlen("Weighting")) != 0)
+    {
+    vtkErrorMacro(
+        "The model parameter does not contain a valid Weighting scheme");
     return false;
-  }
+    }
 
-  if (root->GetAttribute("name") != NULL) {
+  if (root->GetAttribute("name") != NULL)
+    {
     this->W.name = root->GetAttribute("name");
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"name\" is missing in Weighting element");
     return false;
-  }
-  
-  vtkXMLDataElement *factor = root->FindNestedElementWithName("Factor");
-  if (factor != NULL) {
+    }
 
-    if (root->GetAttribute("name") != NULL) {
+  vtkXMLDataElement *factor = root->FindNestedElementWithName("Factor");
+  if (factor != NULL)
+    {
+
+    if (root->GetAttribute("name") != NULL)
+      {
       this->W.Factor.name = factor->GetAttribute("name");
-    } else {
+      } else
+      {
       vtkErrorMacro( << "Attribute \"name\" is missing in Factor element");
       return false;
+      }
     }
-  }
-  
+
   this->W.Weights.clear();
 
   vtkXMLDataElement *weights = root->FindNestedElementWithName("Weights");
-  if(weights != NULL){
-      for (i = 0; i < weights->GetNumberOfNestedElements(); i++) {
-        vtkXMLDataElement *weight = weights->GetNestedElement(i);
-        WeightingWeight Weight;
-        this->ParseWeight(weight, Weight);
-        this->W.Weights.push_back(Weight);
+  if (weights != NULL)
+    {
+    for (i = 0; i < weights->GetNumberOfNestedElements(); i++)
+      {
+      vtkXMLDataElement *weight = weights->GetNestedElement(i);
+      WeightingWeight Weight;
+      this->ParseWeight(weight, Weight);
+      this->W.Weights.push_back(Weight);
       }
-  }
-  
+    }
+
   this->CreateParameterIndex();
 
   this->SetNumberOfCalibratableParameter(this->ParameterIndex.size());
@@ -199,64 +216,76 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
   return true;
 }
 
-
 //----------------------------------------------------------------------------
 
-bool vtkTAG2EWeightingModelParameter::ParseWeight(vtkXMLDataElement *XMLWeight, WeightingWeight &Weight)
+bool vtkTAG2EWeightingModelParameter::ParseWeight(vtkXMLDataElement *XMLWeight,
+    WeightingWeight &Weight)
 {
   int active;
   int constant = 0;
   active = 0;
 
-  if (XMLWeight->GetAttribute("const") != NULL) {
+  if (XMLWeight->GetAttribute("const") != NULL)
+    {
     constant = atoi(XMLWeight->GetAttribute("const"));
     if (constant == 0)
       Weight.constant = false;
     else
       Weight.constant = true;
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"const\" is missing in Weight element");
     return false;
-  }
+    }
 
-  if (XMLWeight->GetAttribute("active") != NULL) {
+  if (XMLWeight->GetAttribute("active") != NULL)
+    {
     active = atoi(XMLWeight->GetAttribute("active"));
     if (active == 0)
       Weight.active = false;
     else
       Weight.active = true;
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"active\" is missing in Weight element");
     return false;
-  }
+    }
 
-  if (XMLWeight->GetAttribute("min") != NULL) {
+  if (XMLWeight->GetAttribute("min") != NULL)
+    {
     Weight.min = atof(XMLWeight->GetAttribute("min"));
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"min\" is missing in Weight element");
     return false;
-  }
+    }
 
-  if (XMLWeight->GetAttribute("id") != NULL) {
+  if (XMLWeight->GetAttribute("id") != NULL)
+    {
     Weight.id = atoi(XMLWeight->GetAttribute("id"));
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"id\" is missing in Weight element");
     return false;
-  }
+    }
 
-  if (XMLWeight->GetAttribute("max") != NULL) {
+  if (XMLWeight->GetAttribute("max") != NULL)
+    {
     Weight.max = atof(XMLWeight->GetAttribute("max"));
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"max\" is missing in Weight element");
     return false;
-  }
+    }
 
-  if (XMLWeight->GetCharacterData() != NULL) {
+  if (XMLWeight->GetCharacterData() != NULL)
+    {
     Weight.value = atof(XMLWeight->GetCharacterData());
-  } else {
+    } else
+    {
     vtkErrorMacro( << "Attribute \"sd\" is missing in Weight element");
     return false;
-  }
+    }
 
 //    cout << "Added Weight const " << Weight.constant
 //      << " value " << Weight.value << " min " << Weight.min

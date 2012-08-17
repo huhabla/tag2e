@@ -127,18 +127,7 @@ def main():
         else:
             dataset.GetPointData().AddArray(map.GetOutput().GetPointData().GetScalars())
 
-    # Generate the time steps
-    timesteps = vtkDoubleArray()
-    timesteps.SetNumberOfTuples(1)
-    timesteps.SetNumberOfComponents(1)
-    timesteps.SetValue(0, 3600*24)
-
-    # Create the spatio-temporal source
-    timesource = vtkTemporalDataSetSource()
-    timesource.SetTimeRange(0, 3600*24, timesteps)
-    timesource.SetInput(0, dataset)
-
-    outputTDS = vtkTemporalDataSet()
+    outputDS = vtkImageData()
 
     if weighting.GetAnswer():
 
@@ -171,7 +160,7 @@ def main():
         parameterFIS.DebugOff()
 
         modelFIS = vtkTAG2EFuzzyInferenceModel()
-        modelFIS.SetInputConnection(timesource.GetOutputPort())
+        modelFIS.SetInput(dataset)
         modelFIS.SetModelParameter(parameterFIS)
         modelFIS.UseCellDataOff()
         modelFIS.SetNullValue(nullValue)
@@ -187,7 +176,7 @@ def main():
         modelW.SetNullValue(nullValue)
         modelW.Update()
 
-        outputTDS.ShallowCopy(modelW.GetOutput())
+        outputDS.ShallowCopy(modelW.GetOutput())
 
     else:
         # Set up the parameter and the model
@@ -196,30 +185,29 @@ def main():
         parameter.Read()
 
         model = vtkTAG2EFuzzyInferenceModel()
-        model.SetInputConnection(timesource.GetOutputPort())
+        model.SetInput(dataset)
         model.SetModelParameter(parameter)
         model.UseCellDataOff()
         model.SetNullValue(nullValue)
         model.Update()
 
-        outputTDS.ShallowCopy(model.GetOutput())
+        outputDS.ShallowCopy(model.GetOutput())
 
     messages.VerboseMessage("Writing first result raster map")
 
     # Write the result as vector map
     writer = vtkGRASSRasterImageWriter()
-    writer.SetInput(outputTDS.GetTimeStep(0))
+    writer.SetInput(outputDS)
     writer.SetRasterName(output.GetAnswer())
     writer.SetNullValue(nullValue)
     writer.Update()
-
     
-    # Create the poly data output for paraview analysis
+    # Create the image data output for paraview analysis
     if vtkout.GetAnswer():
         messages.Message("Writing result VTK image data")
         pwriter = vtkXMLImageDataWriter()
         pwriter.SetFileName(vtkout.GetAnswer() + ".vti")
-        pwriter.SetInput(outputTDS.GetTimeStep(0))
+        pwriter.SetInput(outputDS)
         pwriter.Write()
     
 ################################################################################

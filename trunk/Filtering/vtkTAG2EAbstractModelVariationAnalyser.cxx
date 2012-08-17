@@ -51,9 +51,6 @@ vtkTAG2EAbstractModelVariationAnalyser::vtkTAG2EAbstractModelVariationAnalyser()
   this->SetNumberOfOutputPorts(1);
   this->Model = NULL;
   this->DataDistributionDescription = NULL;
-
-  this->TimeSteps = NULL;
-  this->NumberOfTimeSteps = 1; // We generate only a single time step as default
   this->MaxNumberOfIterations = 1000; // This is the number of 
 
   this->VariableName = vtkStringArray::New();
@@ -79,57 +76,6 @@ vtkTAG2EAbstractModelVariationAnalyser::~vtkTAG2EAbstractModelVariationAnalyser(
 
 //----------------------------------------------------------------------------
 
-int vtkTAG2EAbstractModelVariationAnalyser::RequestUpdateExtent(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **vtkNotUsed(inputVector),
-  vtkInformationVector *outputVector)
-{
-  if (this->TimeSteps) {
-    vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-    // Remove any existing output UPDATE_TIME_STEPS
-    if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS()))
-      outInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS());
-
-    // Set the generated time steps, its the same as TIME_STEPS
-    if (!outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS())) {
-      outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
-    }
-  }
-
-  return 1;
-}
-
-//-----------------------------------------------------------------------
-
-int vtkTAG2EAbstractModelVariationAnalyser::RequestInformation(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **vtkNotUsed(inputVector),
-  vtkInformationVector *outputVector)
-{
-  int i;
-
-  this->TimeSteps = new double[this->NumberOfTimeSteps];
-
-  if (this->TimeSteps) {
-    // Generate the time steps
-    for (i = 0; i < this->NumberOfTimeSteps; i++)
-      this->TimeSteps[i] = (double) i;
-
-    double range[2] = {0, 1};
-
-    vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-    // Set the time stept and range for the first input.
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), this->TimeSteps, this->NumberOfTimeSteps);
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), range, 2);
-  }
-
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-
 bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArrays()
 {
   int i;
@@ -144,7 +90,8 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
   
   // Check for correct 
   if (strncasecmp(root->GetName(), "DataDistributionDescription", 27) != 0) {
-    vtkErrorMacro("The model parameter does not contain a valid data distribution description scheme");
+    vtkErrorMacro("The model parameter does not contain a valid data "
+                  "distribution description scheme");
     return false;
   }
 
@@ -161,7 +108,8 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
       if (variable->GetAttribute("name") != NULL) {
         variableName = variable->GetAttribute("name");
       } else {
-        vtkErrorMacro( << "Attribute \"name\" is missing in Variable element: " << i);
+        vtkErrorMacro( << "Attribute \"name\" is missing in Variable element: "
+                       << i);
         return false;
       }
 
@@ -174,23 +122,27 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
           vtkXMLDataElement *df = variable->GetNestedElement(0);
           if (df) {
             if (strncasecmp(df->GetName(), "Norm", 4) != 0) {
-              vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("mean") != NULL) {
               param1 = atof(df->GetAttribute("mean"));
             } else {
-              vtkErrorMacro( << "Attribute \"mean\" is missing in Norm element: " << i);
+              vtkErrorMacro( << "Attribute \"mean\" is missing in Norm element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("sd") != NULL) {
               param2 = atof(df->GetAttribute("sd"));
             } else {
-              vtkErrorMacro( << "Attribute \"sd\" is missing in Norm element: " << i);
+              vtkErrorMacro( << "Attribute \"sd\" is missing in Norm element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Norm\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
@@ -201,23 +153,27 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
 
           if (df) {
             if (strncasecmp(df->GetName(), "Lnorm", 5) != 0) {
-              vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("meanlog") != NULL) {
               param1 = atof(df->GetAttribute("meanlog"));
             } else {
-              vtkErrorMacro( << "Attribute \"meanlog\" is missing in Lnorm element: " << i);
+              vtkErrorMacro( << "Attribute \"meanlog\" is missing in Lnorm element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("sdlog") != NULL) {
               param2 = atof(df->GetAttribute("sdlog"));
             } else {
-              vtkErrorMacro( << "Attribute \"sdlog\" is missing in Lnorm element: " << i);
+              vtkErrorMacro( << "Attribute \"sdlog\" is missing in Lnorm element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Lnorm\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
@@ -228,23 +184,27 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
 
           if (df) {
             if (strncasecmp(df->GetName(), "Unif", 4) != 0) {
-              vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("min") != NULL) {
               param1 = atof(df->GetAttribute("min"));
             } else {
-              vtkErrorMacro( << "Attribute \"min\" is missing in Unif element: " << i);
+              vtkErrorMacro( << "Attribute \"min\" is missing in Unif element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("max") != NULL) {
               param2 = atof(df->GetAttribute("max"));
             } else {
-              vtkErrorMacro( << "Attribute \"max\" is missing in Unif element: " << i);
+              vtkErrorMacro( << "Attribute \"max\" is missing in Unif element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Unif\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
@@ -255,23 +215,27 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
           
           if (df) {
             if (strncasecmp(df->GetName(), "Binom", 5) != 0) {
-              vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("size") != NULL) {
               param1 = atof(df->GetAttribute("size"));
             } else {
-              vtkErrorMacro( << "Attribute \"size\" is missing in Binom element: " << i);
+              vtkErrorMacro( << "Attribute \"size\" is missing in Binom element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("prob") != NULL) {
               param2 = atof(df->GetAttribute("prob"));
             } else {
-              vtkErrorMacro( << "Attribute \"prob\" is missing in Binom element: " << i);
+              vtkErrorMacro( << "Attribute \"prob\" is missing in Binom element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Binom\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
@@ -282,23 +246,27 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
           
           if (df) {
             if (strncasecmp(df->GetName(), "Chisq", 5) != 0) {
-              vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("df") != NULL) {
               param1 = atof(df->GetAttribute("df"));
             } else {
-              vtkErrorMacro( << "Attribute \"df\" is missing in Chisq element: " << i);
+              vtkErrorMacro( << "Attribute \"df\" is missing in Chisq element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("ncp") != NULL) {
               param2 = atof(df->GetAttribute("ncp"));
             } else {
-              vtkErrorMacro( << "Attribute \"ncp\" is missing in Chisq element: " << i);
+              vtkErrorMacro( << "Attribute \"ncp\" is missing in Chisq element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"Chisq\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
@@ -309,33 +277,39 @@ bool vtkTAG2EAbstractModelVariationAnalyser::BuildDataDistributionDescriptionArr
           
           if (df) {
             if (strncasecmp(df->GetName(), "T", 5) != 0) {
-              vtkErrorMacro( << "Element \"T\" is missing in Variable element: " << i);
+              vtkErrorMacro( << "Element \"T\" is missing in Variable element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("df") != NULL) {
               param1 = atof(df->GetAttribute("df"));
             } else {
-              vtkErrorMacro( << "Attribute \"df\" is missing in T element: " << i);
+              vtkErrorMacro( << "Attribute \"df\" is missing in T element: "
+                             << i);
               return false;
             }
             if (df->GetAttribute("ncp") != NULL) {
               param2 = atof(df->GetAttribute("ncp"));
             } else {
-              vtkErrorMacro( << "Attribute \"ncp\" is missing in T element: " << i);
+              vtkErrorMacro( << "Attribute \"ncp\" is missing in T element: "
+                             << i);
               return false;
             }
           } else {
-            vtkErrorMacro( << "Element \"T\" is missing in Variable element: " << i);
+            vtkErrorMacro( << "Element \"T\" is missing in Variable element: "
+                           << i);
             return false;
           }
         }
         
       } else {
-        vtkErrorMacro( << "Attribute \"type\" is missing in Variable element: " << i);
+        vtkErrorMacro( << "Attribute \"type\" is missing in Variable element: "
+                       << i);
         return false;
       }
 
-      vtkDebugMacro(<< "Insert variable name " << variableName << " of type " << dfType << " and values " << param1 << " " << param2);
+      vtkDebugMacro(<< "Insert variable name " << variableName << " of type "
+                    << dfType << " and values " << param1 << " " << param2);
 
       this->VariableName->InsertNextValue(variableName);
       this->VariableDistributionType->InsertNextValue(dfType);

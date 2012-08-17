@@ -56,7 +56,8 @@ class vtkDataArray;
 
 class vtkTAG2ESimulatedAnnealingModelCalibrator : public vtkTAG2EAbstractModelCalibrator {
 public:
-    vtkTypeRevisionMacro(vtkTAG2ESimulatedAnnealingModelCalibrator, vtkTAG2EAbstractModelCalibrator);
+    vtkTypeRevisionMacro(vtkTAG2ESimulatedAnnealingModelCalibrator,
+        vtkTAG2EAbstractModelCalibrator);
     static vtkTAG2ESimulatedAnnealingModelCalibrator *New(); 
     
     //!\brief The maximum number of iteration used for calibration, default 5000
@@ -73,10 +74,12 @@ public:
     //!\brief The initial temperature, default 1
     vtkSetMacro(InitialT, double);
     vtkGetMacro(InitialT, double);
-    //!\brief The term to minimize the initial temperature each step a poor result is accepted, default 1.001
+    //!\brief The term to minimize the initial temperature each
+    //! step a poor result is accepted, default 1.001
     vtkSetMacro(TMinimizer, double);
     vtkGetMacro(TMinimizer, double);
-    //!\brief The seed used for random number generation initialization, default current time
+    //!\brief The seed used for random number generation
+    //! initialization, default current time
     vtkSetMacro(Seed, unsigned int);
     vtkGetMacro(Seed, unsigned int);
     

@@ -94,7 +94,6 @@ class vtkTAG2EWeightingModelParameterTests(unittest.TestCase):
                 fisc.ModifyParameter(j, 0.1*(j + 1)/2)
                 print fisc.GetParameterValue(j)
   
-                
         root = vtkXMLDataElement()
         fisc.GetXMLRepresentation(root)
         fisc.SetFileName("/tmp/Weighting3.xml")

@@ -57,7 +57,7 @@ public:
      
     virtual double GetModelAssessmentFactor(){return this->ModelAssessmentFactor;}
     
-    //! Set the the desired lower limit for the applicability of the rules (0 - 100), default are 2%
+    //! Set the desired lower limit for the applicability of the rules (0 - 100), default are 2%
     //! 0 - rule to 0% in use, 100 - rule to 100% in use
     //! This value affect directly the computation of the model assessment factor
     vtkSetMacro(ApplicabilityRuleLimit, double);
@@ -75,9 +75,10 @@ protected:
     vtkTAG2EFuzzyInferenceModel();
     ~vtkTAG2EFuzzyInferenceModel();
     
-    virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+    virtual int RequestData(vtkInformation *, vtkInformationVector **,
+    		vtkInformationVector *);
     virtual int FillInputPortInformation(int port, vtkInformation* info);
-    virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+    virtual int FillOutputPortInformation(int port, vtkInformation* info);
         
     vtkTAG2EFuzzyInferenceModelParameter *FuzzyModelParameter;
     vtkIntArray *InputPorts;

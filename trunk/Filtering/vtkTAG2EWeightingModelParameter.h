@@ -33,7 +33,8 @@
 /**
  * \brief This is the fuzzy inference model parameter class
  * 
- * \TODO Instead of normalized fuzzy set positions, use real values and normailze at runtime
+ * \TODO Instead of normalized fuzzy set positions, use real values
+ * and normalize at runtime
  */
 
 #ifndef vtkTAG2EWeightingModelParameter_H
@@ -72,7 +73,8 @@ class vtkXMLDataElement;
 
 class vtkTAG2EWeightingModelParameter : public vtkTAG2EAbstractCalibratableModelParameter {
 public:
-    vtkTypeRevisionMacro(vtkTAG2EWeightingModelParameter, vtkTAG2EAbstractCalibratableModelParameter);
+    vtkTypeRevisionMacro(vtkTAG2EWeightingModelParameter,
+    		vtkTAG2EAbstractCalibratableModelParameter);
 
     void PrintSelf(ostream& os, vtkIndent indent) {
         ;
