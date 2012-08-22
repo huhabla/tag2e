@@ -184,8 +184,7 @@ bool vtkTAG2EWeightingModelParameter::GenerateInternalSchemeFromXML()
   vtkXMLDataElement *factor = root->FindNestedElementWithName("Factor");
   if (factor != NULL)
     {
-
-    if (root->GetAttribute("name") != NULL)
+    if (factor->GetAttribute("name") != NULL)
       {
       this->W.Factor.name = factor->GetAttribute("name");
       } else
