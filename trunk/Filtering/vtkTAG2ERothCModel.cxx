@@ -316,7 +316,15 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     else
       c = 0.6;
 
-    dpm = rpm = bio = hum = 0;
+    dpm = dpmArray->GetTuple1(cellId);
+    rpm = rpmArray->GetTuple1(cellId);
+    bio = bioArray->GetTuple1(cellId);
+    hum = humArray->GetTuple1(cellId);
+
+    dpm += 0.0;
+    rpm += 0.0;
+    bio += 0.0;
+    hum += 0.0;
 
     result->SetTuple1(cellId, dpm + rpm + bio + hum);
 
@@ -333,6 +341,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   // ###########################################################################
 
   output->GetCellData()->AddArray(result);
+  output->GetCellData()->SetActiveScalars(result->GetName());
 
   if (this->AddCPoolsToOutput)
     {
