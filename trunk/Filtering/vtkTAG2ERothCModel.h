@@ -118,7 +118,7 @@ protected:
   //! there where not provided in the input
   virtual void CreateCPools(vtkPolyData *input);
 
-  vtkTAG2ERothCModelParameter *RothCModelParameter;
+  vtkTAG2ERothCModelParameter *RothCModelParameter; // Do not delete in destructor
   vtkPolyData *CPools;
   int CPoolsInitiated; // Checks if the pools are initiated
   int AddCPoolsToOutput; // Add internal C pools to the output dataset

@@ -84,7 +84,7 @@ public:
 /**
  * \brief RothC parameter b from (1 - e^(-abckt))
  *
- * b is the raste modifying factor for moisture
+ * b is the rate modifying factor for moisture
  *
  * maxTSMD = -(b1 + b2 * Clay - b3 * Clay^2)
  *
@@ -237,7 +237,7 @@ vtkTypeRevisionMacro(vtkTAG2ERothCModelParameter,
   static vtkTAG2ERothCModelParameter *New();
 
   /**
-   * \brief Use the XML paramter description that has be already read in or
+   * \brief Use the XML parameter description that has be already read in or
    *  was set as XMLRoot to generate
    *  its internal representation that is based on nested
    *  trivial classes for fast read access
