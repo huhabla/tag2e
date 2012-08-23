@@ -29,6 +29,7 @@ SET (Filtering_SRCS
     vtkTAG2EWeightingModelParameter.cxx
     vtkTAG2EWeightingModel.cxx
     vtkTAG2ERothCModelParameter.cxx
+    vtkTAG2ERothCModel.cxx
 )
 
 SET (Filtering_H
@@ -55,6 +56,7 @@ SET (Filtering_H
     vtkTAG2EWeightingModelParameter.h
     vtkTAG2EWeightingModel.h
     vtkTAG2ERothCModelParameter.h
+    vtkTAG2ERothCModel.h
 )
 
 # --------------------------------------------------------------------------
