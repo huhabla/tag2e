@@ -75,8 +75,6 @@ vtkTAG2ERothCModel::vtkTAG2ERothCModel()
 
 vtkTAG2ERothCModel::~vtkTAG2ERothCModel()
 {
-  if (this->RothCModelParameter)
-    this->RothCModelParameter->Delete();
   if (this->CPools)
     this->CPools->Delete();
 }
@@ -248,22 +246,21 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkDataArray *fertCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_FERTILIZER_CARBON);
 
-  vtkIdList *pointIds = vtkIdList::New();
-  vtkIdType pointId;
-
-  double a, b, c, k; // rate modifiers
-  double a1, a2, a3; // rate modifier parameter
-  double b1, b2, b3, b4, b5, b6, b7;
-  double dpm, rpm, bio, hum; // Pools
-  double meanTemp, fertC, fieldC, soilM, soilCover, resRoots, resSurf, clay;
-  int fertId, plantId;
-
+  // Parallelize with OpenMP
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
     {
     double lineLength;
-    double *p1;
-    double *p2;
-    bool isSurface = false;
+    double p1[3];
+    double p2[3];
+    double a, b, c, k; // rate modifiers
+    double a1, a2, a3; // rate modifier parameter
+    double b1, b2, b3, b4, b5, b6, b7;
+    double dpm, rpm, bio, hum; // Pools
+    double meanTemp, fertC, fieldC, soilM, soilCover, resRoots, resSurf, clay;
+    int fertId, plantId;
+
+    vtkIdList *pointIds = vtkIdList::New();
+    vtkIdType pointId;
 
     // Check cell type, we support only lines
     if (input->GetCellType(cellId) != VTK_LINE)
@@ -300,8 +297,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       }
 
     // Compute length of the line in vertical direction
-    p1 = input->GetPoint(pointIds->GetId(0));
-    p2 = input->GetPoint(pointIds->GetId(1));
+    input->GetPoint(pointIds->GetId(0), p1);
+    input->GetPoint(pointIds->GetId(1), p2);
     lineLength = fabs(p1[2] - p2[2]);
 
     a1 = R.a.a1.value;
@@ -320,10 +317,12 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     bio = bioArray->GetTuple1(cellId);
     hum = humArray->GetTuple1(cellId);
 
-    dpm += 0.0;
-    rpm += 0.0;
-    bio += 0.0;
-    hum += 0.0;
+    // CPool computation
+
+    dpm += (double)cellId;
+    rpm += (double)cellId;
+    bio += (double)cellId;
+    hum += (double)cellId;
 
     result->SetTuple1(cellId, dpm + rpm + bio + hum);
 
@@ -331,9 +330,9 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     rpmArray->SetTuple1(cellId, rpm);
     bioArray->SetTuple1(cellId, bio);
     humArray->SetTuple1(cellId, hum);
-    }
 
-  pointIds->Delete();
+    pointIds->Delete();
+    }
 
   // ###########################################################################
   // ####################### RothC Computation End #############################
