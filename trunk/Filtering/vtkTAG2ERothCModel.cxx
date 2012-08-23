@@ -179,7 +179,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   // number of points/cells
   if (this->CPools == NULL
       || this->CPools->GetNumberOfCells() != input->GetNumberOfCells()
-      || this->CPools->GetNumberOfCells() != input->GetNumberOfCells())
+      || this->CPools->GetNumberOfPoints() != input->GetNumberOfPoints())
     {
     if (this->CPools)
       this->CPools->Delete();
@@ -252,7 +252,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkIdType pointId;
 
   double a, b, c, k; // rate modifiers
-  double a1, a2, a3; // raster modifier a parameter
+  double a1, a2, a3; // rate modifier parameter
   double b1, b2, b3, b4, b5, b6, b7;
   double dpm, rpm, bio, hum; // Pools
   double meanTemp, fertC, fieldC, soilM, soilCover, resRoots, resSurf, clay;
@@ -271,6 +271,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       vtkErrorMacro("Unsupported cell type.");
       return -1;
       }
+
+    input->GetCellPoints(cellId, pointIds);
     // We support only lines with two coordinates
     if (pointIds->GetNumberOfIds() != 2)
       {
@@ -297,10 +299,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       continue;
       }
 
-    // Get array values
-
     // Compute length of the line in vertical direction
-    input->GetCellPoints(cellId, pointIds);
     p1 = input->GetPoint(pointIds->GetId(0));
     p2 = input->GetPoint(pointIds->GetId(1));
     lineLength = fabs(p1[2] - p2[2]);
@@ -371,6 +370,18 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
   dpmArray->SetName(ROTHC_POOL_NAME_DPM);
   dpmArray->SetNumberOfComponents(1);
   dpmArray->SetNumberOfTuples(input->GetNumberOfCells());
+  rpmArray->SetName(ROTHC_POOL_NAME_RPM);
+  rpmArray->SetNumberOfComponents(1);
+  rpmArray->SetNumberOfTuples(input->GetNumberOfCells());
+  bioArray->SetName(ROTHC_POOL_NAME_BIO);
+  bioArray->SetNumberOfComponents(1);
+  bioArray->SetNumberOfTuples(input->GetNumberOfCells());
+  humArray->SetName(ROTHC_POOL_NAME_HUM);
+  humArray->SetNumberOfComponents(1);
+  humArray->SetNumberOfTuples(input->GetNumberOfCells());
+  iomArray->SetName(ROTHC_POOL_NAME_IOM);
+  iomArray->SetNumberOfComponents(1);
+  iomArray->SetNumberOfTuples(input->GetNumberOfCells());
 
   // Copy the geometric structure from input
   if (this->CPools == NULL)
