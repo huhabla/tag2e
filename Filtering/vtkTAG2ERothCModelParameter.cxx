@@ -57,20 +57,13 @@ vtkTAG2ERothCModelParameter::vtkTAG2ERothCModelParameter()
   this->R.a.a3.value = this->R.a.a3.max = this->R.a.a3.min = 18.3;
   this->R.a.a3.constant = true;
 
-  this->R.b.b1.value = this->R.b.b1.max = this->R.b.b1.min = 20.0;
+
+  this->R.b.b1.value = this->R.b.b1.max = this->R.b.b1.min = 0.2;
   this->R.b.b1.constant = true;
-  this->R.b.b2.value = this->R.b.b2.max = this->R.b.b2.min = 1.3;
+  this->R.b.b2.value = this->R.b.b2.max = this->R.b.b2.min = 1;
   this->R.b.b2.constant = true;
-  this->R.b.b3.value = this->R.b.b3.max = this->R.b.b3.min = 0.001;
+  this->R.b.b3.value = this->R.b.b3.max = this->R.b.b3.min = 0.444;
   this->R.b.b3.constant = true;
-  this->R.b.b4.value = this->R.b.b4.max = this->R.b.b4.min = 0.2;
-  this->R.b.b4.constant = true;
-  this->R.b.b5.value = this->R.b.b5.max = this->R.b.b5.min = 1.0;
-  this->R.b.b5.constant = true;
-  this->R.b.b6.value = this->R.b.b6.max = this->R.b.b6.min = 0.2;
-  this->R.b.b6.constant = true;
-  this->R.b.b7.value = this->R.b.b7.max = this->R.b.b7.min = 0.444;
-  this->R.b.b7.constant = true;
 
   this->R.c.c1.value = this->R.c.c1.max = this->R.c.c1.min = 0.6;
   this->R.c.c1.constant = true;

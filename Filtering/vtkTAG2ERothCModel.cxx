@@ -68,6 +68,7 @@ vtkTAG2ERothCModel::vtkTAG2ERothCModel()
   this->AddCPoolsToOutput = 0;
   this->TemporalRatio = 1 / 12.0; // Default is monthly resolution
   this->SetNumberOfInputPorts(1);
+
   this->SetNumberOfOutputPorts(1);
 }
 
@@ -82,7 +83,7 @@ vtkTAG2ERothCModel::~vtkTAG2ERothCModel()
 //----------------------------------------------------------------------------
 
 int vtkTAG2ERothCModel::FillInputPortInformation(int vtkNotUsed(port),
-    vtkInformation* info)
+                                                 vtkInformation* info)
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
   return 1;
@@ -90,7 +91,7 @@ int vtkTAG2ERothCModel::FillInputPortInformation(int vtkNotUsed(port),
 
 //----------------------------------------------------------------------------
 int vtkTAG2ERothCModel::FillOutputPortInformation(int port,
-    vtkInformation* info)
+                                                  vtkInformation* info)
 {
   if (!this->Superclass::FillOutputPortInformation(port, info))
     {
@@ -131,7 +132,8 @@ void vtkTAG2ERothCModel::SetModelParameter(
 //----------------------------------------------------------------------------
 
 int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
-    vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+                                    vtkInformationVector **inputVector,
+                                    vtkInformationVector *outputVector)
 {
   vtkIdType i;
   vtkIdType cellId;
@@ -241,8 +243,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       ROTHC_INPUT_NAME_FERTILIZER_ID);
   vtkDataArray *soilMArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_SOIL_MOISTURE);
-  vtkDataArray *fieldCArray = input->GetCellData()->GetArray(
-      ROTHC_INPUT_NAME_FIELD_CAPACITY);
+  vtkDataArray *usablefieldCArray = input->GetCellData()->GetArray(
+      ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY);
   vtkDataArray *fertCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_FERTILIZER_CARBON);
 
@@ -253,10 +255,14 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     double p1[3];
     double p2[3];
     double a, b, c, k; // rate modifiers
+    double x1,x2,x3,x4;
     double a1, a2, a3; // rate modifier parameter
     double b1, b2, b3, b4, b5, b6, b7;
+    double efficiency; // fraction of degraded C that remains
+    double allocFractionbio, allocFractionhum;
     double dpm, rpm, bio, hum; // Pools
-    double meanTemp, fertC, fieldC, soilM, soilCover, resRoots, resSurf, clay;
+    double dpm_old,rpm_old,bio_old,hum_old;//old_pools
+    double meanTemp, fertC, usableFieldCapacity, soilMoisture, soilCover, resRoots, resSurf, clay;
     int fertId, plantId;
 
     vtkIdList *pointIds = vtkIdList::New();
@@ -279,18 +285,18 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 
     clay = clayArray->GetTuple1(cellId);
     meanTemp = meanTempArray->GetTuple1(cellId);
-    soilCover = soilCoverArray->GetTuple1(cellId);
-    resRoots = resRootsArray->GetTuple1(cellId);
-    resSurf = resSurfArray->GetTuple1(cellId);
+    soilCover = soilCoverArray->GetTuple1(cellId); // 0 or1 ?
+    resRoots = resRootsArray->GetTuple1(cellId); // [ tC /ha/layer]
+    resSurf = resSurfArray->GetTuple1(cellId);// [ tC /ha/layer]
     plantId = (int) plantIdArray->GetTuple1(cellId);
     fertId = (int) fertIdArray->GetTuple1(cellId);
-    soilM = soilMArray->GetTuple1(cellId);
-    fieldC = fieldCArray->GetTuple1(cellId);
-    fertC = fertCArray->GetTuple1(cellId);
+    soilMoisture = soilMArray->GetTuple1(cellId); //[mm]
+    usableFieldCapacity = usablefieldCArray->GetTuple1(cellId);// [mm]?
+    fertC = fertCArray->GetTuple1(cellId);// [ tC /ha/layer]
 
     // Set the result to NULL in case some values are empty (NULL)
     if (clay == this->NullValue || meanTemp == this->NullValue
-        || soilM == this->NullValue || fieldC == this->NullValue)
+        || soilMoisture == this->NullValue || usableFieldCapacity == this->NullValue)
       {
       result->SetTuple1(cellId, this->NullValue);
       continue;
@@ -304,25 +310,100 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     a1 = R.a.a1.value;
     a2 = R.a.a2.value;
     a3 = R.a.a3.value;
-    // a of (1 - e^(-abckt))
-    a = a1 / (1.0 + exp(a2 / (meanTemp + a3)));
 
-    if (soilCover == 0 || soilCover == this->NullValue)
-      c = 1.0;
-    else
-      c = 0.6;
+    // a of (1 - e^(-abckt)) (Temperature Response)
+     a = a1 / (1.0 + exp(a2 / (meanTemp + a3)));
 
-    dpm = dpmArray->GetTuple1(cellId);
-    rpm = rpmArray->GetTuple1(cellId);
-    bio = bioArray->GetTuple1(cellId);
-    hum = humArray->GetTuple1(cellId);
+    // b (moistureResponse)
+     b1=R.b.b1.value;
+     b2=R.b.b2.value;
+     b3=R.b.b3.value;
+
+     if (soilMoisture>usableFieldCapacity*0.444)
+       {
+         b=1;
+       }
+
+     else
+       {
+         b=b1+(b2-b1)*soilMoisture/(usableFieldCapacity*b3);
+       }
+
+     // c (soilcover_factor)
+     if (soilCover == 0 || soilCover == this->NullValue)
+          c = 1.0;
+        else
+          c = 0.6;
+
+     // efficiency , that describes how much of degraded C remains in the system
+     // and is not blown out as CO2
+
+     x1=R.x.x1.value;
+     x2=R.x.x2.value;
+     x3=R.x.x3.value;
+     x4=R.x.x4.value;
+
+     efficiency=x1*(x2+x3*exp(x4*clay));
+     allocFractionhum=0.54;
+     allocFractionbio=0.46;
+
+
+    if (plantId>=R.PlantFractions.size()) return 0;
+
+    double dpmRootsFraction = R.PlantFractions[plantId]->DPM.value;
+    double rpmRootsFraction = R.PlantFractions[plantId]->RPM.value;
+    double humRootsFraction = R.PlantFractions[plantId]->HUM.value;
+
+    double dpmSurfFraction = R.PlantFractions[plantId]->DPM.value;
+    double rpmSurfFraction = R.PlantFractions[plantId]->RPM.value;
+    double humSurfFraction = R.PlantFractions[plantId]->HUM.value;
+
+    double dpmFertFraction=R.PlantFractions[fertId]->DPM.value;
+    double rpmFertFraction=R.PlantFractions[fertId]->RPM.value;
+    double humFertFraction=R.PlantFractions[fertId]->HUM.value;
+
+
+
+    dpm_old=dpm = dpmArray->GetTuple1(cellId);
+    rpm_old=rpm = rpmArray->GetTuple1(cellId);
+    bio_old=bio = bioArray->GetTuple1(cellId);
+    hum_old=hum = humArray->GetTuple1(cellId);
 
     // CPool computation
+    // 1. Add residues from crop and fertilistation
+    dpm_old=dpm_old+dpmRootsFraction*resRoots+dpmSurfFraction*resSurf
+        +dpmFertFraction*fertC;
+    rpm_old=rpm_old+rpmRootsFraction*resRoots+rpmSurfFraction*resSurf
+            +rpmFertFraction*fertC;
+    hum_old=hum_old+humRootsFraction*resRoots+humSurfFraction*resSurf
+            +humFertFraction*fertC;
 
-    dpm += (double)cellId;
-    rpm += (double)cellId;
-    bio += (double)cellId;
-    hum += (double)cellId;
+    // Degradation
+    double degradedC=0;
+    double dpm_k,rpm_k,hum_k,bio_k;
+    dpm_k=R.k.DPM.value;
+    rpm_k=R.k.RPM.value;
+    hum_k=R.k.HUM.value;
+    bio_k=R.k.BIO.value;
+
+    dpm=dpm_old*exp(dpm_k*a*b*c*this->TemporalRatio);
+    degradedC=degradedC+(dpm_old-dpm);
+
+    rpm=rpm_old*exp(rpm_k*a*b*c*this->TemporalRatio);
+    degradedC=degradedC+(rpm_old-rpm);
+
+    hum=hum_old*exp(hum_k*a*b*c*this->TemporalRatio);
+    degradedC=degradedC+(hum_old-hum);
+
+    bio=bio_old*exp(bio_k*a*b*c*this->TemporalRatio);
+    degradedC=degradedC+(bio_old-bio);
+
+
+    // Adding all that is not CO2 to bio and hum
+    hum=hum+degradedC*efficiency*allocFractionhum;
+    bio=bio+degradedC*efficiency*allocFractionbio;
+
+
 
     result->SetTuple1(cellId, dpm + rpm + bio + hum);
 
@@ -397,7 +478,14 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
     initC = initCArray->GetTuple1(i);
 
     // Compute the pools
-    dpm = rpm = bio = hum = iom = initC / 5.0;
+      // IOM with Falloon equation
+      iom=0.049*pow(initC,1.139);
+      dpm=0.01*(initC-iom);
+      rpm=0.12*(initC-iom);
+      bio=0.02*(initC-iom);
+      hum=0.85*(initC-iom);
+
+
 
     dpmArray->SetTuple1(i, dpm);
     rpmArray->SetTuple1(i, rpm);
