@@ -57,7 +57,7 @@
 #define ROTHC_INPUT_NAME_PLANT_ID          "PlantID"
 #define ROTHC_INPUT_NAME_FERTILIZER_ID     "FertilizerID"
 #define ROTHC_INPUT_NAME_SOIL_MOISTURE     "SoilMoisture"
-#define ROTHC_INPUT_NAME_FIELD_CAPACITY    "FieldCapacity" // Nutzbare Feldkapazität
+#define ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY    "UsableFieldCapacity" // Nutzbare Feldkapazität
 #define ROTHC_INPUT_NAME_FERTILIZER_CARBON "FertilizerCarbon"
 #define ROTHC_INPUT_NAME_INITIAL_CARBON    "InitialCarbon"
 
