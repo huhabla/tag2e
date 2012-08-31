@@ -243,7 +243,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       ROTHC_INPUT_NAME_FERTILIZER_ID);
   vtkDataArray *soilMArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_SOIL_MOISTURE);
-  vtkDataArray *usablefieldCArray = input->GetCellData()->GetArray(
+  vtkDataArray *usableFieldCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY);
   vtkDataArray *fertCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_FERTILIZER_CARBON);
@@ -291,7 +291,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     plantId = (int) plantIdArray->GetTuple1(cellId);
     fertId = (int) fertIdArray->GetTuple1(cellId);
     soilMoisture = soilMArray->GetTuple1(cellId); //[mm]
-    usableFieldCapacity = usablefieldCArray->GetTuple1(cellId);// [mm]?
+    usableFieldCapacity = usableFieldCArray->GetTuple1(cellId);// [mm]?
     fertC = fertCArray->GetTuple1(cellId);// [ tC /ha/layer]
 
     // Set the result to NULL in case some values are empty (NULL)
