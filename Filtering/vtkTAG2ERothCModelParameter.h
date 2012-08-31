@@ -88,28 +88,22 @@ public:
  *
  * maxTSMD = -(b1 + b2 * Clay - b3 * Clay^2)
  *
- * b = b4 + (b5 + b6) * (maxTSMD - accTSMD)/(maxTSMD - b7 * maxTSMD)
+ * b = b1 + (b2 - b1) * (maxTSMD - accTSMD)/(maxTSMD - b3 * maxTSMD)
  *
  * Default:
  *
- * b1 = 20.0
- * b2 = 1.3
- * b3 = 0.01
- * b4 = 0.2
- * b5 = 1.0
- * b6 = 0.2
- * b7 = 0.444
+ * b1 = 0.2
+ * b2 = 1.0
+ * b3 = 0.444
  */
 class RothCParameterB
 {
 public:
+
   RothCParameter b1;
   RothCParameter b2;
   RothCParameter b3;
-  RothCParameter b4;
-  RothCParameter b5;
-  RothCParameter b6;
-  RothCParameter b7;
+
 };
 
 /**

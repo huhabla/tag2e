@@ -159,18 +159,6 @@ bool vtkTAG2ERothCModelParameter::GenerateXMLFromInternalScheme()
   vtkXMLDataElement *b3 = this->RothCParameterToXML(this->R.b.b3, "b3");
   b->AddNestedElement(b3);
   b3->Delete();
-  vtkXMLDataElement *b4 = this->RothCParameterToXML(this->R.b.b4, "b4");
-  b->AddNestedElement(b4);
-  b4->Delete();
-  vtkXMLDataElement *b5 = this->RothCParameterToXML(this->R.b.b5, "b5");
-  b->AddNestedElement(b5);
-  b5->Delete();
-  vtkXMLDataElement *b6 = this->RothCParameterToXML(this->R.b.b6, "b6");
-  b->AddNestedElement(b6);
-  b6->Delete();
-  vtkXMLDataElement *b7 = this->RothCParameterToXML(this->R.b.b7, "b7");
-  b->AddNestedElement(b7);
-  b7->Delete();
   rc->AddNestedElement(b);
   b->Delete();
 
@@ -364,46 +352,6 @@ bool vtkTAG2ERothCModelParameter::SetParameter(unsigned int index, double value)
       {
       this->UpdateParameterState(index, this->R.b.b3.value, value);
       this->R.b.b3.value = value;
-      return true;
-      }
-    count++;
-    }
-  if (this->R.b.b4.constant == false)
-    {
-    if (count == index)
-      {
-      this->UpdateParameterState(index, this->R.b.b4.value, value);
-      this->R.b.b4.value = value;
-      return true;
-      }
-    count++;
-    }
-  if (this->R.b.b5.constant == false)
-    {
-    if (count == index)
-      {
-      this->UpdateParameterState(index, this->R.b.b5.value, value);
-      this->R.b.b5.value = value;
-      return true;
-      }
-    count++;
-    }
-  if (this->R.b.b6.constant == false)
-    {
-    if (count == index)
-      {
-      this->UpdateParameterState(index, this->R.b.b6.value, value);
-      this->R.b.b6.value = value;
-      return true;
-      }
-    count++;
-    }
-  if (this->R.b.b7.constant == false)
-    {
-    if (count == index)
-      {
-      this->UpdateParameterState(index, this->R.b.b7.value, value);
-      this->R.b.b7.value = value;
       return true;
       }
     count++;
@@ -639,26 +587,6 @@ bool vtkTAG2ERothCModelParameter::CreateParameterIndex()
     this->AppendParameterState(count, R.b.b3.value, R.b.b3.min, R.b.b3.max);
     count++;
     }
-  if (this->R.b.b4.constant == false)
-    {
-    this->AppendParameterState(count, R.b.b4.value, R.b.b4.min, R.b.b4.max);
-    count++;
-    }
-  if (this->R.b.b5.constant == false)
-    {
-    this->AppendParameterState(count, R.b.b5.value, R.b.b5.min, R.b.b5.max);
-    count++;
-    }
-  if (this->R.b.b6.constant == false)
-    {
-    this->AppendParameterState(count, R.b.b6.value, R.b.b6.min, R.b.b6.max);
-    count++;
-    }
-  if (this->R.b.b7.constant == false)
-    {
-    this->AppendParameterState(count, R.b.b7.value, R.b.b7.min, R.b.b7.max);
-    count++;
-    }
 
   // Parameter c
   if (this->R.c.c1.constant == false)
@@ -822,26 +750,6 @@ bool vtkTAG2ERothCModelParameter::GenerateInternalSchemeFromXML()
     if (b3 != NULL)
       {
       this->ParseRothCParameter(b3, this->R.b.b3);
-      }
-    vtkXMLDataElement *b4 = b->FindNestedElementWithName("b4");
-    if (b4 != NULL)
-      {
-      this->ParseRothCParameter(b4, this->R.b.b4);
-      }
-    vtkXMLDataElement *b5 = b->FindNestedElementWithName("b5");
-    if (b5 != NULL)
-      {
-      this->ParseRothCParameter(b5, this->R.b.b5);
-      }
-    vtkXMLDataElement *b6 = b->FindNestedElementWithName("b6");
-    if (b6 != NULL)
-      {
-      this->ParseRothCParameter(b6, this->R.b.b6);
-      }
-    vtkXMLDataElement *b7 = b->FindNestedElementWithName("b7");
-    if (b7 != NULL)
-      {
-      this->ParseRothCParameter(b7, this->R.b.b7);
       }
     }
 

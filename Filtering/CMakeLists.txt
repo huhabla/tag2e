@@ -21,7 +21,7 @@ SET (Filtering_SRCS
     vtkTAG2EAbstractCalibratableModelParameter.cxx
     vtkTAG2EFuzzyInferenceModelParameter.cxx
     vtkTAG2ELinearRegressionModel.cxx
-    vtkTAG2EModelMonteCarloVariationAnalyser.cxx
+    #    vtkTAG2EModelMonteCarloVariationAnalyser.cxx
     vtkTAG2EFuzzyInferenceModel.cxx
     vtkTAG2EFuzzyInferenceModelParameterToImageData.cxx
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
@@ -48,7 +48,7 @@ SET (Filtering_H
     vtkTAG2EAbstractCalibratableModelParameter.h
     vtkTAG2EFuzzyInferenceModelParameter.h
     vtkTAG2ELinearRegressionModel.h
-    vtkTAG2EModelMonteCarloVariationAnalyser.h
+    #    vtkTAG2EModelMonteCarloVariationAnalyser.h
     vtkTAG2EFuzzyInferenceModel.h
     vtkTAG2EFuzzyInferenceModelParameterToImageData.h
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
