@@ -56,7 +56,7 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         self.Clay = vtkDoubleArray()
         self.Clay.SetNumberOfTuples(num)
         self.Clay.SetName("Clay")
-        self.Clay.FillComponent(0, 45)
+        self.Clay.FillComponent(0, 20)
 
         self.MeanTemperature = vtkDoubleArray()
         self.MeanTemperature.SetNumberOfTuples(num)
@@ -71,12 +71,12 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         self.ResidualsRoots = vtkDoubleArray()
         self.ResidualsRoots.SetNumberOfTuples(num)
         self.ResidualsRoots.SetName("ResidualsRoots")
-        self.ResidualsRoots.FillComponent(0, 10)
+        self.ResidualsRoots.FillComponent(0, 0.3)
 
         self.ResidualsSurface = vtkDoubleArray()
         self.ResidualsSurface.SetNumberOfTuples(num)
         self.ResidualsSurface.SetName("ResidualsSurface")
-        self.ResidualsSurface.FillComponent(0, 20)
+        self.ResidualsSurface.FillComponent(0, 0.7)
 
         self.PlantID = vtkDoubleArray()
         self.PlantID.SetNumberOfTuples(num)
@@ -91,22 +91,22 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         self.SoilMoisture = vtkDoubleArray()
         self.SoilMoisture.SetNumberOfTuples(num)
         self.SoilMoisture.SetName("SoilMoisture")
-        self.SoilMoisture.FillComponent(0, 30)
+        self.SoilMoisture.FillComponent(0, 0.3)
 
         self.FieldCapacity = vtkDoubleArray()
         self.FieldCapacity.SetNumberOfTuples(num)
-        self.FieldCapacity.SetName("FieldCapacity")
+        self.FieldCapacity.SetName("UsableFieldCapacity")
         self.FieldCapacity.FillComponent(0, 0.5)
 
         self.FertilizerCarbon = vtkDoubleArray()
         self.FertilizerCarbon.SetNumberOfTuples(num)
         self.FertilizerCarbon.SetName("FertilizerCarbon")
-        self.FertilizerCarbon.FillComponent(0, 50)
+        self.FertilizerCarbon.FillComponent(0, 0.5)
 
         self.InitialCarbon = vtkDoubleArray()
         self.InitialCarbon.SetNumberOfTuples(num)
         self.InitialCarbon.SetName("InitialCarbon")
-        self.InitialCarbon.FillComponent(0, 10)
+        self.InitialCarbon.FillComponent(0, 40)
 
         # Point ids for poly vertex cell
         points = vtkPoints()
@@ -167,10 +167,11 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         w.SetXMLRepresentation(self.root)
 
         model = vtkTAG2ERothCModel()
-        model.SetInput(self.ds)
         model.SetModelParameter(w)
         model.AddCPoolsToOutputOn()
         model.CPoolsInitiatedOn()
+
+        model.SetInput(self.ds)
         model.Update()
         
         pwriter = vtkXMLPolyDataWriter()
