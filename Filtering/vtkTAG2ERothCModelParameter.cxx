@@ -706,6 +706,11 @@ bool vtkTAG2ERothCModelParameter::GenerateInternalSchemeFromXML()
     return false;
     }
 
+  // Check if the root is empty, then no XML was set and we can simply return
+  // since the default values are used
+  if(!root->GetName())
+    return true;
+
   // Check for correct name
   if (strncasecmp(root->GetName(), "RothC", strlen("RothC")) != 0)
     {
