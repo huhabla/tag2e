@@ -136,38 +136,12 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         pwriter.SetInput(self.ds)
         pwriter.Write()
         
-        self._BuildXML()
-
-    def _BuildXML(self):
-
-        self.root  = vtk.vtkXMLDataElement()
-        
-        a = vtkXMLDataElement()
-        a.SetName("a")
-
-        # We generate the a Parameter and make them calibratable
-        for i in range(1,4):
-            an = vtkXMLDataElement()
-            an.SetName("a%i"%i)
-            an.SetIntAttribute("const", 0)
-            an.SetDoubleAttribute("min", 0)
-            an.SetDoubleAttribute("max", 10)
-            a.AddNestedElement(an)
-        
-        self.root.SetName("RothC")
-        self.root.AddNestedElement(a)
-        self.root.SetAttribute("name", "test")
-        self.root.SetAttribute("xmlns", "http://tag2e.googlecode.com/files/RothC")
-        self.root.SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
-        self.root.SetAttribute("xsi:schemaLocation", "http://tag2e.googlecode.com/files/RothC http://tag2e.googlecode.com/files/RothC.xsd")
-        
     def test1Model(self):
         
-        w = vtkTAG2ERothCModelParameter()
-        w.SetXMLRepresentation(self.root)
+        rp = vtkTAG2ERothCModelParameter()
 
         model = vtkTAG2ERothCModel()
-        model.SetModelParameter(w)
+        model.SetModelParameter(rp)
         model.AddCPoolsToOutputOn()
         model.CPoolsInitiatedOn()
 
