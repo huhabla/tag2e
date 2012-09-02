@@ -2,6 +2,13 @@
 # Try to find VTK and include its settings (otherwise complain)
 #
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
+
+# Make the R support optional
+OPTION(USE_VTK_GRASS_BRIDGE_R_SUPPORT
+       "Use VTK's and vtkGRASSBridge R support classes."
+       OFF)
+MARK_AS_ADVANCED (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
+
 # We need vtkGRASSBridge, so no option is defined
 INCLUDE (CMake/FindvtkGRASSBridge.cmake)
 INCLUDE (${CMAKE_ROOT}/Modules/FindPythonLibs.cmake)

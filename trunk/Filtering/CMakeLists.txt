@@ -21,15 +21,15 @@ SET (Filtering_SRCS
     vtkTAG2EAbstractCalibratableModelParameter.cxx
     vtkTAG2EFuzzyInferenceModelParameter.cxx
     vtkTAG2ELinearRegressionModel.cxx
-    vtkTAG2EModelMonteCarloVariationAnalyser.cxx
     vtkTAG2EFuzzyInferenceModel.cxx
     vtkTAG2EFuzzyInferenceModelParameterToImageData.cxx
     vtkTAG2ESimulatedAnnealingModelCalibrator.cxx
-#    vtkTAG2ERSpaceTimeModel.cxx
     vtkTAG2EWeightingModelParameter.cxx
     vtkTAG2EWeightingModel.cxx
     vtkTAG2ERothCModelParameter.cxx
     vtkTAG2ERothCModel.cxx
+    vtkTAG2ERothCWaterBudgetModel.cxx
+    vtkTAG2ETurcETPotModel.cxx
     vtkTAG2EDataSetJoinFilter.cxx
 )
 
@@ -49,17 +49,30 @@ SET (Filtering_H
     vtkTAG2EAbstractCalibratableModelParameter.h
     vtkTAG2EFuzzyInferenceModelParameter.h
     vtkTAG2ELinearRegressionModel.h
-    vtkTAG2EModelMonteCarloVariationAnalyser.h
     vtkTAG2EFuzzyInferenceModel.h
     vtkTAG2EFuzzyInferenceModelParameterToImageData.h
     vtkTAG2ESimulatedAnnealingModelCalibrator.h
-#    vtkTAG2ERSpaceTimeModel.h
     vtkTAG2EWeightingModelParameter.h
     vtkTAG2EWeightingModel.h
     vtkTAG2ERothCModelParameter.h
     vtkTAG2ERothCModel.h
+    vtkTAG2ERothCWaterBudgetModel.h
+    vtkTAG2ETurcETPotModel.h
     vtkTAG2EDataSetJoinFilter.h
+    vtkTAG2ERothCDefines.h
 )
+
+# VTK R Support
+if (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
+    Filtering_H (
+    vtkTAG2EModelMonteCarloVariationAnalyser.cxx
+#    vtkTAG2ERSpaceTimeModel.cxx
+    )
+    Filtering_H (
+    vtkTAG2EModelMonteCarloVariationAnalyser.h
+#   vtkTAG2ERSpaceTimeModel.h
+    )
+ENDIF(USE_VTK_GRASS_BRIDGE_R_SUPPORT)
 
 # --------------------------------------------------------------------------
 # You probably do not need to modify anything below this line

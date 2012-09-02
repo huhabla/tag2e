@@ -41,26 +41,6 @@
 #include "vtkTAG2EAbstractCalibratableModel.h"
 #include "vtkTAG2ERothCModelParameter.h"
 
-// Names of the pool arrays
-#define ROTHC_POOL_NAME_DPM "DPM"
-#define ROTHC_POOL_NAME_RPM "RPM"
-#define ROTHC_POOL_NAME_HUM "HUM"
-#define ROTHC_POOL_NAME_BIO "BIO"
-#define ROTHC_POOL_NAME_IOM "IOM"
-
-// Names of the input arrays
-#define ROTHC_INPUT_NAME_CLAY              "Clay"
-#define ROTHC_INPUT_NAME_MEAN_TEMPERATURE  "MeanTemperature"
-#define ROTHC_INPUT_NAME_SOILCOVER         "SoilCover"
-#define ROTHC_INPUT_NAME_RESIDUALS_ROOTS   "ResidualsRoots"
-#define ROTHC_INPUT_NAME_RESIDUALS_SURFACE "ResidualsSurface"
-#define ROTHC_INPUT_NAME_PLANT_ID          "PlantID"
-#define ROTHC_INPUT_NAME_FERTILIZER_ID     "FertilizerID"
-#define ROTHC_INPUT_NAME_SOIL_MOISTURE     "SoilMoisture"
-#define ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY    "UsableFieldCapacity" // Nutzbare Feldkapazität
-#define ROTHC_INPUT_NAME_FERTILIZER_CARBON "FertilizerCarbon"
-#define ROTHC_INPUT_NAME_INITIAL_CARBON    "InitialCarbon"
-
 class vtkTAG2ERothCModel: public vtkTAG2EAbstractCalibratableModel
 {
 public:

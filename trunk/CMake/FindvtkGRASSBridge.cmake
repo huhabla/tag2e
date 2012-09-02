@@ -39,13 +39,14 @@ IF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 	FIND_LIBRARY(vtkGRASSBridgeIO vtkGRASSBridgeIO	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeIOPython vtkGRASSBridgeIOPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
 	FIND_LIBRARY(vtkGRASSBridgeIOPythonD vtkGRASSBridgeIOPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeTemporal vtkGRASSBridgeTemporal	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeTemporalPython vtkGRASSBridgeTemporalPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeTemporalPythonD vtkGRASSBridgeTemporalPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeRSpaceTime vtkGRASSBridgeRSpaceTime	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeRSpaceTimePython vtkGRASSBridgeRSpaceTimePython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-	FIND_LIBRARY(vtkGRASSBridgeRSpaceTimePythonD vtkGRASSBridgeRSpaceTimePythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
-
+#	FIND_LIBRARY(vtkGRASSBridgeTemporal vtkGRASSBridgeTemporal	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+#	FIND_LIBRARY(vtkGRASSBridgeTemporalPython vtkGRASSBridgeTemporalPython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+#	FIND_LIBRARY(vtkGRASSBridgeTemporalPythonD vtkGRASSBridgeTemporalPythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+        IF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
+		FIND_LIBRARY(vtkGRASSBridgeRSpaceTime vtkGRASSBridgeRSpaceTime	${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+		FIND_LIBRARY(vtkGRASSBridgeRSpaceTimePython vtkGRASSBridgeRSpaceTimePython ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+		FIND_LIBRARY(vtkGRASSBridgeRSpaceTimePythonD vtkGRASSBridgeRSpaceTimePythonD ${VTK_GRASS_BRIDGE_LIBRARY_DIR})
+	ENDIF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
 ENDIF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 
 # In case everything is ok, set the variables
@@ -55,12 +56,16 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
         	SET( VTK_GRASS_BRIDGE_LIBRARIES 
 			${vtkGRASSBridgeCommon}
                         ${vtkGRASSBridgeVector}
-                        ${vtkGRASSBridgeRSpaceTime}
                         ${vtkGRASSBridgeRaster}
                         ${vtkGRASSBridgeRaster3d}
-                        ${vtkGRASSBridgeTemporal}
+#                        ${vtkGRASSBridgeTemporal} # depricated
                         ${vtkGRASSBridgeIO}
 		)
+		IF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
+			VTK_GRASS_BRIDGE_LIBRARIES (
+                        	${vtkGRASSBridgeRSpaceTime}
+			)
+		ENDIF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
         	SET( VTK_GRASS_BRIDGE_LIBRARIES_PYTHON
 			${vtkGRASSBridgeCommonPython}
 			${vtkGRASSBridgeCommonPythonD}
@@ -70,14 +75,17 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeRasterPythonD}
                         ${vtkGRASSBridgeRaster3dPython}
                         ${vtkGRASSBridgeRaster3dPythonD}
-                        ${vtkGRASSBridgeTemporalPython}
-                        ${vtkGRASSBridgeTemporalPythonD}
+#                        ${vtkGRASSBridgeTemporalPython}  # depricated
+#                        ${vtkGRASSBridgeTemporalPythonD} # depricated
                         ${vtkGRASSBridgeIOPython}
                         ${vtkGRASSBridgeIOPythonD}
-                        ${vtkGRASSBridgeRSpaceTimePython}
-                        ${vtkGRASSBridgeRSpaceTimePythonD}
-
 		)
+		IF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
+			VTK_GRASS_BRIDGE_LIBRARIES_PYTHON (
+		                ${vtkGRASSBridgeRSpaceTimePython}
+		                ${vtkGRASSBridgeRSpaceTimePythonD}
+			)
+		ENDIF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
 	ENDIF(VTK_GRASS_BRIDGE_LIBRARY_DIR)
 ENDIF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
 
