@@ -46,8 +46,8 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
     def setUp(self):
 
         # Create the point data
-        xext = 10
-        yext = 10
+        xext = 1
+        yext = 1
         num = xext*yext
 
         self.ds1 = vtkPolyData()
@@ -79,7 +79,7 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         Precipitation = vtkDoubleArray()
         Precipitation.SetNumberOfTuples(num)
         Precipitation.SetName("Precipitation")
-        Precipitation.FillComponent(0, 12)
+        Precipitation.FillComponent(0, 5)
 
         SoilCover = vtkDoubleArray()
         SoilCover.SetNumberOfTuples(num)
@@ -117,11 +117,6 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         FertilizerID.SetName("FertilizerID")
         FertilizerID.FillComponent(0, 0)
 
-        FieldCapacity = vtkDoubleArray()
-        FieldCapacity.SetNumberOfTuples(num)
-        FieldCapacity.SetName("UsableFieldCapacity")
-        FieldCapacity.FillComponent(0, 0.5)
-
         FertilizerCarbon = vtkDoubleArray()
         FertilizerCarbon.SetNumberOfTuples(num)
         FertilizerCarbon.SetName("FertilizerCarbon")
@@ -155,13 +150,13 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         self.ds1.GetCellData().AddArray(ResidualsSurface)
         self.ds1.GetCellData().AddArray(PlantID)
         self.ds1.GetCellData().AddArray(FertilizerID)
-        self.ds1.GetCellData().AddArray(FieldCapacity)
         self.ds1.GetCellData().AddArray(FertilizerCarbon)
         self.ds1.GetCellData().AddArray(InitialCarbon)
         
+        self.ds2.GetCellData().AddArray(Clay)
         self.ds2.GetCellData().AddArray(Precipitation)
         self.ds2.GetCellData().AddArray(SoilCover)
-        self.ds2.GetCellData().AddArray(UsableWaterContent)
+        #self.ds2.GetCellData().AddArray(UsableWaterContent)
         
         self.ds3.GetCellData().AddArray(MeanTemperature)
         self.ds3.GetCellData().AddArray(GlobalRadiation)
@@ -170,6 +165,7 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         
         # Compute potential evapo-transpiration
         ETpot = vtkTAG2ETurcETPotModel()
+        ETpot.SetTimeInterval(30)
         ETpot.SetInput(self.ds3)
         
         # Soil moisture input
@@ -186,12 +182,6 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         dc2.AddInputConnection(SoilMoisture.GetOutputPort())
         dc2.AddInput(self.ds1)
         
-        
-        pwriter = vtkXMLPolyDataWriter()
-        pwriter.SetFileName("/tmp/vtkTAG2ERothCModelTestsInput.vtp")
-        pwriter.SetInputConnection(dc2.GetOutputPort())
-        pwriter.Write()
-        
         # RothC model computation
         rp = vtkTAG2ERothCModelParameter()
 
@@ -202,12 +192,19 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         RothC.SetInputConnection(dc2.GetOutputPort())
         RothC.Update()
         
-        pwriter = vtkXMLPolyDataWriter()
-        pwriter.SetFileName("/tmp/vtkTAG2ERothCModelTestsResult.vtp")
+        pwriter = vtkPolyDataWriter()
+        pwriter.SetFileName("/tmp/vtkTAG2ERothCModelTestsInput.vtk")
+        pwriter.SetInputConnection(dc2.GetOutputPort())
+        pwriter.Write()
+        
+        #print dc2.GetOutput()
+        
+        pwriter = vtkPolyDataWriter()
+        pwriter.SetFileName("/tmp/vtkTAG2ERothCModelTestsResult.vtk")
         pwriter.SetInputConnection(RothC.GetOutputPort())
         pwriter.Write()
         
-        print RothC.GetOutput()
+        #print RothC.GetOutput()
         
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(vtkTAG2ERothCModelTests)

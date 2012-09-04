@@ -112,35 +112,41 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
   // Copy geometry from input
   output->CopyStructure(input);
 
-  // Result array
-  vtkDoubleArray *result = vtkDoubleArray::New();
-  result->SetNumberOfComponents(1);
-  result->SetName(this->ResultArrayName);
-  result->SetNumberOfTuples(input->GetNumberOfCells());
+  // Result array usable Fieldcapacity
+  vtkDoubleArray *resultUsableFieldCapacity = vtkDoubleArray::New();
+  resultUsableFieldCapacity->SetNumberOfComponents(1);
+  resultUsableFieldCapacity->SetName(ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY);
+  resultUsableFieldCapacity->SetNumberOfTuples(input->GetNumberOfCells());
+
+  // Result array WaterContentNew
+  vtkDoubleArray *resultWaterContentNew = vtkDoubleArray::New();
+  resultWaterContentNew->SetNumberOfComponents(1);
+  resultWaterContentNew->SetName(this->ResultArrayName);
+  resultWaterContentNew->SetNumberOfTuples(input->GetNumberOfCells());
 
   // Check the input arrays
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_ETPOT))
     {
-    vtkErrorMacro(<<"Cell data array <" << ROTHC_INPUT_NAME_ETPOT
-                  << "> is missing ");
+    vtkErrorMacro(
+        <<"Cell data array <" << ROTHC_INPUT_NAME_ETPOT << "> is missing ");
     return -1;
     }
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_PRECIPITATION))
     {
-    vtkErrorMacro(<<"Cell data array <" << ROTHC_INPUT_NAME_PRECIPITATION
-                  << "> is missing ");
+    vtkErrorMacro(
+        <<"Cell data array <" << ROTHC_INPUT_NAME_PRECIPITATION << "> is missing ");
     return -1;
     }
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_SOILCOVER))
     {
-    vtkErrorMacro(<<"Cell data array <" << ROTHC_INPUT_NAME_SOILCOVER
-                  << "> is missing ");
+    vtkErrorMacro(
+        <<"Cell data array <" << ROTHC_INPUT_NAME_SOILCOVER << "> is missing ");
     return -1;
     }
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_USABLE_WATER_CONTENT))
+  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_CLAY))
     {
-    vtkErrorMacro(<<"Cell data array <" << ROTHC_INPUT_NAME_USABLE_WATER_CONTENT
-                  << "> is missing ");
+    vtkErrorMacro(
+        <<"Cell data array <" << ROTHC_INPUT_NAME_CLAY << "> is missing ");
     return -1;
     }
 
@@ -153,6 +159,8 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
       ROTHC_INPUT_NAME_SOILCOVER);
   vtkDataArray *waterContentArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_USABLE_WATER_CONTENT);
+  vtkDataArray *clayArray = input->GetCellData()->GetArray(
+      ROTHC_INPUT_NAME_CLAY);
 
   // Parallelize with OpenMP
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
@@ -161,6 +169,7 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
     double p1[3];
     double p2[3];
     double etpot, precipitation, soilCover, waterContent, res;
+    double waterContentNew;
     double usableFieldcapacity; //[cm³/cm³]
     double clay; //[%]
 
@@ -184,26 +193,54 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
     // Compute length of the line in vertical direction
     input->GetPoint(pointIds->GetId(0), p1);
     input->GetPoint(pointIds->GetId(1), p2);
-    lineLength = fabs(p1[2] - p2[2]);
+    lineLength = fabs(p1[2] - p2[2]); //m
 
     etpot = etpotArray->GetTuple1(cellId);
     precipitation = precipitationArray->GetTuple1(cellId);
     soilCover = soilCoverArray->GetTuple1(cellId);
-    waterContent = waterContentArray->GetTuple1(cellId);
+    clay = clayArray->GetTuple1(cellId);
 
     // compute the usable field capacity
-    usableFieldcapacity = -(20 + 1.3 * clay - 0.01 * clay * clay) / 230.0;
+    usableFieldcapacity = (20 + 1.3 * clay - 0.01 * clay * clay) / 230.0;
+
+    if (waterContentArray != NULL)
+      {
+      waterContent = waterContentArray->GetTuple1(cellId);
+      }
+    else
+      {
+      waterContent = usableFieldcapacity;
+      }
+
     if (soilCover == 0 || soilCover == this->NullValue)
       usableFieldcapacity /= 1.8;
 
-    result->SetTuple1(cellId, usableFieldcapacity);
+    // compute water budget for 1 horizon
+    if ((precipitation - etpot) < 0)
+      {
+
+      waterContentNew = MAX(0, waterContent+(precipitation-etpot)/
+          (lineLength*10*100));
+      }
+    else
+      {
+      waterContentNew = MIN(usableFieldcapacity,waterContent+
+          (precipitation-etpot)/(lineLength*100*100));
+      }
+
+    resultUsableFieldCapacity->SetTuple1(cellId, usableFieldcapacity);
+    resultWaterContentNew->SetTuple1(cellId, waterContentNew);
 
     pointIds->Delete();
     }
 
-  output->GetCellData()->AddArray(result);
-  output->GetCellData()->SetActiveScalars(result->GetName());
-  result->Delete();
+  output->GetCellData()->AddArray(resultUsableFieldCapacity);
+  output->GetCellData()->AddArray(etpotArray);
+  output->GetCellData()->AddArray(resultWaterContentNew);
+  output->GetCellData()->SetActiveScalars(resultWaterContentNew->GetName());
+
+  resultUsableFieldCapacity->Delete();
+  resultWaterContentNew->Delete();
 
   return 1;
 }
