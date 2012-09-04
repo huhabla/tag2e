@@ -61,4 +61,7 @@
 #define ROTHC_INPUT_NAME_USABLE_WATER_CONTENT  "UsableWaterContent" // The water content of the time step before this run
 #define ROTHC_INPUT_NAME_GLOBAL_RADIATION  "GlobalRadiation" // [mJ/(m^2 * d)] air
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #endif	/* vtkTAG2ERothCDefines_H */
