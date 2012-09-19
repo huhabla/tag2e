@@ -31,6 +31,7 @@ SET (Filtering_SRCS
     vtkTAG2ERothCWaterBudgetModel.cxx
     vtkTAG2ETurcETPotModel.cxx
     vtkTAG2EDataSetJoinFilter.cxx
+    vtkTAG2ERothCResidualFilter.cxx
 )
 
 SET (Filtering_H
@@ -60,6 +61,7 @@ SET (Filtering_H
     vtkTAG2ETurcETPotModel.h
     vtkTAG2EDataSetJoinFilter.h
     vtkTAG2ERothCDefines.h
+    vtkTAG2ERothCResidualFilter.h
 )
 
 # VTK R Support

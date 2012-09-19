@@ -109,20 +109,6 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
   vtkPolyData* input = vtkPolyData::GetData(inputVector[0]);
   vtkPolyData* output = vtkPolyData::GetData(outputVector);
 
-  // Copy geometry from input
-  output->CopyStructure(input);
-
-  // Result array usable Fieldcapacity
-  vtkDoubleArray *resultUsableFieldCapacity = vtkDoubleArray::New();
-  resultUsableFieldCapacity->SetNumberOfComponents(1);
-  resultUsableFieldCapacity->SetName(ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY);
-  resultUsableFieldCapacity->SetNumberOfTuples(input->GetNumberOfCells());
-
-  // Result array WaterContentNew
-  vtkDoubleArray *resultWaterContentNew = vtkDoubleArray::New();
-  resultWaterContentNew->SetNumberOfComponents(1);
-  resultWaterContentNew->SetName(this->ResultArrayName);
-  resultWaterContentNew->SetNumberOfTuples(input->GetNumberOfCells());
 
   // Check the input arrays
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_ETPOT))
@@ -149,6 +135,21 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
         <<"Cell data array <" << ROTHC_INPUT_NAME_CLAY << "> is missing ");
     return -1;
     }
+
+  // Copy geometry from input
+  output->CopyStructure(input);
+
+  // Result array usable Fieldcapacity
+  vtkDoubleArray *resultUsableFieldCapacity = vtkDoubleArray::New();
+  resultUsableFieldCapacity->SetNumberOfComponents(1);
+  resultUsableFieldCapacity->SetName(ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY);
+  resultUsableFieldCapacity->SetNumberOfTuples(input->GetNumberOfCells());
+
+  // Result array WaterContentNew
+  vtkDoubleArray *resultWaterContentNew = vtkDoubleArray::New();
+  resultWaterContentNew->SetNumberOfComponents(1);
+  resultWaterContentNew->SetName(this->ResultArrayName);
+  resultWaterContentNew->SetNumberOfTuples(input->GetNumberOfCells());
 
   // Get array pointer for easy access
   vtkDataArray *etpotArray = input->GetCellData()->GetArray(
@@ -211,6 +212,7 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
       {
       waterContent = usableFieldcapacity;
       }
+
 
     if (soilCover == 0 || soilCover == this->NullValue)
       usableFieldcapacity /= 1.8;

@@ -110,14 +110,6 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkDataSet* input = vtkDataSet::GetData(inputVector[0]);
   vtkDataSet* output = vtkDataSet::GetData(outputVector);
 
-  // Copy geometry from input
-  output->CopyStructure(input);
-
-  // Result array
-  vtkDoubleArray *result = vtkDoubleArray::New();
-  result->SetNumberOfComponents(1);
-  result->SetName(this->ResultArrayName);
-  result->SetNumberOfTuples(output->GetNumberOfCells());
 
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_GLOBAL_RADIATION))
     {
@@ -131,6 +123,15 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
                   << "> is missing ");
     return -1;
     }
+
+  // Copy geometry from input
+  output->CopyStructure(input);
+
+  // Result array
+  vtkDoubleArray *result = vtkDoubleArray::New();
+  result->SetNumberOfComponents(1);
+  result->SetName(this->ResultArrayName);
+  result->SetNumberOfTuples(output->GetNumberOfCells());
 
   // Get array pointer for easy access
   vtkDataArray *globalRadiationArray = input->GetCellData()->GetArray(

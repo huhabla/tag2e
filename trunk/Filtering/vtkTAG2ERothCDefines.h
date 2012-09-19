@@ -45,9 +45,11 @@
 #define ROTHC_POOL_NAME_IOM "IOM"
 
 // Names of the input arrays
+#define ROTHC_INPUT_NAME_LAYER             "Layer"
 #define ROTHC_INPUT_NAME_CLAY              "Clay"
 #define ROTHC_INPUT_NAME_MEAN_TEMPERATURE  "MeanTemperature" // air
 #define ROTHC_INPUT_NAME_SOILCOVER         "SoilCover"
+#define ROTHC_INPUT_NAME_RESIDUALS         "Residuals"
 #define ROTHC_INPUT_NAME_RESIDUALS_ROOTS   "ResidualsRoots"
 #define ROTHC_INPUT_NAME_RESIDUALS_SURFACE "ResidualsSurface"
 #define ROTHC_INPUT_NAME_PLANT_ID          "PlantID"
@@ -60,6 +62,10 @@
 #define ROTHC_INPUT_NAME_PRECIPITATION     "Precipitation"
 #define ROTHC_INPUT_NAME_USABLE_WATER_CONTENT  "UsableWaterContent" // The water content of the time step before this run
 #define ROTHC_INPUT_NAME_GLOBAL_RADIATION  "GlobalRadiation" // [mJ/(m^2 * d)] air
+#define ROTHC_INPUT_NAME_LINE_LENGTH       "LineLength"
+#define ROTHC_INPUT_NAME_CUMULATIVE_LINE_LENGTH "CumulativeLineLength"
+#define ROTHC_INPUT_NAME_LINE_CENTER       "LineCenter"
+#define ROTHC_INPUT_NAME_ROOT_DEPTH        "RootDepth"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
