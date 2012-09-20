@@ -83,22 +83,26 @@ DEBUG = False
 
 ################################################################################
 
-def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, treduce, sdreduce, breakcrit):
+def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
+        treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
     if DEBUG == True:
         error = random.randint(0,20)
         akaike = random.randint(0,2000)
-        print id, " finished", runs, id, "weighted calibration runs with best fit error ", error, " akaike ", akaike
+        print id, " finished", runs, id, "calibration runs with best fit error ", error, " akaike ", akaike
         return error, akaike
 
     error = 999
     akaike = 999999
+    flags=""
+    if bootstrapOn:
+        flags += "b"
 
     for i in range(runs):
         print "Running calibration", i, inputvector, target, factornames, fuzzysets
 
-        grass.run_command("v.fuzzy.calibrator", overwrite=True, input=inputvector, factors=factornames,\
-              target=target, fuzzysets=fuzzysets, iterations=iterations, \
+        grass.run_command("v.fuzzy.calibrator", flags=flags, overwrite=True, input=inputvector, factors=factornames,\
+              target=target, fuzzysets=fuzzysets, iterations=iterations, samplingfactor=samplingfactor, \
               parameter=os.path.join(dir, (id + ".xml")), output=id, \
               log=os.path.join(dir, (id + ".log")), treduce=treduce, sdreduce=sdreduce, breakcrit=breakcrit)
 
@@ -117,7 +121,8 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
 
 ################################################################################
 
-def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, WeightNum, WeightFactor, treduce, sdreduce, breakcrit):
+def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
+        WeightNum, WeightFactor, treduce, sdreduce, breakcrit):
 
     if DEBUG == True:
         error = random.randint(0,20)
@@ -204,6 +209,13 @@ def main():
     resultlist = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "result")
     resultlist.SetDescription("The name of the logfile to store a sorted list of all factor combinations with AKAIKE and ERROR")
 
+    samplingFactor = vtkGRASSOption()
+    samplingFactor.SetKey("samplingfactor")
+    samplingFactor.MultipleOff()
+    samplingFactor.RequiredOff()
+    samplingFactor.SetDescription("The name of the column with ids for bootstrap aggregation selection")
+    samplingFactor.SetTypeToString()
+
     weightNum = vtkGRASSOption()
     weightNum.SetKey("weightnum")
     weightNum.MultipleOff()
@@ -259,6 +271,10 @@ def main():
     sdreduce.SetDefaultAnswer("1.01")                                                          
     sdreduce.SetDescription("This factor is used to reduce the standard deviation each step")  
     sdreduce.SetTypeToDouble()                                                                 
+ 
+    bagging = vtkGRASSFlag()
+    bagging.SetDescription("Use boostrap aggregation (bagging) for input data selection")
+    bagging.SetKey('b')
 
     weighting = vtkGRASSFlag()
     weighting.SetDescription("Use weighting for input data calibration. A weightingfactor and the number of weights must be provided.")
@@ -345,7 +361,9 @@ def main():
                     id += str(factorNames[i]) + str(fuzzySetNums[i])
 
                 error, akaike = StartCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
-                                                 Iterations, runs, treduce.GetAnswer(), sdreduce.GetAnswer(), breakcrit.GetAnswer())
+                                                 Iterations, runs, treduce.GetAnswer(), sdreduce.GetAnswer(), 
+                                                 breakcrit.GetAnswer(), bagging.GetAnswer(), 
+                                                 samplingFactor.GetAnswer())
 
                 # Make a copy of the lists, otherwise the references get modified
                 a = 1*factorNames
@@ -431,7 +449,7 @@ def main():
     
     global RScript
     
-    # Replace some placeholder in the R-script
+    # Replace some palceholder in the R-script
     newRScript = RScript.replace("current", bestFitName)
     newRScript = newRScript.replace("Summary.txt", rsum.GetAnswer())
     newRScript = newRScript.replace("Result.pdf", rpdf.GetAnswer())
