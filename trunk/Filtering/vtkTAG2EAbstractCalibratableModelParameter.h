@@ -51,16 +51,16 @@ public:
     vtkTypeRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, vtkTAG2EAbstractModelParameter);
 
     //!\brief Change arbritary a model parameter using a specific standard deviation
-    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    //! The method GenerateInternalSchemeFromXML must be called first, before you can use this method
     virtual bool ModifyParameterRandomly(double sd);
     //!\brief Change a model parameter at index using a specific standard deviation
-    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    //! The method GenerateInternalSchemeFromXML must be called first, before you can use this method
     virtual bool ModifyParameter(int index, double sd);
     //!\brief Return a model parameter at index. No index range check is performed.
-    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    //! The method GenerateInternalSchemeFromXML must be called first, before you can use this method
     virtual double GetParameterValue(int index){return this->ParameterValues[index];};
     //!\brief Restore the last modified model parameter 
-    //! The method GenerateInternalSchemeFromXML must be called first, befor you can use this method
+    //! The method GenerateInternalSchemeFromXML must be called first, before you can use this method
     virtual bool RestoreLastModifiedParameter();
     
     //!\brief Return the number of calibratable parameter

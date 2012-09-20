@@ -103,10 +103,7 @@ int vtkTAG2ERothCResidualFilter::RequestData(
     vtkInformation * vtkNotUsed(request), vtkInformationVector **inputVector,
     vtkInformationVector *outputVector)
 {
-  vtkIdType i;
   vtkIdType cellId;
-  bool hasInputPools = true;
-  int maxLayerNumber = 0;
   double lineLength;
 
   // This is the artificial ration between the surface and root residuals
@@ -335,7 +332,6 @@ bool vtkTAG2ERothCResidualFilter::CheckCellNeighbours(
 {
   double lineLength;
   double center[3];
-  int i;
 
   // Return if this cell was already processed
   if (checkIdArray->GetValue(cellId))
