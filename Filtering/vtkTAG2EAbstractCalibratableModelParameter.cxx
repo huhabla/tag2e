@@ -81,7 +81,7 @@ bool vtkTAG2EAbstractCalibratableModelParameter::ModifyParameterRandomly(double 
   bool check = false;
   int count = 0;
 
-  // Change a randomly selected parameter till a valid configuration is found
+  // Change a randomly selected parameter until a valid configuration is found
   while (!check) {
 
     // Avoid endless loops

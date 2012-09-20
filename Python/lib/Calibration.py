@@ -45,7 +45,7 @@ from MetaModel import *
 def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,\
                                         sd = 1, breakCriteria = 0.01, TMinimizer = 1.0, \
                                         SdMinimizer = 1.0):
-    """The simulated annelaing algorithm with best fit storage and T as well as sd minimization"""
+    """The simulated annealing algorithm with best fit storage and T as well as sd minimization"""
 
     # Check input values
     if SdMinimizer <= 0:

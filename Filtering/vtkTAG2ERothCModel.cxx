@@ -320,10 +320,10 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     double lineLength;
     double p1[3];
     double p2[3];
-    double a, b, c, k; // rate modifiers
+    double a, b, c; // rate modifiers
     double x1, x2, x3, x4;
     double a1, a2, a3; // rate modifier parameter
-    double b1, b2, b3, b4, b5, b6, b7;
+    double b1, b2, b3;
     double efficiency; // fraction of degraded C that remains
     double allocFractionbio, allocFractionhum;
     double dpm, rpm, bio, hum, iom; // Pools
@@ -333,7 +333,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     int fertId, plantId;
 
     vtkIdList *pointIds = vtkIdList::New();
-    vtkIdType pointId;
 
     // Check cell type, we support only lines
     if (input->GetCellType(cellId) != VTK_LINE)
