@@ -160,6 +160,13 @@ def main():
     fuzzysets.SetDescription("The number of fuzzy sets to be used for calibration for each factor: in case of 4 factors each 2 fuzzy sets: 2,2,2,2")
     fuzzysets.SetTypeToInteger()
 
+    samplingFactor = vtkGRASSOption()
+    samplingFactor.SetKey("samplingfactor")
+    samplingFactor.MultipleOff()
+    samplingFactor.RequiredOff()
+    samplingFactor.SetDescription("The name of the column with ids for bootstrap aggregation selection")
+    samplingFactor.SetTypeToString()
+
     sd = vtkGRASSOption()
     sd.SetKey("sd")
     sd.MultipleOff()
@@ -277,7 +284,10 @@ def main():
         messages.FatalError("The number of factors must match the number of fuzzysets: factors=a,b,c fuzzysets=3,2,3")
     
     columns.InsertNextValue(target.GetAnswer())
-    
+ 
+    if samplingFactor.GetAnswer():
+        columns.InsertNextValue(samplingFactor.GetAnswer())
+   
     if weighting.GetAnswer() == True:
         columns.InsertNextValue(weightingFactor.GetAnswer())
 
@@ -294,9 +304,12 @@ def main():
     reader.Update()
 
     polyData = vtkPolyData()
-    
+  
     if bagging.GetAnswer() == True:
-        polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput()))
+        if samplingFactor.GetAnswer():
+            polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput(), samplingFactor.GetAnswer()))
+        else:
+            polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput()))
     else:
         polyData.ShallowCopy(reader.GetOutput())
 

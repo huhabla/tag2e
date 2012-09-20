@@ -66,11 +66,11 @@ SET (Filtering_H
 
 # VTK R Support
 if (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
-    Filtering_H (
+	SET (Filtering_H 
     vtkTAG2EModelMonteCarloVariationAnalyser.cxx
 #    vtkTAG2ERSpaceTimeModel.cxx
     )
-    Filtering_H (
+	SET (Filtering_H 
     vtkTAG2EModelMonteCarloVariationAnalyser.h
 #   vtkTAG2ERSpaceTimeModel.h
     )

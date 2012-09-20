@@ -62,7 +62,7 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeIO}
 		)
 		IF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
-			VTK_GRASS_BRIDGE_LIBRARIES (
+			SET (VTK_GRASS_BRIDGE_LIBRARIES 
                         	${vtkGRASSBridgeRSpaceTime}
 			)
 		ENDIF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
@@ -81,7 +81,7 @@ IF(VTK_GRASS_BRIDGE_INCLUDE_DIR)
                         ${vtkGRASSBridgeIOPythonD}
 		)
 		IF (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
-			VTK_GRASS_BRIDGE_LIBRARIES_PYTHON (
+			SET (VTK_GRASS_BRIDGE_LIBRARIES_PYTHON 
 		                ${vtkGRASSBridgeRSpaceTimePython}
 		                ${vtkGRASSBridgeRSpaceTimePythonD}
 			)
