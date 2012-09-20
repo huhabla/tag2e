@@ -489,15 +489,29 @@ def main():
                 
     vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
     
-    AKAIKE = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
-    # We use the model assessment factor to fit the akaike criteria
-    AKAIKE = AKAIKE * ModelAssessmentFactor
+    # Old criteria
+    AIC_old = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
+    
+    # AIC: http://de.wikipedia.org/wiki/Informationskriterium
+    AIC = 2 * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
+    
+    # BIC: http://de.wikipedia.org/wiki/Informationskriterium
+    BIC = math.log(residuals.GetNumberOfTuples()) * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
+
+    # We use the model assessment factor to fit AIC and BIC
+    AIC_old = AIC_old * ModelAssessmentFactor
+    AIC = AIC * ModelAssessmentFactor
+    BIC = BIC * ModelAssessmentFactor
     
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
     log.write(str(bestFitError))
     log.write(str("\n"))
-    log.write(str(AKAIKE))
+    log.write(str(AIC))
+    log.write(str("\n"))
+    log.write(str(BIC))
+    log.write(str("\n"))
+    log.write(str(AIC_old))
     log.write(str("\n"))
     log.write(str(ModelAssessmentFactor))
     log.close()
@@ -527,7 +541,8 @@ def main():
         iwriter.Write()
     
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
-                     " and AKAIKE criteria " + str(AKAIKE))
+                     " and AIC: " + str(AIC) + " and BIC: " + str(BIC)\
+                      + " and AIC old: " + str(AIC_old))
 
 ################################################################################
 ################################################################################
