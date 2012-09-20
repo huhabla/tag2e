@@ -47,7 +47,7 @@ sfs = read.table("input.txt", header=TRUE, sep="|")
 sfslm = lm(sfs$target_variable ~ sfs$result_variable)
 sfslmsum = summary(sfslm)
 sfslmsum
-paste("AKAIKE: " , AIC(sfslm))
+paste("AIC: " , AIC(sfslm))
 
 # Plot to the first page
 pdf("Result.pdf")
@@ -55,7 +55,7 @@ par(mfrow = c(3, 2))
 
 axlim = c(min(sfs$target_variable), max(sfs$target_variable))
 plot(sfs$target_variable ~ sfs$result_variable, xlim=axlim, ylim=axlim, asp="1", 
-     main="current result", sub = paste("R squared: ", round(100 * sfslmsum$r.squared)/100, "   AKAIKE: " , round(AIC(sfslm))), 
+     main="current result", sub = paste("R squared: ", round(100 * sfslmsum$r.squared)/100, "   AIC: " , round(AIC(sfslm))), 
      xlab="Model data", ylab="Reference data")
 abline(sfslm, col="red")
 abline(0,1, col="grey60", lty="dashed")
@@ -86,14 +86,11 @@ DEBUG = False
 def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
         treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
-    if DEBUG == True:
-        error = random.randint(0,20)
-        akaike = random.randint(0,2000)
-        print id, " finished", runs, id, "calibration runs with best fit error ", error, " akaike ", akaike
-        return error, akaike
-
     error = 999
-    akaike = 999999
+    AICmod = 999999
+    BIC = 999999
+    AIC = 999999
+    MAF = 1.0
     flags=""
     if bootstrapOn:
         flags += "b"
@@ -106,54 +103,91 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
               parameter=os.path.join(dir, (id + ".xml")), output=id, \
               log=os.path.join(dir, (id + ".log")), treduce=treduce, sdreduce=sdreduce, breakcrit=breakcrit)
 
+        # Logfile of the calibrator
+        # 1. Error
+        # 2. AIC modified
+        # 3. BIC
+        # 4. AIC
+        # 5. MAF (Model Assessment Factor)
         logfile = open(os.path.join(dir, id + ".log"), "r")
-        runerror = float(logfile.readline())
-        runakaike = float(logfile.readline())
+        runerror = float(logfile.readline().split(":")[1])
+        runBIC = float(logfile.readline().split(":")[1])
+        runAIC = float(logfile.readline().split(":")[1])
+        runAICmod = float(logfile.readline().split(":")[1])
+        runMAF = float(logfile.readline().split(":")[1])
         logfile.close()
         
-        if runerror < error:
+        # We use the BIC criteria to select the best fit
+        if runBIC < BIC:
             error = runerror
-        if runakaike < akaike:
-            akaike = runakaike
+            AICmod = runAICmod
+            BIC = runBIC
+            AIC = runAIC
+            MAF = runMAF
         
-    print "Finished", runs, " calibration runs with best fit", error, akaike
-    return error, akaike
+    print "Finished", runs, " calibration runs with best fit", error
+    print "BIC    :", BIC
+    print "AIC    :", AIC
+    print "AIC mod:", AICmod
+    print "MAF    :", MAF
+    return error, BIC, AIC, AICmod, MAF
 
 ################################################################################
 
 def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
-        WeightNum, WeightFactor, treduce, sdreduce, breakcrit):
+        WeightNum, WeightFactor, treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
     if DEBUG == True:
         error = random.randint(0,20)
-        akaike = random.randint(0,2000)
-        print id, " finished", runs, "weighted calibration runs with best fit", error, akaike
-        return error, akaike
+        AIC = random.randint(0,2000)
+        print id, " finished", runs, "weighted calibration runs with best fit", error, AIC
+        return error, AIC
 
     error = 999
-    akaike = 999999
+    AICmod = 999999
+    BIC = 999999
+    AIC = 999999
+    MAF = 1.0
+    flags="w"
+    if bootstrapOn:
+        flags += "b"
 
     for i in range(runs):
         print "Running weighted calibration", i, inputvector, target, factornames, fuzzysets
 
-        grass.run_command("v.fuzzy.calibrator", flags="w", overwrite=True, input=inputvector, factors=factornames,\
+        grass.run_command("v.fuzzy.calibrator", flags=flags, overwrite=True, input=inputvector, factors=factornames,\
               target=target, fuzzysets=fuzzysets, iterations=iterations, \
               parameter=os.path.join(dir, (id + ".xml")), output=id, \
               log=os.path.join(dir, (id + ".log")), treduce=treduce, sdreduce=sdreduce,\
               weightnum=WeightNum, weightfactor=WeightFactor)
 
+        # Logfile of the calibrator
+        # 1. Error
+        # 3. BIC
+        # 4. AIC
+        # 2. AIC modified
+        # 5. MAF (Model Assessment Factor)
         logfile = open(os.path.join(dir, id + ".log"), "r")
-        runerror = float(logfile.readline())
-        runakaike = float(logfile.readline())
+        runerror = float(logfile.readline().split(":")[1])
+        runBIC = float(logfile.readline().split(":")[1])
+        runAIC = float(logfile.readline().split(":")[1])
+        runAICmod = float(logfile.readline().split(":")[1])
+        runMAF = float(logfile.readline().split(":")[1])
         logfile.close()
-        
-        if runerror < error:
+        # We use the BIC criteria to select the best fit
+        if runBIC < BIC:
             error = runerror
-        if runakaike < akaike:
-            akaike = runakaike
+            AICmod = runAICmod
+            BIC = runBIC
+            AIC = runAIC
+            MAF = runMAF
         
-    print "Finished", runs, "weighted calibration runs with best fit", error, akaike
-    return error, akaike
+    print "Finished", runs, " calibration runs with best fit", error
+    print "BIC    :", BIC
+    print "AIC    :", AIC
+    print "AIC mod:", AICmod
+    print "MAF    :", MAF
+    return error, BIC, AIC, AICmod, MAF
 
 ################################################################################
 
@@ -207,7 +241,7 @@ def main():
     rsum.SetDescription("The output file name of the R script generated summary file")
 
     resultlist = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "result")
-    resultlist.SetDescription("The name of the logfile to store a sorted list of all factor combinations with AKAIKE and ERROR")
+    resultlist.SetDescription("The name of the logfile to store a sorted list of all factor combinations with AIC and ERROR")
 
     samplingFactor = vtkGRASSOption()
     samplingFactor.SetKey("samplingfactor")
@@ -360,7 +394,7 @@ def main():
                 for i in range(len(factorNames)):
                     id += str(factorNames[i]) + str(fuzzySetNums[i])
 
-                error, akaike = StartCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
+                error, BIC, AIC, AICmod, MAF = StartCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
                                                  Iterations, runs, treduce.GetAnswer(), sdreduce.GetAnswer(), 
                                                  breakcrit.GetAnswer(), bagging.GetAnswer(), 
                                                  samplingFactor.GetAnswer())
@@ -369,29 +403,36 @@ def main():
                 a = 1*factorNames
                 b = 1*fuzzySetNums
                 
-                CalibrationResult[id] = [a, b, error, akaike, False]
+                CalibrationResult[id] = [a, b, error, BIC, AIC, AICmod, MAF, False]
                 
                 if weighting.GetAnswer():
                     id += "Weighting"
-                    error, akaike = StartWeightedCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
+                    error, BIC, AIC, AICmod, MAF = StartWeightedCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
                                                              Iterations, runs, WeightNum, WeightFactor, treduce.GetAnswer(), \
-                                                             sdreduce.GetAnswer(), breakcrit.GetAnswer())
+                                                             sdreduce.GetAnswer(), breakcrit.GetAnswer(), bagging.GetAnswer(), 
+                                                             samplingFactor.GetAnswer())
 
                     # Make a copy of the lists, otherwise the references get modified
                     a = 1*factorNames
                     b = 1*fuzzySetNums
 
-                    CalibrationResult[id] = [a, b, error, akaike, True]
+                    CalibrationResult[id] = [a, b, error, BIC, AIC, AICmod, MAF, True]
 
         # Select the best result from the CalibrationResult
         firstError = 9999
-        firstAKAIKE = 999999
+        firstBIC = 999999
+        firstAIC = 999999
+        firstAICmod = 999999
+        firstMAF = 999999
         bestFitName = ""
         weightingOn = False
         for key in CalibrationResult.keys():
-            fact, fuset, error, akaike, weight = CalibrationResult[key]
-            if akaike < firstAKAIKE:
-                firstAKAIKE = akaike
+            fact, fuset, error, BIC, AIC, AICmod, MAF, weight = CalibrationResult[key]
+            if BIC < firstBIC:
+                firstAICmod = AICmod
+                firstBIC = BIC
+                firstAIC = AIC
+                firstMAF = MAF
                 CalibrationResultFactors = fact
                 CalibrationResultFuzzySets = fuset
                 bestFitName = key
@@ -403,9 +444,13 @@ def main():
             break
 
         if weightingOn:
-            print "Selected weighted model: ", bestFitName, firstAKAIKE, firstError, CalibrationResultFactors, CalibrationResultFuzzySets
+            print "Selected weighted model: ", bestFitName, firstBIC, \
+            firstAIC, firstAICmod, firstMAF, firstError, CalibrationResultFactors, \
+            CalibrationResultFuzzySets
         else:
-            print "Selected model: ", bestFitName, firstAKAIKE, firstError, CalibrationResultFactors, CalibrationResultFuzzySets
+            print "Selected model: ", bestFitName, firstBIC, \
+            firstAIC, firstAICmod, firstMAF, firstError, CalibrationResultFactors, \
+            CalibrationResultFuzzySets
 
         # Build new StartFactor list
         StartFactors = []
@@ -417,14 +462,14 @@ def main():
         Count += 1
 
     # Write the best fit vector name and error into a log file
-    print "Best fit" , bestFitName, "with akaike", firstAKAIKE, "and error", firstError
+    print "Best fit" , bestFitName
+    print "Error", firstError
+    print "BIC   :", firstBIC
+    print "AIC   :", firstAIC
+    print "AICmod:", firstAICmod
+    print "MAF   :", firstMAF
     print "File with result list: ", resultlist.GetAnswer()
-    file = open(resultlist.GetAnswer(), 'w')
-    file.write("Best fit: " + str(bestFitName) + "\n")
-    file.write("Error: " + str(firstError))
-    file.write("\n")
-    file.write("AKAIKE: " + str(firstAKAIKE))
-    file.write("\n")
+
     # Write all results into the best fit file
     count = 1
     result = []
@@ -432,13 +477,22 @@ def main():
         result.append([str(key),CalibrationResult[key][3]])	
         count = count + 1
             
-    result =sorted(result, key = lambda result: result[1])
+    result = sorted(result, key = lambda result: result[1])
+    
+    messageout = "RANK|NAME|FIS|ERROR|BIC|AIC|AICMOD|MAF|WEIGHTING\n"
+    
+    file = open(resultlist.GetAnswer(), 'w')
+    file.write(messageout)
     
     for key in range(0,count-1,1):
-        messageout = str(key) + " " + result[key][0] + "\t\tAKAIKE " +\
-                     str(CalibrationResult[result[key][0]][3]) + "\tERROR  " +\
-                     str(CalibrationResult[result[key][0]][2]) + "\tWeighting:  " + \
-                     str(CalibrationResult[result[key][0]][4]) + "\n"
+        messageout = str(key) + "|" +\
+                     str(result[key][0]) + "|" +\
+                     str(CalibrationResult[result[key][0]][1]) + "|" +\
+                     str(CalibrationResult[result[key][0]][2]) + "|" +\
+                     str(CalibrationResult[result[key][0]][3]) + "|" + \
+                     str(CalibrationResult[result[key][0]][4]) + "|" + \
+                     str(CalibrationResult[result[key][0]][5]) + "|" + \
+                     str(CalibrationResult[result[key][0]][6]) + "\n"
         file.write(messageout)
 
     file.close()
@@ -449,7 +503,7 @@ def main():
     
     global RScript
     
-    # Replace some palceholder in the R-script
+    # Replace some place holder in the R-script
     newRScript = RScript.replace("current", bestFitName)
     newRScript = newRScript.replace("Summary.txt", rsum.GetAnswer())
     newRScript = newRScript.replace("Result.pdf", rpdf.GetAnswer())
@@ -457,7 +511,7 @@ def main():
     newRScript = newRScript.replace("target_variable", target.GetAnswer())
     newRScript = newRScript.replace("result_variable", "result")
     
-    # Run R to analyze the result auomtatically and store the result in files
+    # Run R to analyze the result automatically and store the result in files
     inputlist = ["R", "--vanilla"]
     proc = subprocess.Popen(args=inputlist, stdin=subprocess.PIPE)
     proc.stdin.write(newRScript)

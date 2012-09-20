@@ -489,8 +489,8 @@ def main():
                 
     vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
     
-    # Old criteria
-    AIC_old = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
+    # Modified AIC criteria
+    AIC_mod = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
     
     # AIC: http://de.wikipedia.org/wiki/Informationskriterium
     AIC = 2 * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
@@ -498,22 +498,19 @@ def main():
     # BIC: http://de.wikipedia.org/wiki/Informationskriterium
     BIC = math.log(residuals.GetNumberOfTuples()) * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
 
-    # We use the model assessment factor to fit AIC and BIC
-    AIC_old = AIC_old * ModelAssessmentFactor
-    AIC = AIC * ModelAssessmentFactor
-    BIC = BIC * ModelAssessmentFactor
+    # We use the model assessment factor to fit AIC and BIC. We ned to
+    # shift the IC's to avoid the multiplication of negative criterias
+    BIC = (BIC + 20) * ModelAssessmentFactor
+    AIC = (AIC + 20) * ModelAssessmentFactor
+    AIC_mod = (AIC_mod + 20) * ModelAssessmentFactor
     
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
-    log.write(str(bestFitError))
-    log.write(str("\n"))
-    log.write(str(AIC))
-    log.write(str("\n"))
-    log.write(str(BIC))
-    log.write(str("\n"))
-    log.write(str(AIC_old))
-    log.write(str("\n"))
-    log.write(str(ModelAssessmentFactor))
+    log.write("BEST_FIT:" + str(bestFitError) + "\n")
+    log.write("BIC:" + str(BIC) + "\n")
+    log.write("AIC:" + str(AIC) + "\n")
+    log.write("AIC_MOD:" + str(AIC_mod) + "\n")
+    log.write("MAF:" + str(ModelAssessmentFactor))
     log.close()
     
     # Create the poly data output for paraview analysis
@@ -524,7 +521,7 @@ def main():
         pwriter.SetInput(outputDS)
         pwriter.Write()
     
-    # Create the poly data output for paraview analysis
+    # Create theimage of the fuzzy inference scheme
     if fuzzyvtk.GetAnswer() and not weighting.GetAnswer():
         messages.Message("Writing Fuzzy Inference Scheme XML represenation as VTK image data")
         
@@ -541,8 +538,10 @@ def main():
         iwriter.Write()
     
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
-                     " and AIC: " + str(AIC) + " and BIC: " + str(BIC)\
-                      + " and AIC old: " + str(AIC_old))
+                     "\nBIC: " + str(BIC) + \
+                     "\nAIC: " + str(AIC) + \
+                     "\nAIC mod: " + str(AIC_mod) + \
+                     "\nMAF: " + str(ModelAssessmentFactor))
 
 ################################################################################
 ################################################################################
