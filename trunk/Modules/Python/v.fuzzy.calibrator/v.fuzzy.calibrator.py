@@ -233,6 +233,10 @@ def main():
     weighting.SetDescription("Use weighting for input data calibration. A weightingfactor and the number of weights must be provided.")
     weighting.SetKey('w')
 
+    alterCriterion = vtkGRASSFlag()
+    alterCriterion.SetDescription("Use an alternative information criterion computation")
+    alterCriterion.SetKey('i')
+    
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.RequiredOff()
     output.SetDescription("The best fitted model result as vector map")
@@ -307,7 +311,8 @@ def main():
   
     if bagging.GetAnswer() == True:
         if samplingFactor.GetAnswer():
-            polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput(), samplingFactor.GetAnswer()))
+            polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput(), 
+                                                                   samplingFactor.GetAnswer()))
         else:
             polyData.ShallowCopy(BootstrapAggregating.CellSampling(reader.GetOutput()))
     else:
@@ -343,7 +348,9 @@ def main():
                 xmlRootFIS = None
 
             # In case the FIS exists, add only the factors which are not already present
-            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()))
+            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, 
+                                                    target.GetAnswer(), polyData, 
+                                                    float(null.GetAnswer()))
 
             if xmlRoot.FindNestedElementWithName("Weighting"):
                 xmlRootW.DeepCopy(xmlRoot.FindNestedElementWithName("Weighting"))
@@ -353,19 +360,27 @@ def main():
             if xmlRootW and xmlRootW.GetName() == "Weighting":
                 pass
             else:
-                 xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
+                 xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), 
+                                                           int(weightNum.GetAnswer()), 
+                                                           0, 10)
 
             pass
         else:
             xmlRootFIS.DeepCopy(reader.GetRootElement())
             # In case the FIS exists, add only the factors which are not already present
-            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()))
+            xmlRootFIS = MergeFuzzyInferenceSchemes(xmlRootFIS, names, 
+                                                    fuzzySetNum, target.GetAnswer(), 
+                                                    polyData, float(null.GetAnswer()))
     else:
-        # Create the XML stuff in case no pinitial parameter is given
-        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, target.GetAnswer(), polyData, float(null.GetAnswer()), True)
+        # Create the XML stuff in case no initial parameter is given
+        xmlRootFIS = XMLFuzzyInferenceGenerator.BuildXML(names, fuzzySetNum, 
+                                                         target.GetAnswer(), polyData, 
+                                                         float(null.GetAnswer()), True)
  
         if weighting.GetAnswer():
-            xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), int(weightNum.GetAnswer()), 0, 10)
+            xmlRootW = XMLWeightingGenerator.BuildXML(weightingFactor.GetAnswer(), 
+                                                      int(weightNum.GetAnswer()), 
+                                                      0, 10)
 
     # xmlRootFIS.PrintXML("xmlRootFIS.xml")
    
@@ -412,11 +427,10 @@ def main():
         meta.SetTargetDataSet(polyData)
 
         bestFitParameter, bestFitOutput, bestFitError, ModelAssessmentFactor = \
-                                           Calibration.MetaModelSimulatedAnnealingImproved(\
-                                           meta, int(iterations.GetAnswer()),\
-                                           1, float(sd.GetAnswer()),
-                                           float(breakcrit.GetAnswer()), float(treduce.GetAnswer()),\
-                                           float(sdreduce.GetAnswer()))
+                          Calibration.MetaModelSimulatedAnnealingImproved(\
+                          meta, int(iterations.GetAnswer()), 1, float(sd.GetAnswer()), \
+                          float(breakcrit.GetAnswer()), float(treduce.GetAnswer()),\
+                          float(sdreduce.GetAnswer()))
 
         bestFitParameter.PrintXML(paramXML.GetAnswer())
         
@@ -483,37 +497,44 @@ def main():
             writer.BuildTopoOn()
             writer.Update()
         
-    # Compute the AKAIKE criteria
+    # Compute the AKAIKE and Bayesche information criteria
     residuals = vtkDoubleArray()
-    vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(polyData, outputDS, 1, residuals)
-                
-    vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals)
     
-    # Modified AIC criteria
-    AIC_mod = 2 * NumberOfModelParameter + residuals.GetNumberOfTuples() * math.log(residuals.GetNumberOfTuples() * vresiduals)
-    
-    # AIC: http://de.wikipedia.org/wiki/Informationskriterium
-    AIC = 2 * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
-    
-    # BIC: http://de.wikipedia.org/wiki/Informationskriterium
-    BIC = math.log(residuals.GetNumberOfTuples()) * NumberOfModelParameter / residuals.GetNumberOfTuples() + math.log(vresiduals)
+    # We need to compute residuals
+    vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(polyData, outputDS, 
+                                                             1, residuals, False)
 
-    # We use the model assessment factor to fit AIC and BIC. We ned to
-    # shift the IC's to avoid the multiplication of negative criterias
-    BIC = (BIC + 20) * ModelAssessmentFactor
-    AIC = (AIC + 20) * ModelAssessmentFactor
-    AIC_mod = (AIC_mod + 20) * ModelAssessmentFactor
-    
+    M = NumberOfModelParameter
+    T = residuals.GetNumberOfTuples()
+        
+    if alterCriterion.GetAnswer():    
+        # We use the non-corrected residual squares
+        vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals, False, 
+                                                              True)
+        # AIC: http://archimede.bibl.ulaval.ca/archimede/fichiers/21842/apa.html
+        AIC = 2 * M + math.log(vresiduals) * T
+        
+        # BIC: http://www.biogeosciences.net/6/2001/2009/bg-6-2001-2009.pdf
+        BIC = math.log(T) * M  +  math.log(vresiduals) * T
+    else:      
+        # We use the non-corrected variance 
+        vresiduals = vtkTAG2EAbstractModelCalibrator.Variance(residuals, False, 
+                                                              False)
+        # AIC: http://de.wikipedia.org/wiki/Informationskriterium
+        AIC = 2 * M / T + math.log(vresiduals)
+        
+        # BIC: http://de.wikipedia.org/wiki/Informationskriterium
+        BIC = math.log(T) * M / T  + math.log(vresiduals)
+        
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
     log.write("BEST_FIT:" + str(bestFitError) + "\n")
     log.write("BIC:" + str(BIC) + "\n")
     log.write("AIC:" + str(AIC) + "\n")
-    log.write("AIC_MOD:" + str(AIC_mod) + "\n")
     log.write("MAF:" + str(ModelAssessmentFactor))
     log.close()
     
-    # Create the poly data output for paraview analysis
+    # Create the poly data output for ParaView analysis
     if outputvtk.GetAnswer():
         messages.Message("Writing result VTK poly data")
         pwriter = vtkXMLPolyDataWriter()
@@ -521,15 +542,15 @@ def main():
         pwriter.SetInput(outputDS)
         pwriter.Write()
     
-    # Create theimage of the fuzzy inference scheme
+    # Create the image of the fuzzy inference scheme
     if fuzzyvtk.GetAnswer() and not weighting.GetAnswer():
-        messages.Message("Writing Fuzzy Inference Scheme XML represenation as VTK image data")
+        messages.Message("Writing Fuzzy Inference Scheme XML representation as VTK image data")
         
         fim = vtkTAG2EFuzzyInferenceModelParameterToImageData()
         fim.SetFuzzyModelParameter(parameter)
-        fim.SetXAxisExtent(50)
-        fim.SetYAxisExtent(50)
-        fim.SetZAxisExtent(50)
+        fim.SetXAxisExtent(80)
+        fim.SetYAxisExtent(80)
+        fim.SetZAxisExtent(80)
         fim.Update()
         
         iwriter = vtkXMLImageDataWriter()
@@ -540,7 +561,6 @@ def main():
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
                      "\nBIC: " + str(BIC) + \
                      "\nAIC: " + str(AIC) + \
-                     "\nAIC mod: " + str(AIC_mod) + \
                      "\nMAF: " + str(ModelAssessmentFactor))
 
 ################################################################################

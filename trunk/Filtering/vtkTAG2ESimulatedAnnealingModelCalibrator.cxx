@@ -125,7 +125,7 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 
   // Compute the initial error
   error = vtkTAG2EAbstractModelCalibrator::CompareDataSets(
-      this->Model->GetOutput(), input, this->Model->GetUseCellData(), 0)
+      this->Model->GetOutput(), input, this->Model->GetUseCellData(), 0, false)
       * modelAssessment;
 
   // Initialize the error variables
@@ -165,7 +165,7 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
 
     // Compute the error between the model result and the target values
     error = vtkTAG2EAbstractModelCalibrator::CompareDataSets(
-        this->Model->GetOutput(), input, this->Model->GetUseCellData(), 0)
+        this->Model->GetOutput(), input, this->Model->GetUseCellData(), 0, false)
         * modelAssessment;
 
     // The difference between last and current computation
