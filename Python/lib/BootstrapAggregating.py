@@ -97,7 +97,7 @@ def Sampling(dataset, type_, typeArray=None):
             else:
                 types[id_] = []
                 types[id_].append(i)
-        print types
+                
         # Store the keys in a list for index access
         key_list = []
         for key in types.keys():
@@ -107,18 +107,17 @@ def Sampling(dataset, type_, typeArray=None):
             num2 = len(key_list)
             # Select the type specific cell id array randomly
             key_id = random.randint(0, num2 - 1)
-            print "Select type: ", key_list[key_id]
+            # print "Select type: ", key_list[key_id]
             num2 = len(types[key_list[key_id]])
             # Select a cell id from the type array randomly
             cell_id = random.randint(0, num2 - 1)
             id_ = types[key_list[key_id]][cell_id]
-            print "Selected cell/point id: ", id_
+            # print "Selected cell/point id: ", id_
             # Save the id to sellect the cells from the input dataset
             ids.SetTuple1(i, id_)
     else:
         for i in range(num):
             id_ = random.randint(0, num - 1)
-            print id_
             ids.SetTuple1(i, id_)
 
     selectionNode.SetSelectionList(ids)
@@ -127,8 +126,6 @@ def Sampling(dataset, type_, typeArray=None):
     extract.SetInput(0, dataset)
     extract.SetInput(1, selection)
     extract.Update()
-
-    print extract.GetOutput()
 
     if extract.GetOutput().GetNumberOfPoints() != dataset.GetNumberOfPoints():
         raise IOError("Error while bagging, number of points are different")

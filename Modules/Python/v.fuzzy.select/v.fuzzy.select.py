@@ -71,6 +71,7 @@ import subprocess
 import os
 import sys
 import random
+import math
 
 from vtk import *
 from libvtkTAG2ECommonPython import *
@@ -87,7 +88,6 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
         treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
     error = 999
-    AICmod = 999999
     BIC = 999999
     AIC = 999999
     MAF = 1.0
@@ -105,7 +105,6 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
 
         # Logfile of the calibrator
         # 1. Error
-        # 2. AIC modified
         # 3. BIC
         # 4. AIC
         # 5. MAF (Model Assessment Factor)
@@ -113,14 +112,12 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
         runerror = float(logfile.readline().split(":")[1])
         runBIC = float(logfile.readline().split(":")[1])
         runAIC = float(logfile.readline().split(":")[1])
-        runAICmod = float(logfile.readline().split(":")[1])
         runMAF = float(logfile.readline().split(":")[1])
         logfile.close()
         
         # We use the BIC criteria to select the best fit
         if runBIC < BIC:
             error = runerror
-            AICmod = runAICmod
             BIC = runBIC
             AIC = runAIC
             MAF = runMAF
@@ -128,9 +125,8 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
     print "Finished", runs, " calibration runs with best fit", error
     print "BIC    :", BIC
     print "AIC    :", AIC
-    print "AIC mod:", AICmod
     print "MAF    :", MAF
-    return error, BIC, AIC, AICmod, MAF
+    return error, BIC, AIC, MAF
 
 ################################################################################
 
@@ -144,7 +140,6 @@ def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzyset
         return error, AIC
 
     error = 999
-    AICmod = 999999
     BIC = 999999
     AIC = 999999
     MAF = 1.0
@@ -165,19 +160,16 @@ def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzyset
         # 1. Error
         # 3. BIC
         # 4. AIC
-        # 2. AIC modified
         # 5. MAF (Model Assessment Factor)
         logfile = open(os.path.join(dir, id + ".log"), "r")
         runerror = float(logfile.readline().split(":")[1])
         runBIC = float(logfile.readline().split(":")[1])
         runAIC = float(logfile.readline().split(":")[1])
-        runAICmod = float(logfile.readline().split(":")[1])
         runMAF = float(logfile.readline().split(":")[1])
         logfile.close()
         # We use the BIC criteria to select the best fit
         if runBIC < BIC:
             error = runerror
-            AICmod = runAICmod
             BIC = runBIC
             AIC = runAIC
             MAF = runMAF
@@ -185,9 +177,8 @@ def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzyset
     print "Finished", runs, " calibration runs with best fit", error
     print "BIC    :", BIC
     print "AIC    :", AIC
-    print "AIC mod:", AICmod
     print "MAF    :", MAF
-    return error, BIC, AIC, AICmod, MAF
+    return error, BIC, AIC, MAF
 
 ################################################################################
 
@@ -195,7 +186,7 @@ def main():
     
     # Initiate GRASS
     init = vtkGRASSInit()
-    init.Init("v.fuzzy.calibrator")
+    init.Init("v.fuzzy.select")
     init.ExitOnErrorOn()
 
     module = vtkGRASSModule()
@@ -394,64 +385,71 @@ def main():
                 for i in range(len(factorNames)):
                     id += str(factorNames[i]) + str(fuzzySetNums[i])
 
-                error, BIC, AIC, AICmod, MAF = StartCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
-                                                 Iterations, runs, treduce.GetAnswer(), sdreduce.GetAnswer(), 
-                                                 breakcrit.GetAnswer(), bagging.GetAnswer(), 
-                                                 samplingFactor.GetAnswer())
-
                 # Make a copy of the lists, otherwise the references get modified
                 a = 1*factorNames
                 b = 1*fuzzySetNums
                 
-                CalibrationResult[id] = [a, b, error, BIC, AIC, AICmod, MAF, False]
+                error, BIC, AIC, MAF = StartCalibration(id, tmpdir, Vector, Target, 
+                                                        factorNames, fuzzySetNums, 
+                                                        Iterations, runs, 
+                                                        treduce.GetAnswer(), 
+                                                        sdreduce.GetAnswer(), 
+                                                        breakcrit.GetAnswer(), 
+                                                        bagging.GetAnswer(), 
+                                                        samplingFactor.GetAnswer())
                 
+                CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
+                                         "BIC":BIC, "AIC":AIC, "MAF":MAF, 
+                                         "WEIGHTING":False}
                 if weighting.GetAnswer():
                     id += "Weighting"
-                    error, BIC, AIC, AICmod, MAF = StartWeightedCalibration(id, tmpdir, Vector, Target, factorNames, fuzzySetNums, \
-                                                             Iterations, runs, WeightNum, WeightFactor, treduce.GetAnswer(), \
-                                                             sdreduce.GetAnswer(), breakcrit.GetAnswer(), bagging.GetAnswer(), 
-                                                             samplingFactor.GetAnswer())
+                    error, BIC, AIC, MAF = StartWeightedCalibration(id, tmpdir, Vector, 
+                                                Target, factorNames, fuzzySetNums, 
+                                                Iterations, runs, WeightNum, 
+                                                WeightFactor, treduce.GetAnswer(), 
+                                                sdreduce.GetAnswer(), breakcrit.GetAnswer(), 
+                                                bagging.GetAnswer(), samplingFactor.GetAnswer())
 
-                    # Make a copy of the lists, otherwise the references get modified
-                    a = 1*factorNames
-                    b = 1*fuzzySetNums
-
-                    CalibrationResult[id] = [a, b, error, BIC, AIC, AICmod, MAF, True]
-
-        # Select the best result from the CalibrationResult
-        firstError = 9999
-        firstBIC = 999999
-        firstAIC = 999999
-        firstAICmod = 999999
-        firstMAF = 999999
-        bestFitName = ""
-        weightingOn = False
+                    CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
+                                             "BIC":BIC, "AIC":AIC, "MAF":MAF, 
+                                             "WEIGHTING":True}
+        
+        # Selection of the best fit model
+        
+        minBIC = 99999999
+        # Compute the delta BIC and BIC weight and append it to the Calibration result
         for key in CalibrationResult.keys():
-            fact, fuset, error, BIC, AIC, AICmod, MAF, weight = CalibrationResult[key]
-            if BIC < firstBIC:
-                firstAICmod = AICmod
-                firstBIC = BIC
-                firstAIC = AIC
-                firstMAF = MAF
-                CalibrationResultFactors = fact
-                CalibrationResultFuzzySets = fuset
-                bestFitName = key
-                weightingOn = weight
-                firstError = error
-
-        # Check if the step results in a new selection, if not break
-        if SelectedCalibration == bestFitName:
-            break
-
-        if weightingOn:
-            print "Selected weighted model: ", bestFitName, firstBIC, \
-            firstAIC, firstAICmod, firstMAF, firstError, CalibrationResultFactors, \
-            CalibrationResultFuzzySets
-        else:
-            print "Selected model: ", bestFitName, firstBIC, \
-            firstAIC, firstAICmod, firstMAF, firstError, CalibrationResultFactors, \
-            CalibrationResultFuzzySets
-
+            BIC = CalibrationResult[key]["BIC"]
+            if BIC < minBIC:
+                minBIC = BIC
+                
+        weightSumBIC = 0
+        for key in CalibrationResult.keys():
+            BIC = CalibrationResult[key]["BIC"]
+            deltaBIC = math.fabs(BIC - minBIC)
+            CalibrationResult[key]["DELTA_BIC"] = deltaBIC
+            CalibrationResult[key]["BIC_WEIGHT"] = math.exp(-1*deltaBIC/2.0) 
+            weightSumBIC = weightSumBIC +  CalibrationResult[key]["BIC_WEIGHT"]
+            
+        for key in CalibrationResult.keys():
+            BICWeight = CalibrationResult[key]["BIC_WEIGHT"]
+            MAF = CalibrationResult[key]["MAF"]
+            BICWeight = BICWeight / weightSumBIC
+            CalibrationResult[key]["BIC_WEIGHT"] = BICWeight
+            CalibrationResult[key]["BIC_MAF_WEIGHT"] = BICWeight / MAF
+            
+        # Select the best result from the CalibrationResult
+        bestFitKey = None
+        bestBICMAFWeight = 999999
+        for key in CalibrationResult.keys():
+            BICMAFWeight = CalibrationResult[key]["BIC_MAF_WEIGHT"]
+            if BICMAFWeight < bestBICMAFWeight:
+                bestFitKey = key
+                
+        # Copy the best fit factor names and fuzzy sets
+        CalibrationResultFactors = CalibrationResult[bestFitKey]["NAME"]
+        CalibrationResultFuzzySets = CalibrationResult[bestFitKey]["FIS"]
+        
         # Build new StartFactor list
         StartFactors = []
 
@@ -459,52 +457,52 @@ def main():
             if factor not in CalibrationResultFactors:
                 StartFactors.append(factor)
 
+        # Search depth
         Count += 1
 
-    # Write the best fit vector name and error into a log file
-    print "Best fit" , bestFitName
-    print "Error", firstError
-    print "BIC   :", firstBIC
-    print "AIC   :", firstAIC
-    print "AICmod:", firstAICmod
-    print "MAF   :", firstMAF
-    print "File with result list: ", resultlist.GetAnswer()
+        print "Selected best fit model: "
+        for name in CalibrationResult[bestFitKey].keys():
+            print name, ":", CalibrationResult[bestFitKey][name]
 
+    ###########################################################################
     # Write all results into the best fit file
-    count = 1
+    count = 0
     result = []
     for key in CalibrationResult.keys():
-        result.append([str(key),CalibrationResult[key][3]])	
+        result.append([str(key),CalibrationResult[key]["BIC_MAF_WEIGHT"]])
         count = count + 1
             
+    # We sort the result based on the delta BIC
     result = sorted(result, key = lambda result: result[1])
     
-    messageout = "RANK|NAME|FIS|ERROR|BIC|AIC|AICMOD|MAF|WEIGHTING\n"
+    messageout = "RANK|NAME|BIC_MAF_WEIGHT|BIC_WEIGHT|DELTA_BIC|ERROR|BIC|AIC|MAF|WEIGHTING\n"
     
     file = open(resultlist.GetAnswer(), 'w')
     file.write(messageout)
     
-    for key in range(0,count-1,1):
-        messageout = str(key) + "|" +\
-                     str(result[key][0]) + "|" +\
-                     str(CalibrationResult[result[key][0]][1]) + "|" +\
-                     str(CalibrationResult[result[key][0]][2]) + "|" +\
-                     str(CalibrationResult[result[key][0]][3]) + "|" + \
-                     str(CalibrationResult[result[key][0]][4]) + "|" + \
-                     str(CalibrationResult[result[key][0]][5]) + "|" + \
-                     str(CalibrationResult[result[key][0]][6]) + "\n"
+    for key in range(count-1,0-1,-1):
+        messageout = str(count  - key) + "|" + \
+                     str(result[key][0]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["BIC_MAF_WEIGHT"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["BIC_WEIGHT"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["DELTA_BIC"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["ERROR"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["BIC"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["AIC"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["MAF"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["WEIGHTING"]) + "\n"
         file.write(messageout)
 
     file.close()
     
     # Write the result of the calibration into a text file
-    filename = os.path.join(tmpdir, bestFitName + "_result.txt")
-    grass.run_command("v.db.select", overwrite=True, map=bestFitName, file=filename)
+    filename = os.path.join(tmpdir, bestFitKey + "_result.txt")
+    grass.run_command("v.db.select", overwrite=True, map=bestFitKey, file=filename)
     
     global RScript
     
     # Replace some place holder in the R-script
-    newRScript = RScript.replace("current", bestFitName)
+    newRScript = RScript.replace("current", bestFitKey)
     newRScript = newRScript.replace("Summary.txt", rsum.GetAnswer())
     newRScript = newRScript.replace("Result.pdf", rpdf.GetAnswer())
     newRScript = newRScript.replace("input.txt", filename)

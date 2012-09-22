@@ -80,27 +80,52 @@ public:
     
     //!\brief Compare two data arrays of a dataset
     //! using the normative least squares algorithm
+    //! \param ds1: The dataset from which two arrays are compared
+    //! \param ModelResultArrayName: The first array with model results
+    //! \param TargetArrayName: The second array with measured values
+    //! \param useCellData Set: true if the cell data should be used,
+    //!     default is point data
+    //! \param verbose: Set true to get more info while computation
+    //! \param useCorrectedVariance: Set true to use the corrected variance
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
     static double CompareDataSets(vtkDataSet *ds,
                                            const char *ModelResultArrayName, 
                                            const char *TargetArrayName, 
-                                           bool useCellData, bool verbose);
+                                           bool useCellData, bool verbose,
+                                           bool useCorrectedVariance);
     
     //!\brief Compare the active scalar data arrays of two dataset
     //! using the normative least squares algorithm
+    //! \param ds1: The first dataset from which the active scalars are used
+    //! \param ds2: The second dataset from which the active scalars are used
+    //! \param useCellData Set: true if the cell data should be used,
+    //!     default is point data
+    //! \param verbose: Set true to get more info while computation
+    //! \param useCorrectedVariance: Set true to use the corrected variance
     //!\return the assessment value [0:1] in which 1 is worse and 0 is perfect match
     static double CompareDataSets(vtkDataSet *ds1, vtkDataSet *ds2,
-                                           bool useCellData, bool verbose);
+                                           bool useCellData, bool verbose,
+                                           bool useCorrectedVariance);
     
     //!\brief Compute the residuals of the active data arrays in the datasets
-    static bool ComputeDataSetsResiduals(vtkDataSet *tds1, vtkDataSet *tds2,
-                bool useCellData, vtkDataArray *residuals);
+    //! \param ds1: The first dataset from which the active scalars are used
+    //! \param ds2: The second dataset from which the active scalars are used
+    //! \param useCellData Set: true if the cell data should be used,
+    //!     default is point data
+    //! \param residuals: The array to store the residuals
+    //! \param useSquaredResiduals: Set true to compute squared residuals
+    static bool ComputeDataSetsResiduals(vtkDataSet *ds1, vtkDataSet *ds2,
+                bool useCellData, vtkDataArray *residuals, bool useSquaredResiduals);
     
     static double ArithmeticMean(vtkDataArray *data);
-    static double StandardDeviation(vtkDataArray *data);
-    static double StandardDeviation(vtkDataSet *ds, const char *ArrayName, bool useCellData);
-    static double Variance(vtkDataArray *data);
-    static double Variance(vtkDataSet *ds, const char *ArrayName, bool useCellData);
+    static double StandardDeviation(vtkDataArray *data, bool useCorrectedVariance);
+    static double StandardDeviation(vtkDataSet *ds, const char *ArrayName,
+                                    bool useCellData, bool useCorrectedVariance);
+    static double Variance(vtkDataArray *data, bool computeCorrectedVariance,
+                           bool assumeMeanZero);
+    static double Variance(vtkDataSet *ds, const char *ArrayName,
+                           bool useCellData, bool computeCorrectedVariance,
+                           bool assumeMeanZero);
 
 protected:
     vtkTAG2EAbstractModelCalibrator();

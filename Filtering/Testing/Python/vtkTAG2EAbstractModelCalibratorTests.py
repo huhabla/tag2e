@@ -196,14 +196,18 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.model)
         print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.measure)
         
-        print vtkTAG2EAbstractModelCalibrator.Variance(self.model)
-        print vtkTAG2EAbstractModelCalibrator.Variance(self.measure)
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.model, True)
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.measure, False)
         
-        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.model)
-        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.measure)
+        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.model, True)
+        print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.measure, False)
         
-        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), "model", "measure", 0, 1)
-        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), "model", "measure", 1, 1)
+        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), 
+                                                              "model", "measure", 
+                                                              0, 1, False)
+        print vtkTAG2EAbstractModelCalibrator.CompareDataSets(model.GetOutput(), 
+                                                              "model", "measure", 
+                                                              1, 1, True)
 
   
 if __name__ == '__main__':

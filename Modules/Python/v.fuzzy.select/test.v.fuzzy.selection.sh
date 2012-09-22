@@ -10,6 +10,7 @@ r.mapcalc --o expr="weight = col()"
 r.mapcalc --o expr="map1 = row()"
 r.mapcalc --o expr="map2 = row()*col()/100.0"
 r.mapcalc --o expr="map3 = sin(row() + col())"
+
 # Compute some result
 # r = x + y*y + z * x
 r.mapcalc --o expr="result_mapcalc = map1 + map2*map2 + map3 * map1"
@@ -31,17 +32,17 @@ v.db.join  map=result_mapcalc column=cat otable=sfactor ocolumn=cat --v
 # @test
 v.fuzzy.select --o input=result_mapcalc factors=map1,map2,map3 \
                    target=result_mapcalc fuzzysets=2,3 rsum=RSummary.txt rpdf=RSummary.pdf \
-                   iter=6000 runs=1 sdepth=3 result=Result.txt  treduce=1.02 sdreduce=1.02\
+                   iter=70000 runs=10 sdepth=3 result=Result.txt  treduce=1.02 sdreduce=1.02\
                    breakcrit=0.0001
 
 v.fuzzy.select --o -b input=result_mapcalc factors=map1,map2,map3 \
                    target=result_mapcalc fuzzysets=2,3 rsum=RSummary_bagging.txt rpdf=RSummary_bagging.pdf \
-                   iter=6000 runs=1 sdepth=3 result=Result_bagging.txt  treduce=1.02 sdreduce=1.02\
+                   iter=70000 runs=10 sdepth=3 result=Result_bagging.txt  treduce=1.02 sdreduce=1.02\
                    breakcrit=0.0001 samplingfactor=sfactor
 
 
 v.fuzzy.select --o input=result_mapcalc factors=map1,map2,map3 \
                    target=result_mapcalc fuzzysets=2,3 rsum=RSummary_weitght.txt rpdf=RSummary_weight.pdf \
-                   iter=5000 runs=1 sdepth=3 weightnum=12 weightfactor=weight \
+                   iter=70000 runs=10 sdepth=3 weightnum=12 weightfactor=weight \
                    result=Result_weight.txt  treduce=1.02 sdreduce=1.02 -w \
                    breakcrit=0.0001
