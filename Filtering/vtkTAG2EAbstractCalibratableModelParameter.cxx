@@ -32,7 +32,11 @@
 
 #include <vtkObjectFactory.h>
 #include "vtkTAG2EAbstractCalibratableModelParameter.h"
+
+extern "C" {
 #include <stdlib.h>
+#include <time.h>
+}
 
 vtkCxxRevisionMacro(vtkTAG2EAbstractCalibratableModelParameter, "$Revision: 1.0 $");
 
@@ -65,8 +69,13 @@ vtkTAG2EAbstractCalibratableModelParameter::vtkTAG2EAbstractCalibratableModelPar
   this->ParameterId = -1;
   this->ParameterValue = 0.0;
 
+  struct timespec tp;
+
   // Initiate the random number generator with the current time
-  srand(time(0));
+
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
+
+  srand(tp.tv_nsec);
 }
 
 vtkTAG2EAbstractCalibratableModelParameter::~vtkTAG2EAbstractCalibratableModelParameter()

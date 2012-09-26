@@ -42,9 +42,39 @@ from libvtkGRASSBridgeCommonPython import *
 import BootstrapAggregating as ba 
 
 class BootstrapAggregationTest(unittest.TestCase):
-  
+#"""!Compute the RothC soil carbon equilibrium
+#
+#   @param ETpotInputs: A list of 12 inputs, each the long term parameter
+#                      for ETpot computation.
+#                      - Long term monthly temperature mean [°C]
+#                      - Long term monthly global radiation [J/(cm² * day)]
+#   
+#   @param WaterBudgetInputs: A list of 12 inputs, each the long term 
+#                      parameter for Water Budget computation.
+#                      - Long term monthly accumulated precipitation [mm]
+#                      - Long term monthly soil cover (0 or 1) [-]
+#                      - Clay content in percent [%]
+#   
+#   param RothCInputs: A list of 12 vtkPolyData inputs, each the long term
+#                      parameter of the RothC model
+#                      - Clay content in percent [%]
+#                      - Long term monthly soil cover (0 or 1) [-]
+#                      - Long term monthly temperature mean [°C]
+#                      - Long term monthly fertilizer carbon (should be 0)
+#                      
+#   param ResidualsInput: The initial residuals as vtkPolyData input
+#                      for the the RothC model [tC/ha]
+#                      
+#   @param Years: The maximum number of Iterations (years) for a single run
+#   @param NumberOfRuns: The maximum number of runs to find the equilibrium
+#   @param RothCParameter: The parameter object for the RothC Model
+#   @param NullValue: The Null value that represents unknown values
+#   
+#   @return A vtkPolyDataSet with RothC pools and initial Carbon
+#"""  
     def setUp(self):
-        
+
+   
         # Create the point data
         xext = 5
         yext = 4
@@ -105,24 +135,6 @@ class BootstrapAggregationTest(unittest.TestCase):
       writer = vtkPolyDataWriter()
       writer.SetInput(new_ds)
       writer.SetFileName("/tmp/ba_2a.vtk")
-      writer.Write()
-        
-    def otest2(self):
-
-      new_ds = ba.PointSampling(self.ds2)
-
-      writer = vtkPolyDataWriter()
-      writer.SetInput(new_ds)
-      writer.SetFileName("/tmp/ba_2b.vtk")
-      writer.Write()
-        
-    def test3(self):
-
-      new_ds = ba.CellSampling(self.ds1, "type")
-
-      writer = vtkPolyDataWriter()
-      writer.SetInput(new_ds)
-      writer.SetFileName("/tmp/ba_3a.vtk")
       writer.Write()
         
 if __name__ == '__main__':

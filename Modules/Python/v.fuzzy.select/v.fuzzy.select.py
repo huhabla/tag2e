@@ -33,38 +33,6 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# This is the content of the plotSelectionResult.R script located
-# iwhtin htis directory
-RScript = """
-# We store the stdout output in a file
-sink(file="Summary.txt")
-
-# Rad data
-sfs = read.table("input.txt", header=TRUE, sep="|")
-
-################################################################################
-# Compute linear regression model
-sfslm = lm(sfs$target_variable ~ sfs$result_variable)
-sfslmsum = summary(sfslm)
-sfslmsum
-paste("AIC: " , AIC(sfslm))
-
-# Plot to the first page
-pdf("Result.pdf")
-par(mfrow = c(3, 2))
-
-axlim = c(min(sfs$target_variable), max(sfs$target_variable))
-plot(sfs$target_variable ~ sfs$result_variable, xlim=axlim, ylim=axlim, asp="1", 
-     main="current result", sub = paste("R squared: ", round(100 * sfslmsum$r.squared)/100, "   AIC: " , round(AIC(sfslm))), 
-     xlab="Model data", ylab="Reference data")
-abline(sfslm, col="red")
-abline(0,1, col="grey60", lty="dashed")
-
-plot(sfslm)
-dev.set(dev.next())
-
-###END
-"""
 
 import grass.script as grass
 import subprocess
@@ -72,6 +40,7 @@ import os
 import sys
 import random
 import math
+import time
 
 from vtk import *
 from libvtkTAG2ECommonPython import *
@@ -83,102 +52,166 @@ from libvtkGRASSBridgeTemporalPython import *
 DEBUG = False
 
 ################################################################################
+        
+def selectBestModel(minBIC, errorList, BICList, AICList, MAFList):
+    """Select the best model run from a list of model 
+         runs and return error, BIC, AIC, MAF 
+    """
+    # Compute the BIC weights and apply the MAF
+    BICWeigthSum = 0.0
+    BICWeightList = []
+    for BIC in BICList:
+        BICDelta = math.fabs(BIC - minBIC)
+        BICWeight = math.exp(-1*BICDelta/2.0)
+        BICWeightList.append(BICWeight) 
+        BICWeigthSum = BICWeigthSum +  BICWeight
+        
+    resultArray = []
+    for i in range(len(BICList)):
+        error = errorList[i]
+        BIC = BICList[i]
+        AIC = AICList[i]
+        BICWeight = BICWeightList[i]
+        MAF = MAFList[i]
+        BICMAFWeight = BICWeight / MAF / BICWeigthSum
+        resultArray.append([BICMAFWeight, BIC, AIC, MAF, error])
+        
+    resultArray = sorted(resultArray, key = lambda resultArray: resultArray[0])
+
+    
+    print "The following models are computed"
+    for model in resultArray:     
+        # The last entry has the best model result
+        BICMAFWeight = model[0]
+        BIC = model[1]
+        AIC = model[2]
+        MAF = model[3]
+        error = model[4]
+        print "Model "
+        print "  BIC MAF Weight:", BICMAFWeight
+        print "  BIC           :", BIC
+        print "  AIC           :", AIC
+        print "  MAF           :", MAF
+        print "  Error         :", error
+    
+    print "Use best fit:"
+    print "BIC MAF Weight:", BICMAFWeight
+    print "BIC           :", BIC
+    print "AIC           :", AIC
+    print "MAF           :", MAF
+    print "Error         :", error
+    return error, BIC, AIC, MAF
+
+################################################################################
 
 def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
         treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
-    error = 999
-    BIC = 999999
-    AIC = 999999
-    MAF = 1.0
+    minBIC = 999999
     flags=""
     if bootstrapOn:
         flags += "b"
+        
+    BICList = []
+    errorList = []
+    AICList = []
+    MAFList = []
+    procList = []
 
+    # Parallel model runs
     for i in range(runs):
+        run_id = "%s_run_%i"%(id, i)
+        
         print "Running calibration", i, inputvector, target, factornames, fuzzysets
 
-        grass.run_command("v.fuzzy.calibrator", flags=flags, overwrite=True, input=inputvector, factors=factornames,\
-              target=target, fuzzysets=fuzzysets, iterations=iterations, samplingfactor=samplingfactor, \
-              parameter=os.path.join(dir, (id + ".xml")), output=id, \
-              log=os.path.join(dir, (id + ".log")), treduce=treduce, sdreduce=sdreduce, breakcrit=breakcrit)
+        procList.append(grass.start_command("v.fuzzy.calibrator", flags=flags, overwrite=True, \
+                          input=inputvector, factors=factornames,\
+                          target=target, fuzzysets=fuzzysets, iterations=iterations, \
+                          samplingfactor=samplingfactor, \
+                          parameter=os.path.join(dir, (run_id + ".xml")), \
+                          log=os.path.join(dir, (run_id + ".log")), treduce=treduce, \
+                          sdreduce=sdreduce, breakcrit=breakcrit))
 
+    # Wait for all created processes
+    for i in range(runs):
+        procList[i].wait()
+        
+    # Analyze the logfiles
+    for i in range(runs):
+        run_id = "%s_run_%i"%(id, i)
+        
+        # We need to read the logfile in the correct order
         # Logfile of the calibrator
         # 1. Error
         # 3. BIC
         # 4. AIC
         # 5. MAF (Model Assessment Factor)
-        logfile = open(os.path.join(dir, id + ".log"), "r")
-        runerror = float(logfile.readline().split(":")[1])
+        logfile = open(os.path.join(dir, run_id + ".log"), "r")
+        errorList.append(float(logfile.readline().split(":")[1]))
         runBIC = float(logfile.readline().split(":")[1])
-        runAIC = float(logfile.readline().split(":")[1])
-        runMAF = float(logfile.readline().split(":")[1])
+        BICList.append(runBIC)
+        AICList.append(float(logfile.readline().split(":")[1]))
+        MAFList.append(float(logfile.readline().split(":")[1]))
         logfile.close()
         
-        # We use the BIC criteria to select the best fit
-        if runBIC < BIC:
-            error = runerror
-            BIC = runBIC
-            AIC = runAIC
-            MAF = runMAF
-        
-    print "Finished", runs, " calibration runs with best fit", error
-    print "BIC    :", BIC
-    print "AIC    :", AIC
-    print "MAF    :", MAF
-    return error, BIC, AIC, MAF
+        if runBIC < minBIC:
+            minBIC = runBIC
+            
+    print "Finished", runs, "runs"
+    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList)
 
 ################################################################################
 
 def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzysets, iterations, runs, 
         WeightNum, WeightFactor, treduce, sdreduce, breakcrit, bootstrapOn=False, samplingfactor=None):
 
-    if DEBUG == True:
-        error = random.randint(0,20)
-        AIC = random.randint(0,2000)
-        print id, " finished", runs, "weighted calibration runs with best fit", error, AIC
-        return error, AIC
-
-    error = 999
-    BIC = 999999
-    AIC = 999999
-    MAF = 1.0
+    minBIC = 999999
     flags="w"
     if bootstrapOn:
         flags += "b"
+        
+    BICList = []
+    errorList = []
+    AICList = []
+    MAFList = []
+    procList = []
 
     for i in range(runs):
+        run_id = "%s_run_%i"%(id, i)
         print "Running weighted calibration", i, inputvector, target, factornames, fuzzysets
 
-        grass.run_command("v.fuzzy.calibrator", flags=flags, overwrite=True, input=inputvector, factors=factornames,\
+        procList.append(grass.start_command("v.fuzzy.calibrator", flags=flags, overwrite=True, input=inputvector, factors=factornames,\
               target=target, fuzzysets=fuzzysets, iterations=iterations, \
-              parameter=os.path.join(dir, (id + ".xml")), output=id, \
-              log=os.path.join(dir, (id + ".log")), treduce=treduce, sdreduce=sdreduce,\
-              weightnum=WeightNum, weightfactor=WeightFactor)
-
+              parameter=os.path.join(dir, (run_id + ".xml")), \
+              log=os.path.join(dir, (run_id + ".log")), treduce=treduce, sdreduce=sdreduce,\
+              weightnum=WeightNum, weightfactor=WeightFactor))
+        
+    # Wait for all created processes
+    for i in range(runs):
+        procList[i].wait()
+        
+    # Analyze the logfiles
+    for i in range(runs):
+        run_id = "%s_run_%i"%(id, i)
+        # We need to read the logfile in the correct order
         # Logfile of the calibrator
         # 1. Error
         # 3. BIC
         # 4. AIC
         # 5. MAF (Model Assessment Factor)
-        logfile = open(os.path.join(dir, id + ".log"), "r")
-        runerror = float(logfile.readline().split(":")[1])
+        logfile = open(os.path.join(dir, run_id + ".log"), "r")
+        errorList.append(float(logfile.readline().split(":")[1]))
         runBIC = float(logfile.readline().split(":")[1])
-        runAIC = float(logfile.readline().split(":")[1])
-        runMAF = float(logfile.readline().split(":")[1])
+        BICList.append(runBIC)
+        AICList.append(float(logfile.readline().split(":")[1]))
+        MAFList.append(float(logfile.readline().split(":")[1]))
         logfile.close()
-        # We use the BIC criteria to select the best fit
-        if runBIC < BIC:
-            error = runerror
-            BIC = runBIC
-            AIC = runAIC
-            MAF = runMAF
         
-    print "Finished", runs, " calibration runs with best fit", error
-    print "BIC    :", BIC
-    print "AIC    :", AIC
-    print "MAF    :", MAF
-    return error, BIC, AIC, MAF
+        if runBIC < minBIC:
+            minBIC = runBIC
+        
+    print "Finished", runs, " runs"    
+    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList)
 
 ################################################################################
 
@@ -224,12 +257,6 @@ def main():
     fuzzysets.RequiredOn()
     fuzzysets.SetDescription("The number of fuzzy sets to be used for calibration eg.: 2,3")
     fuzzysets.SetTypeToInteger()
-
-    rpdf = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "rpdf")
-    rpdf.SetDescription("The output file name of the R script generated pdf file")
-
-    rsum = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "rsum")
-    rsum.SetDescription("The output file name of the R script generated summary file")
 
     resultlist = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "result")
     resultlist.SetDescription("The name of the logfile to store a sorted list of all factor combinations with AIC and ERROR")
@@ -389,20 +416,7 @@ def main():
                 a = 1*factorNames
                 b = 1*fuzzySetNums
                 
-                error, BIC, AIC, MAF = StartCalibration(id, tmpdir, Vector, Target, 
-                                                        factorNames, fuzzySetNums, 
-                                                        Iterations, runs, 
-                                                        treduce.GetAnswer(), 
-                                                        sdreduce.GetAnswer(), 
-                                                        breakcrit.GetAnswer(), 
-                                                        bagging.GetAnswer(), 
-                                                        samplingFactor.GetAnswer())
-                
-                CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
-                                         "BIC":BIC, "AIC":AIC, "MAF":MAF, 
-                                         "WEIGHTING":False}
                 if weighting.GetAnswer():
-                    id += "Weighting"
                     error, BIC, AIC, MAF = StartWeightedCalibration(id, tmpdir, Vector, 
                                                 Target, factorNames, fuzzySetNums, 
                                                 Iterations, runs, WeightNum, 
@@ -413,6 +427,19 @@ def main():
                     CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
                                              "BIC":BIC, "AIC":AIC, "MAF":MAF, 
                                              "WEIGHTING":True}
+                else:
+                    error, BIC, AIC, MAF = StartCalibration(id, tmpdir, Vector, Target, 
+                                                        factorNames, fuzzySetNums, 
+                                                        Iterations, runs, 
+                                                        treduce.GetAnswer(), 
+                                                        sdreduce.GetAnswer(), 
+                                                        breakcrit.GetAnswer(), 
+                                                        bagging.GetAnswer(), 
+                                                        samplingFactor.GetAnswer())
+                
+                    CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
+                                         "BIC":BIC, "AIC":AIC, "MAF":MAF, 
+                                         "WEIGHTING":False}
         
         # Selection of the best fit model
         
@@ -423,18 +450,18 @@ def main():
             if BIC < minBIC:
                 minBIC = BIC
                 
-        weightSumBIC = 0
+        BICWeigthSum = 0
         for key in CalibrationResult.keys():
             BIC = CalibrationResult[key]["BIC"]
-            deltaBIC = math.fabs(BIC - minBIC)
-            CalibrationResult[key]["DELTA_BIC"] = deltaBIC
-            CalibrationResult[key]["BIC_WEIGHT"] = math.exp(-1*deltaBIC/2.0) 
-            weightSumBIC = weightSumBIC +  CalibrationResult[key]["BIC_WEIGHT"]
+            BICDelta = math.fabs(BIC - minBIC)
+            CalibrationResult[key]["DELTA_BIC"] = BICDelta
+            CalibrationResult[key]["BIC_WEIGHT"] = math.exp(-1*BICDelta/2.0) 
+            BICWeigthSum = BICWeigthSum +  CalibrationResult[key]["BIC_WEIGHT"]
             
         for key in CalibrationResult.keys():
             BICWeight = CalibrationResult[key]["BIC_WEIGHT"]
             MAF = CalibrationResult[key]["MAF"]
-            BICWeight = BICWeight / weightSumBIC
+            BICWeight = BICWeight / BICWeigthSum
             CalibrationResult[key]["BIC_WEIGHT"] = BICWeight
             CalibrationResult[key]["BIC_MAF_WEIGHT"] = BICWeight / MAF
             
@@ -452,10 +479,15 @@ def main():
         
         # Build new StartFactor list
         StartFactors = []
+        
+        print "Factors ", Factors
+        print "CalibrationResultFactors ", CalibrationResultFactors
 
         for factor in Factors:
             if factor not in CalibrationResultFactors:
                 StartFactors.append(factor)
+        
+        print "StartFactors ", StartFactors
 
         # Search depth
         Count += 1
@@ -494,26 +526,6 @@ def main():
         file.write(messageout)
 
     file.close()
-    
-    # Write the result of the calibration into a text file
-    filename = os.path.join(tmpdir, bestFitKey + "_result.txt")
-    grass.run_command("v.db.select", overwrite=True, map=bestFitKey, file=filename)
-    
-    global RScript
-    
-    # Replace some place holder in the R-script
-    newRScript = RScript.replace("current", bestFitKey)
-    newRScript = newRScript.replace("Summary.txt", rsum.GetAnswer())
-    newRScript = newRScript.replace("Result.pdf", rpdf.GetAnswer())
-    newRScript = newRScript.replace("input.txt", filename)
-    newRScript = newRScript.replace("target_variable", target.GetAnswer())
-    newRScript = newRScript.replace("result_variable", "result")
-    
-    # Run R to analyze the result automatically and store the result in files
-    inputlist = ["R", "--vanilla"]
-    proc = subprocess.Popen(args=inputlist, stdin=subprocess.PIPE)
-    proc.stdin.write(newRScript)
-    proc.communicate()
 
 ################################################################################
 
