@@ -42,7 +42,7 @@ firstCheck = False
 class vtkTAG2EBrentsMethodTest(unittest.TestCase):
 
     def testSmoke(self):
-        # Suche Nullstelle von x^2
+        # Search root of x^2 - 7
         brent = vtkTAG2EBrentsMethod()
         
         a = -10

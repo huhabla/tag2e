@@ -45,25 +45,26 @@
  * ax = -5.0 # min
  * bx =  4.0 # start value
  * cx =  5.0 # max
+ * tol = 0.0001 # Brents error break criteria
  *
  * target = 0.0 # This is the value we expect
  *
- * guess = bx*bx # Quadratuc function
+ * guess = bx*bx # Quadratic function
  *
- * residuum = (target - guess) * (target - guess)
+ * residuum =  math.sqrt((target - guess) * (target - guess))
  *
  * brent.Init(ax, bx, cx, tol, residuum)
  *
  * for iter in range(20):
  *     brent.IsFinished(): # Check if its finished
- *         print "Brent break criteria reached, root value is", brent.Getx()
+ *         print "Brent error break criteria reached, root value is", brent.Getx()
  *         break
  *
  *     x = brent.Fit()     # Get the best model fit
  *
  *     guess = x*x # Quadratic function
  *
- *     residuum = (target - guess) * (target - guess)
+ *     residuum =  math.sqrt((target - guess) * (target - guess))
  *
  *     if residuum < 0.00001:
  *         print "Residuum reached, root value is", brent.Getx()
