@@ -39,50 +39,58 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
-import BootstrapAggregating as ba 
 
-class BootstrapAggregationTest(unittest.TestCase):
-#"""!Compute the RothC soil carbon equilibrium
-#
-#   @param ETpotInputs: A list of 12 inputs, each the long term parameter
-#                      for ETpot computation.
-#                      - Long term monthly temperature mean [°C]
-#                      - Long term monthly global radiation [J/(cm² * day)]
-#   
-#   @param WaterBudgetInputs: A list of 12 inputs, each the long term 
-#                      parameter for Water Budget computation.
-#                      - Long term monthly accumulated precipitation [mm]
-#                      - Long term monthly soil cover (0 or 1) [-]
-#                      - Clay content in percent [%]
-#   
-#   param RothCInputs: A list of 12 vtkPolyData inputs, each the long term
-#                      parameter of the RothC model
-#                      - Clay content in percent [%]
-#                      - Long term monthly soil cover (0 or 1) [-]
-#                      - Long term monthly temperature mean [°C]
-#                      - Long term monthly fertilizer carbon (should be 0)
-#                      
-#   param ResidualsInput: The initial residuals as vtkPolyData input
-#                      for the the RothC model [tC/ha]
-#                      
-#   @param Years: The maximum number of Iterations (years) for a single run
-#   @param NumberOfRuns: The maximum number of runs to find the equilibrium
-#   @param RothCParameter: The parameter object for the RothC Model
-#   @param NullValue: The Null value that represents unknown values
-#   
-#   @return A vtkPolyDataSet with RothC pools and initial Carbon
-#"""  
+from RothCEqulibriumRun import *
+
+class RothCEquilibriumRunTest(unittest.TestCase):
+
     def setUp(self):
 
    
         # Create the point data
-        xext = 5
-        yext = 4
+        xext = 20
+        yext = 20
         num = xext*yext
                 
-        pH = vtkDoubleArray()
-        pH.SetNumberOfTuples(num)
-        pH.SetName("pH")
+        GlobalRadiationArray = vtkDoubleArray()
+        GlobalRadiationArray.SetNumberOfTuples(num)
+        GlobalRadiationArray.SetName("GlobalRadiation")
+        GlobalRadiationArray.FillComponent(0, 1)
+        
+        MeanTemperatureArray = vtkDoubleArray()
+        MeanTemperatureArray.SetNumberOfTuples(num)
+        MeanTemperatureArray.SetName("MeanTemperature")
+        MeanTemperatureArray.FillComponent(0, 8)
+        
+        PrecipitationArray = vtkDoubleArray()
+        PrecipitationArray.SetNumberOfTuples(num)
+        PrecipitationArray.SetName("Precipitation")
+        PrecipitationArray.FillComponent(0, 50)
+        
+        SoilCoverArray = vtkDoubleArray()
+        SoilCoverArray.SetNumberOfTuples(num)
+        SoilCoverArray.SetName("SoilCover")
+        SoilCoverArray.FillComponent(0, 1)
+        
+        ClayArray = vtkDoubleArray()
+        ClayArray.SetNumberOfTuples(num)
+        ClayArray.SetName("Clay")
+        ClayArray.FillComponent(0, 30)
+        
+        FertilizerCarbonArray = vtkDoubleArray()
+        FertilizerCarbonArray.SetNumberOfTuples(num)
+        FertilizerCarbonArray.SetName("FertilizerCarbon")
+        FertilizerCarbonArray.FillComponent(0, 0.0)
+
+        SoilCarbonArray = vtkDoubleArray()
+        SoilCarbonArray.SetNumberOfTuples(num)
+        SoilCarbonArray.SetName("SoilCarbon")
+        SoilCarbonArray.FillComponent(0, 5)
+        
+        ResidualsArray = vtkDoubleArray()
+        ResidualsArray.SetNumberOfTuples(num)
+        ResidualsArray.SetName("Residuals")
+        ResidualsArray.FillComponent(0, 0.4)
         
         type_ = vtkIntArray()
         type_.SetNumberOfTuples(num)
@@ -91,52 +99,75 @@ class BootstrapAggregationTest(unittest.TestCase):
         # Point ids for poly vertex cell
         points = vtkPoints()
  
-        self.ds1 = vtkPolyData()
-        self.ds1.Allocate(xext,yext)
+        self.ETpot = vtkPolyData()
+        self.ETpot.Allocate(xext,yext)
   
-        self.ds2 = vtkPolyData()
-        self.ds2.Allocate(xext,yext)
+        self.WaterBudget = vtkPolyData()
+        self.WaterBudget.Allocate(xext,yext)
+        
+        self.RothC = vtkPolyData()
+        self.RothC.Allocate(xext,yext)
+        
+        self.Residuals = vtkPolyData()
+        self.Residuals.Allocate(xext,yext)
+        
+        self.SoilCarbon = vtkPolyData()
+        self.SoilCarbon.Allocate(xext,yext)
       
-        count = 0
         for i in range(xext):
             for j in range(yext):
                 ids = vtkIdList()
-                id_ = points.InsertNextPoint(i + j, j, 0)
-                ids.InsertNextId(id_)
-                type_.SetTuple1(count, i)
-                pH.SetTuple1(count, count)
-                self.ds1.InsertNextCell(vtk.VTK_VERTEX, ids)
-                self.ds2.InsertNextCell(vtk.VTK_VERTEX, ids)
-                count += 1
+                ids.InsertNextId(points.InsertNextPoint(i, j, 0))
+                ids.InsertNextId(points.InsertNextPoint(i, j, 0.23))
+                self.ETpot.InsertNextCell(vtk.VTK_LINE, ids)
+                self.WaterBudget.InsertNextCell(vtk.VTK_LINE, ids)
+                self.RothC.InsertNextCell(vtk.VTK_LINE, ids)
+                self.Residuals.InsertNextCell(vtk.VTK_LINE, ids)
+                self.SoilCarbon.InsertNextCell(vtk.VTK_LINE, ids)
 
-        self.ds1.GetCellData().SetScalars(pH)
-        self.ds1.GetCellData().AddArray(type_)
-        self.ds1.SetPoints(points)    
-
-        self.ds2.GetPointData().SetScalars(pH)
-        self.ds2.GetPointData().AddArray(type_)
-        self.ds2.SetPoints(points)    
-
-        writer = vtkPolyDataWriter()
-        writer.SetInput(self.ds1)
-        writer.SetFileName("/tmp/ba_1a.vtk")
-        writer.Write()
- 
-        writer = vtkPolyDataWriter()
-        writer.SetInput(self.ds2)
-        writer.SetFileName("/tmp/ba_1b.vtk")
-        writer.Write()
+        self.ETpot.GetCellData().AddArray(GlobalRadiationArray)
+        self.ETpot.GetCellData().AddArray(MeanTemperatureArray)
+        self.ETpot.SetPoints(points)    
         
-       
+        self.WaterBudget.GetCellData().AddArray(PrecipitationArray)
+        self.WaterBudget.GetCellData().AddArray(SoilCoverArray)
+        self.WaterBudget.GetCellData().AddArray(ClayArray)
+        self.WaterBudget.SetPoints(points) 
+           
+        self.RothC.GetCellData().AddArray(ClayArray) 
+        self.RothC.GetCellData().AddArray(SoilCoverArray) 
+        self.RothC.GetCellData().AddArray(MeanTemperatureArray)
+        self.RothC.GetCellData().AddArray(FertilizerCarbonArray)
+        self.RothC.SetPoints(points)    
+        
+        self.Residuals.GetCellData().SetScalars(ResidualsArray)
+        self.Residuals.SetPoints(points)    
+        
+        self.SoilCarbon.GetCellData().SetScalars(SoilCarbonArray)
+        self.SoilCarbon.SetPoints(points)    
+        
     def test1(self):
-
-      new_ds = ba.CellSampling(self.ds1)
+        
+      ETpotInputs = []
+      WaterBudgetInputs = []
+      RothCInputs = []
+      ResidualsInput = self.Residuals
+      SoilCarbonInput = self.SoilCarbon
+      
+      for month in range(0, 12):
+          ETpotInputs.append(self.ETpot)
+          WaterBudgetInputs.append(self.WaterBudget)
+          RothCInputs.append(self.RothC)
+      
+      new_ds = RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs, 
+                        ResidualsInput, SoilCarbonInput, 300, 100,
+                        None, -99999)
 
       writer = vtkPolyDataWriter()
       writer.SetInput(new_ds)
-      writer.SetFileName("/tmp/ba_2a.vtk")
+      writer.SetFileName("/tmp/RothCEqulibirumTest.vtk")
       writer.Write()
         
 if __name__ == '__main__':
-    suite1 = unittest.TestLoader().loadTestsFromTestCase(BootstrapAggregationTest)
+    suite1 = unittest.TestLoader().loadTestsFromTestCase(RothCEquilibriumRunTest)
     unittest.TextTestRunner(verbosity=2).run(suite1) 

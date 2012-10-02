@@ -66,6 +66,7 @@
 #define ROTHC_INPUT_NAME_CUMULATIVE_LINE_LENGTH "CumulativeLineLength"
 #define ROTHC_INPUT_NAME_LINE_CENTER       "LineCenter"
 #define ROTHC_INPUT_NAME_ROOT_DEPTH        "RootDepth"
+#define ROTHC_OUTPUT_NAME_SOIL_CARBON        "SoilCarbon"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

@@ -115,11 +115,10 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_RESIDUALS))
     {
     vtkErrorMacro(
-        <<"Cell data array <" << ROTHC_INPUT_NAME_RESIDUALS << "> is missing ");
-    return -1;
+        <<"Cell data array <" << ROTHC_INPUT_NAME_RESIDUALS << "> is missing, using 0 as default value.");
     }
 
-  /* Not needed yet and therefor commented out
+  /* Not needed yet and therefore commented out
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_ROOT_DEPTH))
     {
     vtkErrorMacro(
@@ -240,10 +239,21 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   // from Jackson et al 1996
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
     {
-    double residual = residualArray->GetTuple1(cellId);
+    double residual = 0.0;
     double roots = 0.0;
     double surface = 0.0;
     vtkIdType layer;
+
+    if(residualArray)
+      {
+      residual = residualArray->GetTuple1(cellId);
+      }
+    else
+      {
+      residualsRootsArray->SetTuple1(cellId, 0.0);
+      residualsSurfaceArray->SetTuple1(cellId, 0.0);
+      continue;
+      }
 
     // Jump over NULL values
     if (residual == this->NullValue)
@@ -252,6 +262,7 @@ int vtkTAG2ERothCResidualFilter::RequestData(
       residualsSurfaceArray->SetTuple1(cellId, this->NullValue);
       continue;
       }
+
     layer = layerIdArray->GetValue(cellId);
 
     // ATTENTION!!!!!! Only the top layer has input
