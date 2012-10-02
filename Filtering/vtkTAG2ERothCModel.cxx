@@ -68,6 +68,7 @@ vtkTAG2ERothCModel::vtkTAG2ERothCModel()
   this->CPoolsInitiated = 0;
   this->AddCPoolsToOutput = 0;
   this->TemporalRatio = 1 / 12.0; // Default is monthly resolution
+  this->SetResultArrayName(ROTHC_OUTPUT_NAME_SOIL_CARBON);
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
 }
@@ -170,8 +171,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 
     if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_INITIAL_CARBON))
       {
-      vtkErrorMacro("Initial soil carbon is missing in input dataset");
-      return -1;
+      vtkErrorMacro("Initial soil carbon is missing in input dataset, assuming no initial carbon.");
       }
 
     this->CreateCPools(input);
@@ -226,18 +226,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         <<"Cell data array <" << ROTHC_INPUT_NAME_SOILCOVER << "> is missing ");
     return -1;
     }
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_RESIDUALS_ROOTS))
-    {
-    vtkErrorMacro(
-        <<"Cell data array <" << ROTHC_INPUT_NAME_RESIDUALS_ROOTS << "> is missing ");
-    return -1;
-    }
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_RESIDUALS_SURFACE))
-    {
-    vtkErrorMacro(
-        <<"Cell data array <" << ROTHC_INPUT_NAME_RESIDUALS_SURFACE << "> is missing ");
-    return -1;
-    }
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_MEAN_TEMPERATURE))
     {
     vtkErrorMacro(
@@ -262,11 +250,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         <<"Cell data array <" << ROTHC_INPUT_NAME_FERTILIZER_CARBON << "> is missing ");
     return -1;
     }
-
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_PLANT_ID))
-    hasPlantId = false;
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_FERTILIZER_ID))
-    hasFertilizerId = false;
 
   // Copy geometry from input
   output->CopyStructure(input);
@@ -305,13 +288,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkDataArray *fertCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_FERTILIZER_CARBON);
 
-  vtkDataArray *plantIdArray = NULL;
-  vtkDataArray *fertIdArray = NULL;
-
-  if (hasPlantId)
-    plantIdArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_PLANT_ID);
-  if (hasFertilizerId)
-    fertIdArray = input->GetCellData()->GetArray(
+  vtkDataArray *plantIdArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_PLANT_ID);
+  vtkDataArray *fertIdArray = input->GetCellData()->GetArray(
         ROTHC_INPUT_NAME_FERTILIZER_ID);
 
   // Parallelize with OpenMP
@@ -349,11 +327,19 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       return -1;
       }
 
+    // We set them 0 if no residuals are provided
+    if(resRootsArray)
+      resRoots = resRootsArray->GetTuple1(cellId); // [ tC /ha/layer]
+    else
+      resRoots = 0.0;
+    if(resSurfArray)
+      resSurf = resSurfArray->GetTuple1(cellId); // [ tC /ha/layer]
+    else
+      resSurf = 0.0;
+
     clay = clayArray->GetTuple1(cellId);
     meanTemp = meanTempArray->GetTuple1(cellId);
     soilCover = soilCoverArray->GetTuple1(cellId); // 0 or 1 ?
-    resRoots = resRootsArray->GetTuple1(cellId); // [ tC /ha/layer]
-    resSurf = resSurfArray->GetTuple1(cellId); // [ tC /ha/layer]
     soilMoisture = soilMArray->GetTuple1(cellId); //[mm]
     usableFieldCapacity = usableFieldCArray->GetTuple1(cellId); // [mm]?
     fertC = fertCArray->GetTuple1(cellId); // [ tC /ha/layer]
@@ -375,7 +361,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       }
 
     // Index 0 is the default value
-    if (hasPlantId)
+    if (plantIdArray)
       {
       plantId = (int) plantIdArray->GetTuple1(cellId);
       if (plantId == this->NullValue)
@@ -386,7 +372,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       plantId = 0;
       }
 
-    if (hasFertilizerId)
+    if (fertIdArray)
       {
       fertId = (int) fertIdArray->GetTuple1(cellId);
       if (hasFertilizerId == this->NullValue)
@@ -576,7 +562,11 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
 
   for (i = 0; i < input->GetNumberOfCells(); i++)
     {
-    initC = initCArray->GetTuple1(i);
+    // In case the array is not provided, 0.0 is assumed
+    if(initCArray)
+      initC = initCArray->GetTuple1(i);
+    else
+      initC = 0.0;
 
     if(initC == this->NullValue)
       {

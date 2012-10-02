@@ -10,6 +10,7 @@ SET (Common_SRCS
 vtkTAG2EAlternativeN2OPredictionModules.cxx
 vtkTAG2EModelParameterCollection.cxx
 vtkKeyValueMap.cxx
+vtkTAG2EBrentsMethod.cxx
 )
 
 SET (CommonNoWrap_SRCS
@@ -23,6 +24,7 @@ vtkTAG2EModelParameterCollection.h
 vtkTAG2EDefines.h
 vtkKeyValueMap.h
 tag2eFIS.h
+vtkTAG2EBrentsMethod.h
 )
 
 # --------------------------------------------------------------------------
