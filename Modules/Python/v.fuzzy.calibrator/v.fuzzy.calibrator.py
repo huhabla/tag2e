@@ -503,7 +503,7 @@ def main():
     # We need to compute residuals
     vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(polyData, outputDS, 
                                                              1, residuals, False)
-
+                                                             
     M = NumberOfModelParameter
     T = residuals.GetNumberOfTuples()
         
@@ -525,13 +525,21 @@ def main():
         
         # BIC: http://de.wikipedia.org/wiki/Informationskriterium
         BIC = math.log(T) * M / T  + math.log(vresiduals)
-        
+
+    # Compute the coefficient of determination (Rsquared)
+    residualsumofsquares = vtkTAG2EAbstractModelCalibrator.Variance(residuals, False, 
+								    True)*T
+    totalsumofsquares = vtkTAG2EAbstractModelCalibrator.Variance(polyData.GetCellData().GetArray(target.GetAnswer()), 
+								  False, False)*T
+    Rsquared = 1-(residualsumofsquares/totalsumofsquares)
+
     # Write the logfile
     log = open(logfile.GetAnswer(), "w")
     log.write("BEST_FIT:" + str(bestFitError) + "\n")
     log.write("BIC:" + str(BIC) + "\n")
     log.write("AIC:" + str(AIC) + "\n")
-    log.write("MAF:" + str(ModelAssessmentFactor))
+    log.write("MAF:" + str(ModelAssessmentFactor) + "\n")
+    log.write("R_squared:" + str(Rsquared))
     log.close()
     
     # Create the poly data output for ParaView analysis
@@ -561,7 +569,8 @@ def main():
     messages.Message("Finished calibration with best fit " + str(bestFitError) + \
                      "\nBIC: " + str(BIC) + \
                      "\nAIC: " + str(AIC) + \
-                     "\nMAF: " + str(ModelAssessmentFactor))
+                     "\nMAF: " + str(ModelAssessmentFactor) + \
+                     "\nR_squared: " + str(Rsquared))
 
 ################################################################################
 ################################################################################
