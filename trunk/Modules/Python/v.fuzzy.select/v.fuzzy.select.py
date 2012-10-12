@@ -53,7 +53,7 @@ DEBUG = False
 
 ################################################################################
         
-def selectBestModel(minBIC, errorList, BICList, AICList, MAFList):
+def selectBestModel(minBIC, errorList, BICList, AICList, MAFList, RsquaredList):
     """Select the best model run from a list of model 
          runs and return error, BIC, AIC, MAF 
     """
@@ -73,8 +73,9 @@ def selectBestModel(minBIC, errorList, BICList, AICList, MAFList):
         AIC = AICList[i]
         BICWeight = BICWeightList[i]
         MAF = MAFList[i]
+        Rsquared = RsquaredList[i]
         BICMAFWeight = BICWeight / MAF / BICWeigthSum
-        resultArray.append([BICMAFWeight, BIC, AIC, MAF, error])
+        resultArray.append([BICMAFWeight, BIC, AIC, MAF, error, Rsquared])
         
     resultArray = sorted(resultArray, key = lambda resultArray: resultArray[0])
 
@@ -87,12 +88,14 @@ def selectBestModel(minBIC, errorList, BICList, AICList, MAFList):
         AIC = model[2]
         MAF = model[3]
         error = model[4]
+        Rsquared = model[5]
         print "Model "
         print "  BIC MAF Weight:", BICMAFWeight
         print "  BIC           :", BIC
         print "  AIC           :", AIC
         print "  MAF           :", MAF
         print "  Error         :", error
+        print "  Rsquared      :", Rsquared
     
     print "Use best fit:"
     print "BIC MAF Weight:", BICMAFWeight
@@ -100,7 +103,8 @@ def selectBestModel(minBIC, errorList, BICList, AICList, MAFList):
     print "AIC           :", AIC
     print "MAF           :", MAF
     print "Error         :", error
-    return error, BIC, AIC, MAF
+    print "Rsquared      :", Rsquared
+    return error, BIC, AIC, MAF, Rsquared
 
 ################################################################################
 
@@ -116,6 +120,7 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
     errorList = []
     AICList = []
     MAFList = []
+    RsquaredList = []
     procList = []
 
     # Parallel model runs
@@ -146,19 +151,21 @@ def StartCalibration(id, dir, inputvector, target, factornames, fuzzysets, itera
         # 3. BIC
         # 4. AIC
         # 5. MAF (Model Assessment Factor)
+        # 6. Rsquared
         logfile = open(os.path.join(dir, run_id + ".log"), "r")
         errorList.append(float(logfile.readline().split(":")[1]))
         runBIC = float(logfile.readline().split(":")[1])
         BICList.append(runBIC)
         AICList.append(float(logfile.readline().split(":")[1]))
         MAFList.append(float(logfile.readline().split(":")[1]))
+        RsquaredList.append(float(logfile.readline().split(":")[1]))
         logfile.close()
         
         if runBIC < minBIC:
             minBIC = runBIC
             
     print "Finished", runs, "runs"
-    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList)
+    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList, RsquaredList)
 
 ################################################################################
 
@@ -174,6 +181,7 @@ def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzyset
     errorList = []
     AICList = []
     MAFList = []
+    RsquaredList = []
     procList = []
 
     for i in range(runs):
@@ -205,13 +213,14 @@ def StartWeightedCalibration(id, dir, inputvector, target, factornames, fuzzyset
         BICList.append(runBIC)
         AICList.append(float(logfile.readline().split(":")[1]))
         MAFList.append(float(logfile.readline().split(":")[1]))
+        RsquaredList.append(float(logfile.readline().split(":")[1]))
         logfile.close()
         
         if runBIC < minBIC:
             minBIC = runBIC
         
     print "Finished", runs, " runs"    
-    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList)
+    return selectBestModel(minBIC, errorList, BICList, AICList, MAFList, RsquaredList)
 
 ################################################################################
 
@@ -417,18 +426,21 @@ def main():
                 b = 1*fuzzySetNums
                 
                 if weighting.GetAnswer():
-                    error, BIC, AIC, MAF = StartWeightedCalibration(id, tmpdir, Vector, 
-                                                Target, factorNames, fuzzySetNums, 
-                                                Iterations, runs, WeightNum, 
-                                                WeightFactor, treduce.GetAnswer(), 
-                                                sdreduce.GetAnswer(), breakcrit.GetAnswer(), 
-                                                bagging.GetAnswer(), samplingFactor.GetAnswer())
+                    error, BIC, AIC, MAF, Rsquared = StartWeightedCalibration(id, tmpdir, Vector, 
+						     Target, factorNames, 
+						     fuzzySetNums, Iterations, 
+						     runs, WeightNum, WeightFactor, 
+						     treduce.GetAnswer(), 
+                                                     sdreduce.GetAnswer(), 
+                                                     breakcrit.GetAnswer(), 
+                                                     bagging.GetAnswer(), 
+                                                     samplingFactor.GetAnswer())
 
                     CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
                                              "BIC":BIC, "AIC":AIC, "MAF":MAF, 
-                                             "WEIGHTING":True}
+                                             "Rsquared":Rsquared, "WEIGHTING":True}
                 else:
-                    error, BIC, AIC, MAF = StartCalibration(id, tmpdir, Vector, Target, 
+                    error, BIC, AIC, MAF, Rsquared = StartCalibration(id, tmpdir, Vector, Target, 
                                                         factorNames, fuzzySetNums, 
                                                         Iterations, runs, 
                                                         treduce.GetAnswer(), 
@@ -439,7 +451,7 @@ def main():
                 
                     CalibrationResult[id] = {"NAME":a, "FIS":b, "ERROR":error, 
                                          "BIC":BIC, "AIC":AIC, "MAF":MAF, 
-                                         "WEIGHTING":False}
+                                         "Rsquared":Rsquared, "WEIGHTING":False}
         
         # Selection of the best fit model
         
@@ -507,7 +519,7 @@ def main():
     # We sort the result based on the delta BIC
     result = sorted(result, key = lambda result: result[1])
     
-    messageout = "RANK|NAME|BIC_MAF_WEIGHT|BIC_WEIGHT|DELTA_BIC|ERROR|BIC|AIC|MAF|WEIGHTING\n"
+    messageout = "RANK|NAME|BIC_MAF_WEIGHT|BIC_WEIGHT|DELTA_BIC|ERROR|BIC|AIC|MAF|Rsquared|WEIGHTING\n"
     
     file = open(resultlist.GetAnswer(), 'w')
     file.write(messageout)
@@ -522,6 +534,7 @@ def main():
                      str(CalibrationResult[result[key][0]]["BIC"]) + "|" + \
                      str(CalibrationResult[result[key][0]]["AIC"]) + "|" + \
                      str(CalibrationResult[result[key][0]]["MAF"]) + "|" + \
+                     str(CalibrationResult[result[key][0]]["Rsquared"]) + "|" + \
                      str(CalibrationResult[result[key][0]]["WEIGHTING"]) + "\n"
         file.write(messageout)
 
