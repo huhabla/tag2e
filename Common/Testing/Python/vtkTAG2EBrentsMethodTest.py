@@ -41,7 +41,7 @@ firstCheck = False
 
 class vtkTAG2EBrentsMethodTest(unittest.TestCase):
 
-    def testSmoke(self):
+    def test1(self):
         # Search root of x^2 - 7
         brent = vtkTAG2EBrentsMethod()
         
@@ -53,7 +53,7 @@ class vtkTAG2EBrentsMethodTest(unittest.TestCase):
         
         result = -7
         
-        model = self.f(b)
+        model = self.f1(b)
         
         fx = math.sqrt((result - model)*(result - model))
         
@@ -64,19 +64,44 @@ class vtkTAG2EBrentsMethodTest(unittest.TestCase):
             if brent.IsFinished() == True:
                 print "Finished"
                 return  
-            fit = brent.Fit();
-            model = self.f(fit)
+            fit = brent.Fit()          
+            print "fit", fit
+            model = self.f1(fit)
             fx = math.sqrt((result - model)*(result - model))
-            brent.Evaluate(fx); 
-            print "Residual", fx             
-            print "x", brent.Getx()
-            print "fx", brent.Getfx()
-            if fx < 0.00000001:
-                print "Finished"
-                return
+            brent.Evaluate(fx);  
         
-    def f(self, x):
+        
+    def test2(self):
+        # Search root of x^2
+        brent = vtkTAG2EBrentsMethod()
+        
+        a = -10
+        b =  6
+        c =  10
+        
+        tol = 0.001
+        
+        result = -7
+        
+        fx = self.f2(b)
+        
+        brent.Init(a, b, c, tol, fx)
+        
+        for iter in xrange(100):
+            print "Iter ", iter
+            if brent.IsFinished() == True:
+                print "Finished"
+                return  
+            fit = brent.Fit()          
+            print "fit", fit
+            fx = self.f2(fit)
+            brent.Evaluate(fx);  
+        
+    def f1(self, x):
         return x*x - 7
+    
+    def f2(self, x):
+        return x*x
         
 
 if __name__ == '__main__':

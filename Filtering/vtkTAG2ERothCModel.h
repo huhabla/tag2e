@@ -73,6 +73,13 @@ vtkTypeRevisionMacro(vtkTAG2ERothCModel, vtkTAG2EAbstractCalibratableModel)
   vtkGetMacro(AddCPoolsToOutput, int);
   vtkBooleanMacro(AddCPoolsToOutput, int);
 
+  //! \brief Set this value true to enable the equlibrium run for the TothC model
+  //! In this case the fertilizer input is ignored and soil cover is assumed
+  //! at every run.
+  vtkSetMacro(EquilibriumRun, int);
+  vtkGetMacro(EquilibriumRun, int);
+  vtkBooleanMacro(EquilibriumRun, int);
+
   //! \brief Set the temporal ration
   //!
   //! In case of monthly resolution set the ration to 1/12.
@@ -101,6 +108,7 @@ protected:
   vtkTAG2ERothCModelParameter *RothCModelParameter; // Do not delete in destructor
   vtkPolyData *CPools;
   int CPoolsInitiated; // Checks if the pools are initiated
+  int EquilibriumRun;
   int AddCPoolsToOutput; // Add internal C pools to the output dataset
   double TemporalRatio; // 1/12 for months or 1/365 for days
 

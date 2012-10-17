@@ -68,6 +68,7 @@ vtkTAG2ERothCModel::vtkTAG2ERothCModel()
   this->CPoolsInitiated = 0;
   this->AddCPoolsToOutput = 0;
   this->TemporalRatio = 1 / 12.0; // Default is monthly resolution
+  this->EquilibriumRun = 0;
   this->SetResultArrayName(ROTHC_OUTPUT_NAME_SOIL_CARBON);
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -244,7 +245,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         <<"Cell data array <" << ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY << "> is missing ");
     return -1;
     }
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_FERTILIZER_CARBON))
+  if (!this->EquilibriumRun && !input->GetCellData()->HasArray(ROTHC_INPUT_NAME_FERTILIZER_CARBON))
     {
     vtkErrorMacro(
         <<"Cell data array <" << ROTHC_INPUT_NAME_FERTILIZER_CARBON << "> is missing ");
@@ -342,12 +343,24 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     soilCover = soilCoverArray->GetTuple1(cellId); // 0 or 1 ?
     soilMoisture = soilMArray->GetTuple1(cellId); //[mm]
     usableFieldCapacity = usableFieldCArray->GetTuple1(cellId); // [mm]?
-    fertC = fertCArray->GetTuple1(cellId); // [ tC /ha/layer]
+
+    if(!fertCArray || this->EquilibriumRun)
+      fertC = 0.0;
+    else
+      fertC = fertCArray->GetTuple1(cellId); // [ tC /ha/layer]
+
     dpm_old = dpm = dpmArray->GetTuple1(cellId);
     rpm_old = rpm = rpmArray->GetTuple1(cellId);
     bio_old = bio = bioArray->GetTuple1(cellId);
     hum_old = hum = humArray->GetTuple1(cellId);
     iom = iomArray->GetTuple1(cellId);
+
+    /*
+    cout << "resRoots " << resRoots << " resSurf " << resSurf
+         << " clay " << clay << " meanTemp " << meanTemp << " soilCover " << soilCover
+         << " soilMoisture " << soilMoisture << " usableFieldCapacity " << usableFieldCapacity
+         << " fertC " << fertC << endl;
+  */
 
     // Set the result to NULL in case some values are empty (NULL)
     if (clay == this->NullValue || meanTemp == this->NullValue
@@ -406,10 +419,17 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       b = b1 + (b2 - b1) * soilMoisture / (usableFieldCapacity * b3);
 
     // c (soilcover_factor)
-    if (soilCover == 0 || soilCover == this->NullValue)
-      c = 1.0;
-    else
+    if(this->EquilibriumRun)
+      {
       c = 0.6;
+      }
+    else
+      {
+      if (soilCover == 0 || soilCover == this->NullValue)
+        c = 1.0;
+      else
+        c = 0.6;
+      }
 
     // efficiency , that describes how much of degraded C remains in the system
     // and is not blown out as CO2
@@ -423,9 +443,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     efficiency = 1 / (1 + efficiency);
     allocFractionhum = 0.54;
     allocFractionbio = 0.46;
-
-    if (plantId >= R.PlantFractions.size())
-      return 0;
 
     if (R.PlantFractions.size() <= plantId)
       {
@@ -495,6 +512,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 
     // cout << "bio_new: " << bio << " degradedC  " << degradedC << " efficiency  "
     //     << efficiency << endl;
+
+
 
     result->SetTuple1(cellId, dpm + rpm + bio + hum + iom);
 

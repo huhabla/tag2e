@@ -81,7 +81,7 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     
     # Check the inputs
     if len(ETpotInputs) != 12:
-        raise IOError("Not enough dataset in ETpotInput")
+        raise IOError("Not enough datasets in ETpotInput")
     for dataset in ETpotInputs:
         if dataset.GetNumberOfPoints() != ETpotInputs[0].GetNumberOfPoints():
             raise IOError("Datasets in ETpotInput have different number of points")
@@ -90,7 +90,7 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     
     # Check the inputs
     if len(WaterBudgetInputs) != 12:
-        raise IOError("Not enough dataset in WaterBudgetInput")
+        raise IOError("Not enough datasets in WaterBudgetInput")
     for dataset in WaterBudgetInputs:
         if dataset.GetNumberOfPoints() != WaterBudgetInputs[0].GetNumberOfPoints():
             raise IOError("Datasets in WaterBudgetInput have different number of points")
@@ -99,7 +99,7 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     
     # Check the inputs
     if len(RothCInputs) != 12:
-        raise IOError("Not enough dataset in RothCInput")
+        raise IOError("Not enough datasets in RothCInput")
     for dataset in RothCInputs:
         if dataset.GetNumberOfPoints() != RothCInputs[0].GetNumberOfPoints():
             raise IOError("Datasets in RothCInput have different number of points")
@@ -127,35 +127,46 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     RothC = vtkTAG2ERothCModel()
     RothC.SetModelParameter(RothCParameter)
     RothC.AddCPoolsToOutputOn()
+    RothC.EquilibriumRunOn()
     RothC.SetNullValue(NullValue)
-
+    
+    dc1 = vtkTAG2EDataSetJoinFilter()
+    dc2 = vtkTAG2EDataSetJoinFilter()
+    
+    # We need to distribute the residuals equally over the year
+    res = vtkPolyData()
+    res.DeepCopy(ResidualsInput)
+    a = res.GetCellData().GetArray("Residuals")
+    for id in xrange(ResidualsInput.GetNumberOfCells()):
+        a.SetTuple1(id, a.GetTuple1(id)/12.0)
+    
     # Split the residuals   
-    residuals.SetInput(ResidualsInput)
+    residuals.SetInput(res)
     
     for year in xrange(0, Years, 1):
-        print "Year", year
-        for month in xrange(0, 12, 1):                
+        #print "\n\n**** Year", year
+        for month in xrange(0, 12, 1): 
+            
+            dc1.RemoveAllInputs()
+            dc2.RemoveAllInputs()
+                           
             ETpot.SetInput(ETpotInputs[month])
             ETpot.SetTimeInterval(DaysPerMonth[month])
             
             # Soil moisture input
-            dc1 = vtkTAG2EDataSetJoinFilter()
             dc1.AddInputConnection(ETpot.GetOutputPort())
             dc1.AddInput(WaterBudgetInputs[month])
             
             SoilMoisture.SetInputConnection(dc1.GetOutputPort())
             
-            dc2 = vtkTAG2EDataSetJoinFilter()
+            # ETpot input
             dc2.AddInput(RothCInputs[month])
             dc2.AddInputConnection(SoilMoisture.GetOutputPort())
-            
-            # Add the residuals at August
-            if month == 7:
-                dc2.AddInputConnection(residuals.GetOutputPort())
+            dc2.AddInputConnection(residuals.GetOutputPort())
 
             RothC.SetInputConnection(dc2.GetOutputPort())
             RothC.Update()
-    
+
     # Return the output of RothC
     output = vtkPolyData()
     output.ShallowCopy(RothC.GetOutput())
@@ -168,7 +179,8 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
 
 def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs, 
                         ResidualsInput, SoilCarbonInput, Years, NumberOfRuns,
-                        RothCParameter=None, NullValue=-99999):
+                        RothCParameter=None, NullValue=-99999, ax=0, cx=15, 
+                        brent_error=0.00001):
     """!Compute the RothC soil carbon equilibrium using Brents method
     
        @param ETpotInputs: A list of 12 inputs, each the long term parameter
@@ -209,61 +221,78 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
                         ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
             
     # The brent and check lists
-    blist = model.GetNumberOfCells()*[vtkTAG2EBrentsMethod()]
+    blist = model.GetNumberOfCells()*[None]
     clist = model.GetNumberOfCells()*[False]
+    
+    squaredResiduals = vtkDoubleArray()
+    
+    # Compute squared residuals
+    vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(model, SoilCarbonInput, 
+                                                             True, squaredResiduals, True)
     
     # Initiate brents computation
     for id in xrange(model.GetNumberOfCells()):
         bx = ResidualsInput.GetCellData().GetScalars().GetTuple1(id)
-        fx = model.GetCellData().GetScalars().GetTuple1(id)
-        blist[id].Init(0, bx, 0.5, 0.0000000001, fx)
-                
+        res = squaredResiduals.GetTuple1(id)
+        cal = vtkTAG2EBrentsMethod()
+        blist[id] = cal
+        blist[id].Init(ax, bx, cx, brent_error, res)
+    
     # Iterate
     for run in range(NumberOfRuns):
+        
+        print "***** Run ", run
                 
-        meanBx = 0.0
         for id in xrange(model.GetNumberOfCells()):
+            
+            # Jump over finished cells
+            if clist[id]:
+                continue
+            
             if blist[id].IsFinished():
-                print "Brent finished at id", id
+                print "Brent break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
+                # Put the conmputed model input value into the residuals dataset
+                ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
                 clist[id] = True
                 continue
             
             # Compute the best fit and use it as input for the equilibrium run
             bx = blist[id].Fit()
             ResidualsInput.GetCellData().GetScalars().SetTuple1(id, bx)
-            meanBx += bx
-            
-        print "Mean bx", meanBx / model.GetNumberOfCells()
             
         # Run the model
         model = _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
                         ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
-                
-        meanRes = 0.0
+        
+        # Compute squared residuals
+        vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(model, SoilCarbonInput, 
+                                                                 True, squaredResiduals, True)
+        
         for id in xrange(model.GetNumberOfCells()):
-            if clist[id] == True:
+            # Jump over finished cells
+            if clist[id]:
                 continue
             
-            fx = model.GetCellData().GetScalars().GetTuple1(id)
-            target = SoilCarbonInput.GetCellData().GetScalars().GetTuple1(id)
-            
-            res = math.sqrt((target -fx) * (target - fx))
-            meanRes += res
-            
-            # Check break criteria
-            if res < 0.01:
-                print "Break criteria reached at id", id
-                clist[id] = True
-                continue
+            res = squaredResiduals.GetTuple1(id)
+            print "Id", id, "squared res ", res
             
             #Evaluate the model result
             blist[id].Evaluate(res)
-        
-        print "Mean res", meanRes / model.GetNumberOfCells()
+            
+            # Check break criteria
+            if res < 0.01:
+                print "Residual break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
+                clist[id] = True
+                ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
+                continue
             
         # Break if all values are computed
         if min(clist) == True:
             print "Finished after ", run, " iterations"
             break
-            
+    
+    print "Final run with latest residuals"
+    model = _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
+                     ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
+                
     return model

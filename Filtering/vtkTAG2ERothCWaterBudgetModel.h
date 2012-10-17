@@ -31,7 +31,18 @@
  */
 
 /**
- * \brief RothC
+ * \brief RothC Water budget
+ *
+ * Inputs:
+ * - ETpot in
+ * - Precipitation in
+ * - Clay content in %
+ * -* Soil cover in [0:1] boolean
+ *
+ * Outputs:
+ * - Usable field capacity in
+ * - Water content in
+ *
  */
 
 #ifndef vtkTAG2ERothCWaterBudgetModel_H

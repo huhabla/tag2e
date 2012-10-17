@@ -152,11 +152,14 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
       continue;
       }
 
-    double etp = 0.0031
-        * (meanTemperature / (meanTemperature + 15.0)
-            * (globalRadiation + 209.0));
+    double etp = 0.0031 *
+                ((meanTemperature / (meanTemperature + 15.0)) *
+                (globalRadiation + 209.0));
 
-    if (etp > 7.0)
+    if (etp < 0.0)
+      etp = 0.0;
+
+    else if (etp > 7.0)
       etp = 7.0;
 
     result->SetTuple1(cellId, etp * this->TimeInterval);

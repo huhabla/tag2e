@@ -48,19 +48,19 @@ class RothCEquilibriumRunTest(unittest.TestCase):
 
    
         # Create the point data
-        xext = 20
-        yext = 20
+        xext = 1000
+        yext = 1000
         num = xext*yext
                 
         GlobalRadiationArray = vtkDoubleArray()
         GlobalRadiationArray.SetNumberOfTuples(num)
         GlobalRadiationArray.SetName("GlobalRadiation")
-        GlobalRadiationArray.FillComponent(0, 1)
+        GlobalRadiationArray.FillComponent(0, 400)
         
         MeanTemperatureArray = vtkDoubleArray()
         MeanTemperatureArray.SetNumberOfTuples(num)
         MeanTemperatureArray.SetName("MeanTemperature")
-        MeanTemperatureArray.FillComponent(0, 8)
+        MeanTemperatureArray.FillComponent(0, 8.3)
         
         PrecipitationArray = vtkDoubleArray()
         PrecipitationArray.SetNumberOfTuples(num)
@@ -75,22 +75,22 @@ class RothCEquilibriumRunTest(unittest.TestCase):
         ClayArray = vtkDoubleArray()
         ClayArray.SetNumberOfTuples(num)
         ClayArray.SetName("Clay")
-        ClayArray.FillComponent(0, 30)
-        
-        FertilizerCarbonArray = vtkDoubleArray()
-        FertilizerCarbonArray.SetNumberOfTuples(num)
-        FertilizerCarbonArray.SetName("FertilizerCarbon")
-        FertilizerCarbonArray.FillComponent(0, 0.0)
+        ClayArray.FillComponent(0, 3)
 
         SoilCarbonArray = vtkDoubleArray()
         SoilCarbonArray.SetNumberOfTuples(num)
         SoilCarbonArray.SetName("SoilCarbon")
-        SoilCarbonArray.FillComponent(0, 5)
+        SoilCarbonArray.FillComponent(0, 25.0)
+        
+        InitialSoilCarbonArray = vtkDoubleArray()
+        InitialSoilCarbonArray.SetNumberOfTuples(num)
+        InitialSoilCarbonArray.SetName("InitialCarbon")
+        InitialSoilCarbonArray.FillComponent(0, 25.0)
         
         ResidualsArray = vtkDoubleArray()
         ResidualsArray.SetNumberOfTuples(num)
         ResidualsArray.SetName("Residuals")
-        ResidualsArray.FillComponent(0, 0.4)
+        ResidualsArray.FillComponent(0, 1)
         
         type_ = vtkIntArray()
         type_.SetNumberOfTuples(num)
@@ -135,9 +135,9 @@ class RothCEquilibriumRunTest(unittest.TestCase):
         self.WaterBudget.SetPoints(points) 
            
         self.RothC.GetCellData().AddArray(ClayArray) 
+        self.RothC.GetCellData().AddArray(InitialSoilCarbonArray) 
         self.RothC.GetCellData().AddArray(SoilCoverArray) 
         self.RothC.GetCellData().AddArray(MeanTemperatureArray)
-        self.RothC.GetCellData().AddArray(FertilizerCarbonArray)
         self.RothC.SetPoints(points)    
         
         self.Residuals.GetCellData().SetScalars(ResidualsArray)
