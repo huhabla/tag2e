@@ -109,7 +109,6 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
   vtkPolyData* input = vtkPolyData::GetData(inputVector[0]);
   vtkPolyData* output = vtkPolyData::GetData(outputVector);
 
-
   // Check the input arrays
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_ETPOT))
     {
@@ -207,29 +206,29 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
     if (waterContentArray != NULL)
       {
       waterContent = waterContentArray->GetTuple1(cellId);
-      }
-    else
+      } else
       {
       waterContent = usableFieldcapacity;
       }
-
-
-    if (soilCover == 0 || soilCover == this->NullValue)
-      usableFieldcapacity /= 1.8;
-
+    /*  New RothC approach, disabled for comparison with old model
+     if (soilCover == 0 || soilCover == this->NullValue)
+     usableFieldcapacity /= 1.8;
+     */
     // compute water budget for 1 horizon
     if ((precipitation - etpot) < 0)
       {
-
-      waterContentNew = MAX(0, waterContent+(precipitation-etpot)/
-          (lineLength*10*100));
-      }
-    else
+      waterContentNew = MAX(0, waterContent+(precipitation - etpot)/
+          (lineLength*1000));
+      } else
       {
-      waterContentNew = MIN(usableFieldcapacity,waterContent+
-          (precipitation-etpot)/(lineLength*100*100));
+      waterContentNew = MIN(usableFieldcapacity,waterContent +
+          (precipitation - etpot)/(lineLength*1000));
       }
-
+    /*
+    cout << "ETpot " << etpot << " usableFieldcapacity " << usableFieldcapacity
+        << " waterContentNew " << waterContentNew << " Precipitation "
+        << precipitation << endl;
+    */
     resultUsableFieldCapacity->SetTuple1(cellId, usableFieldcapacity);
     resultWaterContentNew->SetTuple1(cellId, waterContentNew);
 

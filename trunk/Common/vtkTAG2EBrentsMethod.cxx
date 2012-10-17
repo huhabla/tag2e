@@ -33,7 +33,7 @@
 #include <vtkObjectFactory.h>
 #include "vtkTAG2EBrentsMethod.h"
 
-#define ZEPS 1.0e-10
+#define ZEPS 0.001
 #define CGOLD 0.3819660
 #define SHIFT(a, b, c, d) (a)=(b); (b)=(c); (c)=(d);
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -104,12 +104,27 @@ bool vtkTAG2EBrentsMethod::IsFinished()
   xm = 0.5 * (a + b);
   tol1 = tol * fabs(x) + ZEPS;
   tol2 = 2.0 * tol1;
+
+  printf("Internal variable check\n");
+  //printf("x - xm: %g\n", this->x - this->xm);
+  //printf("v:..... %g\n", this->v);
+  //printf("fv:.... %g\n", this->fv);
+  //printf("w:..... %g\n", this->w);
+  //printf("fw:.... %g\n", this->fw);
+  printf("x:..... %g\n", this->x);
+  printf("fx:.... %g\n", this->fx);
+  printf("u:..... %g\n", this->u);
+  printf("fu:.... %g\n", this->fu);
+
   if (fabs(x - xm) <= (tol2 - 0.5 * (b - a)))
     {
+    printf("Brent finished:\n");
     return true;
     }
   return false;
 }
+
+//----------------------------------------------------------------------------
 
 double vtkTAG2EBrentsMethod::Fit()
 {
@@ -142,6 +157,8 @@ double vtkTAG2EBrentsMethod::Fit()
   u = (fabs(d) >= tol1 ? x + d : x + SIGN(tol1,d));
   return u;
 }
+
+//----------------------------------------------------------------------------
 
 void vtkTAG2EBrentsMethod::Evaluate(double _fx)
 {

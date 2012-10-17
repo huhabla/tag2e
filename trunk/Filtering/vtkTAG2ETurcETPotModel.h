@@ -32,6 +32,11 @@
 
 /**
  * \brief RothC
+ *
+ * Input:
+ * * Temperature in C°
+ * * Global Radiation in J/(cm^2 * d)
+ *
  */
 
 #ifndef vtkTAG2ETurcEPotModel_H
