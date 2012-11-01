@@ -42,7 +42,6 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeTemporalPython import *
 
 import XMLWeightingGenerator
 import XMLFuzzyInferenceGenerator

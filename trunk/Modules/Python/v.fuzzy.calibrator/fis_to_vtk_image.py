@@ -4,7 +4,6 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
 from libvtkGRASSBridgeCommonPython import *
-from libvtkGRASSBridgeTemporalPython import *
 
 inputName = "precipitation_autumn_prev3gwa3fert3.xml"
 outputName = "precipitation_autumn_prev3gwa3fert3.vti"

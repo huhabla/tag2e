@@ -34,7 +34,6 @@ import math
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 from MetaModel import *
 
