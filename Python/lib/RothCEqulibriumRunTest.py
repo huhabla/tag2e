@@ -37,7 +37,6 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 from RothCEqulibriumRun import *
@@ -48,8 +47,8 @@ class RothCEquilibriumRunTest(unittest.TestCase):
 
    
         # Create the point data
-        xext = 1000
-        yext = 1000
+        xext = 10
+        yext = 10
         num = xext*yext
                 
         GlobalRadiationArray = vtkDoubleArray()
