@@ -53,6 +53,7 @@ extern "C" {
 #include <vtkObjectFactory.h>
 #include "vtkTAG2ERothCWaterBudgetModel.h"
 #include "vtkTAG2ERothCDefines.h"
+#include "vtkTAG2EDefines.h"
 
 vtkCxxRevisionMacro(vtkTAG2ERothCWaterBudgetModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2ERothCWaterBudgetModel);
@@ -137,6 +138,7 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
 
   // Copy geometry from input
   output->CopyStructure(input);
+  input->BuildCells();
 
   // Result array usable Fieldcapacity
   vtkDoubleArray *resultUsableFieldCapacity = vtkDoubleArray::New();
@@ -162,8 +164,26 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
   vtkDataArray *clayArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_CLAY);
 
+  int cellNum = input->GetNumberOfCells();
+
+#ifdef OMP_PARALLELIZED
+  // We must call the following method first in a single thread to
+  // avoid race conditions
+  if(input->GetNumberOfCells() > 0) {
+    vtkIdList *tmp = vtkIdList::New();
+    input->GetCellPoints(0, tmp);
+    input->GetCellType(0);
+    tmp->Delete();
+  }
+#endif
+
   // Parallelize with OpenMP
-  for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
+#ifdef OMP_PARALLELIZED
+#pragma omp parallel for private(cellId) shared(input, etpotArray, \
+    precipitationArray, soilCoverArray, clayArray, waterContentArray,\
+    resultUsableFieldCapacity, resultWaterContentNew, cellNum)
+#endif
+  for (cellId = 0; cellId < cellNum; cellId++)
     {
     double lineLength, c;
     double p1[3];
@@ -176,36 +196,46 @@ int vtkTAG2ERothCWaterBudgetModel::RequestData(
     vtkIdList *pointIds = vtkIdList::New();
     vtkIdType pointId;
 
+    input->GetCellPoints(cellId, pointIds);
+
     // Check cell type, we support only lines
     if (input->GetCellType(cellId) != VTK_LINE)
       {
-      vtkErrorMacro("Unsupported cell type.");
+      vtkErrorMacro("Unsupported cell type: " << input->GetCellType(cellId));
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
 
-    input->GetCellPoints(cellId, pointIds);
     // We support only lines with two coordinates
     if (pointIds->GetNumberOfIds() != 2)
       {
-      vtkErrorMacro("Unsupported line length.");
+      vtkErrorMacro("Unsupported number of line coordinates: " << pointIds->GetNumberOfIds());
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
+
     // Compute length of the line in vertical direction
     input->GetPoint(pointIds->GetId(0), p1);
     input->GetPoint(pointIds->GetId(1), p2);
     lineLength = fabs(p1[2] - p2[2]); //m
 
-    etpot = etpotArray->GetTuple1(cellId);
-    precipitation = precipitationArray->GetTuple1(cellId);
-    soilCover = soilCoverArray->GetTuple1(cellId);
-    clay = clayArray->GetTuple1(cellId);
+    etpotArray->GetTuple(cellId, &etpot);
+    precipitationArray->GetTuple(cellId, &precipitation);
+    soilCoverArray->GetTuple(cellId, &soilCover);
+    clayArray->GetTuple(cellId, &clay);
 
     // compute the usable field capacity
     usableFieldcapacity = (20 + 1.3 * clay - 0.01 * clay * clay) / 230.0;
 
     if (waterContentArray != NULL)
       {
-      waterContent = waterContentArray->GetTuple1(cellId);
+      waterContentArray->GetTuple(cellId, &waterContent);
       } else
       {
       waterContent = usableFieldcapacity;

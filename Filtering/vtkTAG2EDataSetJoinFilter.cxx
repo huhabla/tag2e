@@ -113,27 +113,22 @@ int vtkTAG2EDataSetJoinFilter::RequestData(vtkInformation * vtkNotUsed(request),
 
     for(j = 0; j < input->GetCellData()->GetNumberOfArrays(); j++)
       {
-      output->GetCellData()->AddArray(input->GetCellData()->GetArray(j));
+      if(!output->GetCellData()->HasArray(input->GetCellData()->GetArray(j)->GetName()))
+        {
+        //std::cout << "Add " << input->GetCellData()->GetArray(j)->GetName() << std::endl;
+        output->GetCellData()->AddArray(input->GetCellData()->GetArray(j));
+        }
       }
 
     for(j = 0; j < input->GetPointData()->GetNumberOfArrays(); j++)
       {
-      output->GetPointData()->AddArray(input->GetPointData()->GetArray(j));
+      if(!output->GetPointData()->HasArray(input->GetPointData()->GetArray(j)->GetName()))
+        {
+        //std::cout << "Add " << input->GetPointData()->GetArray(j)->GetName() << std::endl;
+        output->GetPointData()->AddArray(input->GetPointData()->GetArray(j));
+        }
       }
     }
 
   return 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

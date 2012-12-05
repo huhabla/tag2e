@@ -53,6 +53,7 @@ extern "C" {
 #include <vtkObjectFactory.h>
 #include "vtkTAG2ETurcETPotModel.h"
 #include "vtkTAG2ERothCDefines.h"
+#include "vtkTAG2EDefines.h"
 
 vtkCxxRevisionMacro(vtkTAG2ETurcETPotModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2ETurcETPotModel);
@@ -140,10 +141,16 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
       ROTHC_INPUT_NAME_MEAN_TEMPERATURE);
 
   // Parallelize with OpenMP
+#ifdef OMP_PARALLELIZED
+#pragma omp parallel for private(cellId) shared(input, result,\
+		globalRadiationArray, meanTemperatureArray)
+#endif
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
     {
-    double globalRadiation = globalRadiationArray->GetTuple1(cellId);
-    double meanTemperature = meanTemperatureArray->GetTuple1(cellId);
+    double globalRadiation;
+    globalRadiationArray->GetTuple(cellId, &globalRadiation);
+    double meanTemperature;
+    meanTemperatureArray->GetTuple(cellId, &meanTemperature);
 
     // Jump over NULL values
     if(globalRadiation == this->NullValue || meanTemperature == this->NullValue)

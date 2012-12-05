@@ -37,7 +37,6 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
