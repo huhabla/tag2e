@@ -39,7 +39,6 @@ from vtk import *
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 ################################################################################
@@ -196,8 +195,8 @@ class vtkTAG2EAbstractModelCalibratorTests(unittest.TestCase):
         print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.model)
         print vtkTAG2EAbstractModelCalibrator.ArithmeticMean(self.measure)
         
-        print vtkTAG2EAbstractModelCalibrator.Variance(self.model, True)
-        print vtkTAG2EAbstractModelCalibrator.Variance(self.measure, False)
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.model, True, False)
+        print vtkTAG2EAbstractModelCalibrator.Variance(self.measure, False, False)
         
         print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.model, True)
         print vtkTAG2EAbstractModelCalibrator.StandardDeviation(self.measure, False)

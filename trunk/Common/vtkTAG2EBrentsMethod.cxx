@@ -105,16 +105,18 @@ bool vtkTAG2EBrentsMethod::IsFinished()
   tol1 = tol * fabs(x) + ZEPS;
   tol2 = 2.0 * tol1;
 
+  /*
   printf("Internal variable check\n");
-  //printf("x - xm: %g\n", this->x - this->xm);
-  //printf("v:..... %g\n", this->v);
-  //printf("fv:.... %g\n", this->fv);
-  //printf("w:..... %g\n", this->w);
-  //printf("fw:.... %g\n", this->fw);
+  printf("x - xm: %g\n", this->x - this->xm);
+  printf("v:..... %g\n", this->v);
+  printf("fv:.... %g\n", this->fv);
+  printf("w:..... %g\n", this->w);
+  printf("fw:.... %g\n", this->fw);
   printf("x:..... %g\n", this->x);
   printf("fx:.... %g\n", this->fx);
   printf("u:..... %g\n", this->u);
   printf("fu:.... %g\n", this->fu);
+  */
 
   if (fabs(x - xm) <= (tol2 - 0.5 * (b - a)))
     {

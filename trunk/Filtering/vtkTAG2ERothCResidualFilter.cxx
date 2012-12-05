@@ -46,6 +46,11 @@
 #include <vtkCell.h>
 #include <vtkMath.h>
 #include <vtkSortDataArray.h>
+#include "vtkTAG2EDefines.h"
+
+#ifdef MULTIPLE_LAYER_SUPPORT
+#undef MULTIPLE_LAYER_SUPPORT
+#endif
 
 extern "C" {
 #include <math.h>
@@ -106,9 +111,6 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   vtkIdType cellId;
   double lineLength;
 
-  // This is the artificial ration between the surface and root residuals
-  double ratio = 0.5;
-
   vtkDataSet* input = vtkDataSet::GetData(inputVector[0]);
   vtkDataSet* output = vtkDataSet::GetData(outputVector);
 
@@ -141,11 +143,20 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   residualsSurfaceArray->SetName(ROTHC_INPUT_NAME_RESIDUALS_SURFACE);
   residualsSurfaceArray->SetNumberOfTuples(output->GetNumberOfCells());
 
+  // Get array pointer for easy access
+  vtkDataArray *residualArray = input->GetCellData()->GetArray(
+      ROTHC_INPUT_NAME_RESIDUALS);
+  // Not yet in use
+  // vtkDataArray *rootDepthArray = input->GetCellData()->GetArray(
+  //     ROTHC_INPUT_NAME_ROOT_DEPTH);
+
   vtkIntArray *layerIdArray = vtkIntArray::New();
   layerIdArray->SetNumberOfComponents(1);
   layerIdArray->SetName(ROTHC_INPUT_NAME_LAYER);
   layerIdArray->SetNumberOfTuples(output->GetNumberOfCells());
+  layerIdArray->FillComponent(0, 0);
 
+#ifdef MULTIPLE_LAYER_SUPPORT
   vtkUnsignedCharArray *checkIdArray = vtkUnsignedCharArray::New();
   checkIdArray->SetNumberOfComponents(1);
   checkIdArray->SetName("CechkId");
@@ -173,13 +184,6 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   vtkIdTypeArray *cellIdArray = vtkIdTypeArray::New();
   cellIdArray->SetNumberOfComponents(1);
 
-  // Get array pointer for easy access
-  vtkDataArray *residualArray = input->GetCellData()->GetArray(
-      ROTHC_INPUT_NAME_RESIDUALS);
-  // Not yet in use
-  // vtkDataArray *rootDepthArray = input->GetCellData()->GetArray(
-  //     ROTHC_INPUT_NAME_ROOT_DEPTH);
-  ;
   // Compute the layer id and check the topology and line length
   // Parallelize with OpenMP
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
@@ -232,21 +236,27 @@ int vtkTAG2ERothCResidualFilter::RequestData(
           lineLength);
       }
     }
-
+#endif
   // Compute the residuals
   // ATTENTION: We need to implement a depth dependent
   // residual fraction for roots, see "A global analysis of root distributions for terrestrial biomes"
   // from Jackson et al 1996
+#ifdef OMP_PARALLELIZED
+#pragma omp parallel for private(cellId) shared(input, residualArray, residualsRootsArray,\
+		residualsSurfaceArray, layerIdArray)
+#endif
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
     {
     double residual = 0.0;
     double roots = 0.0;
     double surface = 0.0;
+    // This is the artificial ration between the surface and root residuals
+    double ratio = 0.5;
     vtkIdType layer;
 
     if(residualArray)
       {
-      residual = residualArray->GetTuple1(cellId);
+      residualArray->GetTuple(cellId, &residual);
       }
     else
       {
@@ -281,16 +291,17 @@ int vtkTAG2ERothCResidualFilter::RequestData(
     residualsSurfaceArray->SetTuple1(cellId, surface);
     }
 
-  output->GetCellData()->AddArray(layerIdArray);
-  output->GetCellData()->AddArray(lineCenterArray);
-  output->GetCellData()->AddArray(lineLengthArray);
-  output->GetCellData()->AddArray(cumulativeRootFraction);
-  output->GetCellData()->AddArray(checkIdArray);
   output->GetCellData()->AddArray(residualsRootsArray);
   output->GetCellData()->AddArray(residualsSurfaceArray);
   output->GetCellData()->SetActiveScalars(residualsSurfaceArray->GetName());
   residualsRootsArray->Delete();
   residualsSurfaceArray->Delete();
+#ifdef MULTIPLE_LAYER_SUPPORT
+  output->GetCellData()->AddArray(layerIdArray);
+  output->GetCellData()->AddArray(lineCenterArray);
+  output->GetCellData()->AddArray(lineLengthArray);
+  output->GetCellData()->AddArray(cumulativeRootFraction);
+  output->GetCellData()->AddArray(checkIdArray);
   layerIdArray->Delete();
   lineLengthArray->Delete();
   cumulativeRootFraction->Delete();
@@ -298,6 +309,7 @@ int vtkTAG2ERothCResidualFilter::RequestData(
   centerCoorArray->Delete();
   cellIdArray->Delete();
   lineCenterArray->Delete();
+#endif
 
   return 1;
 }

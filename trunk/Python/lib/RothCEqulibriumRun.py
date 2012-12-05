@@ -43,27 +43,16 @@ DaysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 ################################################################################
 ################################################################################
 
-def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                        ResidualsInput, Years, NumberOfRuns,
-                        RothCParameter=None, NullValue=-99999):
+def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None, 
+                        NullValue=-99999):
     """!Compute the RothC soil carbon equilibrium
     
-       @param ETpotInputs: A list of 12 inputs, each the long term parameter
-                          for ETpot computation.
+       @param ETpotInputs: A list of 12 inputs, each with the long term parameter
                           - Long term monthly temperature mean [degree C]
                           - Long term monthly global radiation [J/(cm^2 * day)]
-       
-       @param WaterBudgetInputs: A list of 12 inputs, each the long term 
-                          parameter for Water Budget computation.
                           - Long term monthly accumulated precipitation [mm]
                           - Long term monthly soil cover (0 or 1) [-]
                           - Clay content in percent [%]
-       
-       param RothCInputs: A list of 12 vtkPolyData inputs, each the long term
-                          parameter of the RothC model
-                          - Clay content in percent [%]
-                          - Long term monthly soil cover (0 or 1) [-]
-                          - Long term monthly temperature mean [degree C]
                           - Long term monthly fertilizer carbon (should be 0)
                           - Initial C-org
                           
@@ -79,31 +68,13 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     """
     
     # Check the inputs
-    if len(ETpotInputs) != 12:
-        raise IOError("Not enough datasets in ETpotInput")
-    for dataset in ETpotInputs:
-        if dataset.GetNumberOfPoints() != ETpotInputs[0].GetNumberOfPoints():
-            raise IOError("Datasets in ETpotInput have different number of points")
-        if dataset.GetNumberOfCells() != ETpotInputs[0].GetNumberOfCells():
-            raise IOError("Datasets in ETpotInput have different number of cells")
-    
-    # Check the inputs
-    if len(WaterBudgetInputs) != 12:
-        raise IOError("Not enough datasets in WaterBudgetInput")
-    for dataset in WaterBudgetInputs:
-        if dataset.GetNumberOfPoints() != WaterBudgetInputs[0].GetNumberOfPoints():
-            raise IOError("Datasets in WaterBudgetInput have different number of points")
-        if dataset.GetNumberOfCells() != WaterBudgetInputs[0].GetNumberOfCells():
-            raise IOError("Datasets in WaterBudgetInput have different number of cells")
-    
-    # Check the inputs
-    if len(RothCInputs) != 12:
-        raise IOError("Not enough datasets in RothCInput")
-    for dataset in RothCInputs:
-        if dataset.GetNumberOfPoints() != RothCInputs[0].GetNumberOfPoints():
-            raise IOError("Datasets in RothCInput have different number of points")
-        if dataset.GetNumberOfCells() != RothCInputs[0].GetNumberOfCells():
-            raise IOError("Datasets in RothCInput have different number of cells")
+    if len(Inputs) != 12:
+        raise IOError("Not enough datasets in Inputs")
+    for dataset in Inputs:
+        if dataset.GetNumberOfPoints() != Inputs[0].GetNumberOfPoints():
+            raise IOError("Datasets in Inputs have different number of points")
+        if dataset.GetNumberOfCells() != Inputs[0].GetNumberOfCells():
+            raise IOError("Datasets in Inputs have different number of cells")
     
     # Initiate the models and connect them
     
@@ -120,7 +91,7 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
     residuals.SetNullValue(NullValue)
     
     # RothC model computation
-    if not RothCParameter:
+    if not RothCParameter or RothCParameter == None:
         RothCParameter = vtkTAG2ERothCModelParameter()
 
     RothC = vtkTAG2ERothCModel()
@@ -149,23 +120,23 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
             dc1.RemoveAllInputs()
             dc2.RemoveAllInputs()
                            
-            ETpot.SetInput(ETpotInputs[month])
+            ETpot.SetInput(Inputs[month])
             ETpot.SetTimeInterval(DaysPerMonth[month])
             
             # Soil moisture input
             dc1.AddInputConnection(ETpot.GetOutputPort())
-            dc1.AddInput(WaterBudgetInputs[month])
+            dc1.AddInput(Inputs[month])
             
             SoilMoisture.SetInputConnection(dc1.GetOutputPort())
             
             # ETpot input
-            dc2.AddInput(RothCInputs[month])
+            dc2.AddInput(Inputs[month])
             dc2.AddInputConnection(SoilMoisture.GetOutputPort())
             dc2.AddInputConnection(residuals.GetOutputPort())
 
             RothC.SetInputConnection(dc2.GetOutputPort())
             RothC.Update()
-
+            
     # Return the output of RothC
     output = vtkPolyData()
     output.ShallowCopy(RothC.GetOutput())
@@ -176,29 +147,18 @@ def _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs,
 ################################################################################
 ################################################################################
 
-def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                        ResidualsInput, SoilCarbonInput, Years, NumberOfRuns,
+def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOfRuns,
                         RothCParameter=None, NullValue=-99999, ax=0, cx=15, 
                         brent_error=0.00001):
     """!Compute the RothC soil carbon equilibrium using Brents method
     
-       @param ETpotInputs: A list of 12 inputs, each the long term parameter
-                          for ETpot computation.
+       @param Inputs: A list of 12 inputs, each with long term parameter
                           - Long term monthly temperature mean [degree C]
                           - Long term monthly global radiation [J/(cm^2 * day)]
-       
-       @param WaterBudgetInputs: A list of 12 inputs, each the long term 
-                          parameter for Water Budget computation.
                           - Long term monthly accumulated precipitation [mm]
                           - Long term monthly soil cover (0 or 1) [-]
-                          - Clay content in percent [%]
-       
-       param RothCInputs: A list of 12 vtkPolyData inputs, each the long term
-                          parameter of the RothC model
-                          - Clay content in percent [%]
-                          - Long term monthly soil cover (0 or 1) [-]
-                          - Long term monthly temperature mean [degree C]
                           - Long term monthly fertilizer carbon (should be 0)
+                          - Clay content in percent [%]
                           - Initial C-org
                           
        param ResidualsInput: The initial residuals as vtkPolyData input
@@ -216,8 +176,8 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
     """   
     
     # Initial model run
-    model = _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                        ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
+    model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
+                              NullValue)
             
     # The brent and check lists
     blist = model.GetNumberOfCells()*[None]
@@ -249,8 +209,8 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
                 continue
             
             if blist[id].IsFinished():
-                print "Brent break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
-                # Put the conmputed model input value into the residuals dataset
+                #print "Brent break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
+                # Put the computed model input value into the residuals dataset
                 ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
                 clist[id] = True
                 continue
@@ -260,8 +220,8 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
             ResidualsInput.GetCellData().GetScalars().SetTuple1(id, bx)
             
         # Run the model
-        model = _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                        ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
+        model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
+                                  NullValue)
         
         # Compute squared residuals
         vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(model, SoilCarbonInput, 
@@ -273,14 +233,14 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
                 continue
             
             res = squaredResiduals.GetTuple1(id)
-            print "Id", id, "squared res ", res
+            #print "Id", id, "squared res ", res
             
             #Evaluate the model result
             blist[id].Evaluate(res)
             
             # Check break criteria
             if res < 0.01:
-                print "Residual break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
+                #print "Residual break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
                 clist[id] = True
                 ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
                 continue
@@ -291,7 +251,7 @@ def RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs,
             break
     
     print "Final run with latest residuals"
-    model = _RothCEquilibrium(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                     ResidualsInput, Years, NumberOfRuns, RothCParameter, NullValue)
+    model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
+                              NullValue)
                 
     return model

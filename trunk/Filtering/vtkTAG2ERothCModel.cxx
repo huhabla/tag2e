@@ -55,6 +55,7 @@ extern "C" {
 #include "vtkTAG2ERothCModelParameter.h"
 #include "vtkTAG2EAbstractModelParameter.h"
 #include "vtkTAG2ERothCDefines.h"
+#include "vtkTAG2EDefines.h"
 
 vtkCxxRevisionMacro(vtkTAG2ERothCModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2ERothCModel);
@@ -227,12 +228,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         <<"Cell data array <" << ROTHC_INPUT_NAME_SOILCOVER << "> is missing ");
     return -1;
     }
-  if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_MEAN_TEMPERATURE))
-    {
-    vtkErrorMacro(
-        <<"Cell data array <" << ROTHC_INPUT_NAME_MEAN_TEMPERATURE << "> is missing ");
-    return -1;
-    }
   if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_SOIL_MOISTURE))
     {
     vtkErrorMacro(
@@ -293,7 +288,24 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkDataArray *fertIdArray = input->GetCellData()->GetArray(
         ROTHC_INPUT_NAME_FERTILIZER_ID);
 
+#ifdef OMP_PARALLELIZED
+  // We must call the following method first in a single thread to
+  // avoid race conditions
+  if(input->GetNumberOfCells() > 0) {
+    vtkIdList *tmp = vtkIdList::New();
+    input->GetCellPoints(0, tmp);
+    input->GetCellType(0);
+    tmp->Delete();
+  }
+#endif
+
   // Parallelize with OpenMP
+#ifdef OMP_PARALLELIZED
+#pragma omp parallel for private(cellId) shared(input, fertIdArray, plantIdArray,\
+		fertCArray, usableFieldCArray, soilMArray, resSurfArray, soilCoverArray,\
+		meanTempArray, clayArray, iomArray, humArray, bioArray, rpmArray, dpmArray,\
+		result)
+#endif
   for (cellId = 0; cellId < input->GetNumberOfCells(); cellId++)
     {
     double lineLength;
@@ -309,51 +321,63 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     double dpm_old, rpm_old, bio_old, hum_old; //old_pools
     double meanTemp, fertC, usableFieldCapacity, soilMoisture, soilCover,
         resRoots, resSurf, clay;
-    int fertId, plantId;
+    double fertId, plantId;
 
     vtkIdList *pointIds = vtkIdList::New();
+    input->GetCellPoints(cellId, pointIds);
 
     // Check cell type, we support only lines
     if (input->GetCellType(cellId) != VTK_LINE)
       {
       vtkErrorMacro("Unsupported cell type.");
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
 
-    input->GetCellPoints(cellId, pointIds);
     // We support only lines with two coordinates
     if (pointIds->GetNumberOfIds() != 2)
       {
       vtkErrorMacro("Unsupported line length.");
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
 
     // We set them 0 if no residuals are provided
     if(resRootsArray)
-      resRoots = resRootsArray->GetTuple1(cellId); // [ tC /ha/layer]
+      resRootsArray->GetTuple(cellId, &resRoots); // [ tC /ha/layer]
     else
       resRoots = 0.0;
     if(resSurfArray)
-      resSurf = resSurfArray->GetTuple1(cellId); // [ tC /ha/layer]
+      resSurfArray->GetTuple(cellId, &resSurf); // [ tC /ha/layer]
     else
       resSurf = 0.0;
 
-    clay = clayArray->GetTuple1(cellId);
-    meanTemp = meanTempArray->GetTuple1(cellId);
-    soilCover = soilCoverArray->GetTuple1(cellId); // 0 or 1 ?
-    soilMoisture = soilMArray->GetTuple1(cellId); //[mm]
-    usableFieldCapacity = usableFieldCArray->GetTuple1(cellId); // [mm]?
+    clayArray->GetTuple(cellId, &clay);
+    meanTempArray->GetTuple(cellId, &meanTemp);
+    soilCoverArray->GetTuple(cellId, &soilCover); // 0 or 1 ?
+    soilMArray->GetTuple(cellId, &soilMoisture); //[mm]
+    usableFieldCArray->GetTuple(cellId, &usableFieldCapacity); // [mm]?
 
     if(!fertCArray || this->EquilibriumRun)
       fertC = 0.0;
     else
-      fertC = fertCArray->GetTuple1(cellId); // [ tC /ha/layer]
+      fertCArray->GetTuple(cellId, &fertC); // [ tC /ha/layer]
 
-    dpm_old = dpm = dpmArray->GetTuple1(cellId);
-    rpm_old = rpm = rpmArray->GetTuple1(cellId);
-    bio_old = bio = bioArray->GetTuple1(cellId);
-    hum_old = hum = humArray->GetTuple1(cellId);
-    iom = iomArray->GetTuple1(cellId);
+    dpmArray->GetTuple(cellId, &dpm);
+    rpmArray->GetTuple(cellId, &rpm);
+    bioArray->GetTuple(cellId, &bio);
+    humArray->GetTuple(cellId, &hum);
+    iomArray->GetTuple(cellId, &iom);
+    dpm_old = dpm;
+    rpm_old = rpm;
+    bio_old = bio;
+    hum_old = hum;
 
     /*
     cout << "resRoots " << resRoots << " resSurf " << resSurf
@@ -376,8 +400,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     // Index 0 is the default value
     if (plantIdArray)
       {
-      plantId = (int) plantIdArray->GetTuple1(cellId);
-      if (plantId == this->NullValue)
+      plantIdArray->GetTuple(cellId, &plantId);
+      if ((int)plantId == this->NullValue)
         plantId = 0;
       }
     else
@@ -387,7 +411,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 
     if (fertIdArray)
       {
-      fertId = (int) fertIdArray->GetTuple1(cellId);
+      fertIdArray->GetTuple(cellId, &fertId);
       if (hasFertilizerId == this->NullValue)
         fertId = 0;
       }
@@ -447,7 +471,11 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     if (R.PlantFractions.size() <= plantId)
       {
       vtkErrorMacro("Plant id is out of plant fraction vector boundaries");
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
 
     double dpmRootsFraction = R.PlantFractions[plantId]->DPM.value;
@@ -462,7 +490,11 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       {
       vtkErrorMacro(
           "Fertilizer id is out of fertilizer fraction vector boundaries");
+#ifndef OMP_PARALLELIZED
       return -1;
+#else
+      continue;
+#endif
       }
 
     double dpmFertFraction = R.FertilizerFractions[fertId]->DPM.value;
@@ -513,8 +545,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     // cout << "bio_new: " << bio << " degradedC  " << degradedC << " efficiency  "
     //     << efficiency << endl;
 
-
-
     result->SetTuple1(cellId, dpm + rpm + bio + hum + iom);
 
     dpmArray->SetTuple1(cellId, dpm);
@@ -550,7 +580,6 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
   vtkDoubleArray *iomArray = vtkDoubleArray::New();
   vtkDataArray *initCArray = NULL;
   vtkIdType i;
-  double dpm, rpm, bio, hum, iom, initC;
 
   // Set up the arrays
   dpmArray->SetName(ROTHC_POOL_NAME_DPM);
@@ -579,11 +608,16 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
   // For easy initial C access
   initCArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_INITIAL_CARBON);
 
+
+#ifdef OMP_PARALLELIZED
+#pragma omp parallel for private(i) shared(initCArray)
+#endif
   for (i = 0; i < input->GetNumberOfCells(); i++)
     {
+    double dpm, rpm, bio, hum, iom, initC;
     // In case the array is not provided, 0.0 is assumed
     if(initCArray)
-      initC = initCArray->GetTuple1(i);
+      initCArray->GetTuple(i, &initC);
     else
       initC = 0.0;
 
@@ -605,7 +639,6 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
       bio = 0.02 * (initC - iom);
       hum = 0.85 * (initC - iom);
       }
-
 
     dpmArray->SetTuple1(i, dpm);
     rpmArray->SetTuple1(i, rpm);

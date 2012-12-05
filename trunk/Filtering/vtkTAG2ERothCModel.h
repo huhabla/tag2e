@@ -83,7 +83,7 @@ vtkTypeRevisionMacro(vtkTAG2ERothCModel, vtkTAG2EAbstractCalibratableModel)
   //! \brief Set the temporal ration
   //!
   //! In case of monthly resolution set the ration to 1/12.
-  //! In case of daily resoltuion set the ration to 1/365.
+  //! In case of daily resolution set the ration to 1/365.
   vtkSetMacro(TemporalRatio, double);
   //! \brief Get the temporal ration
   vtkGetMacro(TemporalRatio, double);

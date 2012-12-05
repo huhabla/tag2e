@@ -5,7 +5,6 @@ import os
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
-from libvtkGRASSBridgeTemporalPython import *
 from libvtkGRASSBridgeCommonPython import *
 
 from RothCEqulibriumRun import *
@@ -402,7 +401,7 @@ def main(options, args):
         RothCInputs.append(ds.datasets[month]["RothC"])
     
     new_ds = RothCEquilibriumRun(ETpotInputs, WaterBudgetInputs, RothCInputs, 
-                      ResidualsInput, SoilCarbonInput, 300, 100,
+                      ResidualsInput, SoilCarbonInput, 300, 12, 30, 10,
                       None, 9999)
         
     writer = vtkPolyDataWriter()
