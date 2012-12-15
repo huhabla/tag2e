@@ -50,28 +50,7 @@ from RothCEqulibriumRun import *
 ################################################################################
 ################################################################################
 ################################################################################
-"""!Compute the RothC soil carbon equilibrium using Brents method
 
-       @param Inputs: A list of 12 inputs, each with long term parameter
-                          - Long term monthly temperature mean [degree C]
-                          - Long term monthly global radiation [J/(cm^2 * day)]
-                          - Long term monthly accumulated precipitation [mm]
-                          - Long term monthly soil cover (0 or 1) [-]
-                          - Long term monthly fertilizer carbon (should be 0)
-                          - Clay content in percent [%]
-                          - Initial C-org
-                          
-       param ResidualsInput: The initial residuals as vtkPolyData input
-                          for the RothC model [tC/ha]
-                          
-       param SoilCarbonInput: The resulting carbon as vtkPolyData input
-                          for the distance computation of model and target values [tC/ha]
-                          
-       @param Years: The maximum number of Iterations (years) for a single run
-       @param NumberOfRuns: The maximum number of runs to find the equilibrium
-   
-   @return A vtkPolyDataSet with RothC pools and initial Carbon
-"""   
 def main():
     # Initiate GRASS
     init = vtkGRASSInit()
@@ -119,7 +98,7 @@ def main():
                              "applied in august of each model year")
     
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
-    output.SetDescription("The model soil organic carbon result")
+    output.SetDescription("The model soil organic carbon result at equilibrium")
     
     poolDPM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolDPM.SetKey("dpmpool")
@@ -140,6 +119,10 @@ def main():
     poolIOM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolIOM.SetKey("iompool")
     poolIOM.SetDescription("The model IOM pool result at equilibirum")
+    
+    residualsOut = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
+    residualsOut.SetKey("resout")
+    residualsOut.SetDescription("The computed residuals to reach equilibirum")
         
     iterations = vtkGRASSOption()
     iterations.SetKey("iterations")
@@ -308,7 +291,7 @@ def main():
             dataInputs.append(join.GetOutput())
                 
                 
-    new_ds = RothCEquilibriumRun(Inputs=dataInputs, 
+    new_ds, res_ds = RothCEquilibriumRun(Inputs=dataInputs, 
                                  ResidualsInput=residualsReader.GetOutput(), 
                                  SoilCarbonInput=soilCarbonReader.GetOutput(), 
                                  Years=int(years.GetAnswer()), 
@@ -317,7 +300,7 @@ def main():
     # The layer array needs to be added
     new_ds.GetCellData().AddArray(soilCarbonReader.GetOutput().GetCellData().GetArray("Layer"))
 
-# Write the reuslting pools
+# Write the resulting pools
     writer = vtkGRASSMultiRasterPolyDataLineWriter()
     writer.SetRasterMapName(output.GetAnswer())
     writer.SetArrayName("SoilCarbon")
@@ -358,6 +341,13 @@ def main():
     writer.SetArrayName("IOM")
     writer.SetLayer(1)
     writer.SetInput(new_ds)
+    writer.Update()
+    
+    writer = vtkGRASSMultiRasterPolyDataLineWriter()
+    writer.SetRasterMapName(residualsOut.GetAnswer())
+    writer.SetArrayName("Residuals")
+    writer.SetLayer(1)
+    writer.SetInput(res_ds)
     writer.Update()
     
 ################################################################################

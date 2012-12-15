@@ -113,8 +113,10 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
     # Split the residuals   
     residuals.SetInput(res)
     
+    print "Optimization loop with %i cells"%(ResidualsInput.GetNumberOfCells())
+    
     for year in xrange(0, Years, 1):
-        #print "\n\n**** Year", year
+        print "**** Year", year
         for month in xrange(0, 12, 1): 
             
             dc1.RemoveAllInputs()
@@ -176,6 +178,7 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
     """   
     
     # Initial model run
+    print "Initial run"
     model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
                               NullValue)
             
@@ -190,6 +193,7 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
                                                              True, squaredResiduals, True)
     
     # Initiate brents computation
+    print "Initializing Brent root finding optimizer"
     for id in xrange(model.GetNumberOfCells()):
         bx = ResidualsInput.GetCellData().GetScalars().GetTuple1(id)
         res = squaredResiduals.GetTuple1(id)
@@ -254,4 +258,4 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
     model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
                               NullValue)
                 
-    return model
+    return model, ResidualsInput

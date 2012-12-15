@@ -30,4 +30,4 @@
  * GNU General Public License for more details.
 */
 
-//#define OMP_PARALLELIZED 1
+#define OMP_PARALLELIZED 1

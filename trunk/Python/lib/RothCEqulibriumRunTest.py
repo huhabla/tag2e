@@ -47,8 +47,8 @@ class RothCEquilibriumRunTest(unittest.TestCase):
         
         
         # Create the point data
-        xext = 10
-        yext = 10
+        xext = 500
+        yext = 500
         num = xext*yext
         
         GlobalRadiationArray = vtkDoubleArray()
@@ -137,9 +137,9 @@ class RothCEquilibriumRunTest(unittest.TestCase):
         for month in range(0, 12):
           Inputs.append(Input)
         
-        new_ds = RothCEquilibriumRun(Inputs=Inputs, ResidualsInput=ResidualsInput, 
+        new_ds, res = RothCEquilibriumRun(Inputs=Inputs, ResidualsInput=ResidualsInput, 
                                      SoilCarbonInput=SoilCarbonInput, Years=300,
-                                     NumberOfRuns=10)
+                                     NumberOfRuns=20)
         
         writer = vtkPolyDataWriter()
         writer.SetInput(new_ds)
