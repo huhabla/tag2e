@@ -45,8 +45,8 @@ class BootstrapAggregationTest(unittest.TestCase):
     def setUp(self):
         
         # Create the point data
-        xext = 5
-        yext = 4
+        xext = 4
+        yext = 5
         num = xext*yext
                 
         pH = vtkDoubleArray()

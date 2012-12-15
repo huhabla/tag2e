@@ -4,6 +4,7 @@
 # We need to set a specific region in the
 # @preprocess step of this test. 
 # The region setting should work for UTM and LL test locations
+#g.region s=0 n=80 w=0 e=120 b=0 t=50 res=0.25 res3=10 -p3
 g.region s=0 n=80 w=0 e=120 b=0 t=50 res=10 res3=10 -p3
 
 temp=`g.tempfile pid=1 -d` 
@@ -80,7 +81,7 @@ t.rast.RothCEquilibrium --o temperature=temperature_RothC \
     precipitation=precipitation_RothC radiation=radiation_RothC \
     soilcover=soilCover_RothC claycontent=clay soc=initialC \
     residuals=residuals output=soc iterations=20 years=300 \
-    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom
+    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom resout=res
 
 r.info soc
 r.info dpm
@@ -88,6 +89,7 @@ r.info rpm
 r.info hum
 r.info bio
 r.info iom
+r.info res
 
 # @postprocess
 t.remove type=strds input=temperature_RothC,precipitation_RothC,radiation_RothC,soilCover_RothC
@@ -107,4 +109,4 @@ t.unregister type=rast file="${soil}"
 for name in `cat "${soil}"` ; do
     g.remove rast=${name}
 done
-g.remove rast=soc,dpm,rpm,hum,bio,iom
+g.remove rast=soc,dpm,rpm,hum,bio,iom,res
