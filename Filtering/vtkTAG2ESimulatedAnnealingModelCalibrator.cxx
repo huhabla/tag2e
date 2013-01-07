@@ -214,6 +214,12 @@ int vtkTAG2ESimulatedAnnealingModelCalibrator::RequestData(
     // Break if the best fit is reached
     if (bestFitError < this->BreakCriteria)
       break;
+    // We break in case the error stays to large
+    if ((i + 1)%100 == 0 && bestFitError > 1E20) 
+      {
+        vtkErrorMacro( << "Error stays to large (>1E20), break computation.");
+        break;
+      }
     }
 
   this->BestFitError = bestFitError;
