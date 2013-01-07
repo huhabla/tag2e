@@ -173,8 +173,8 @@ bool vtkTAG2EFuzzyInferenceModelParameter::GenerateXMLFromInternalScheme()
   respmin << setprecision(20) << this->FIS.Responses.min;
   respmax << setprecision(20) << this->FIS.Responses.max;
   responses->SetName("Responses");
-  responses->SetDoubleAttribute("min", respmin.str().size());
-  responses->SetDoubleAttribute("max", respmax.str().size());
+  responses->SetAttribute("min", respmin.str().c_str());
+  responses->SetAttribute("max", respmax.str().c_str());
 
   for (i = 0; i < this->FIS.Responses.Responses.size(); i++)
     {

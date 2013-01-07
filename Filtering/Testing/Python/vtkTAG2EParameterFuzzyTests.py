@@ -213,6 +213,13 @@ class vtkTAG2EDParameterFuzzyTest(unittest.TestCase):
         fisc.Read();
         fisc.SetFileName("/tmp/FuzzyInferenceScheme2.xml")
         fisc.Write()
+
+        second = vtkTAG2EFuzzyInferenceModelParameter()
+	root2 = vtkXMLDataElement()
+        fisc.GetXMLRepresentation(root2)
+        second.SetXMLRepresentation(root2)
+        second.SetFileName("/tmp/FuzzyInferenceScheme3.xml")
+        second.Write()
              
     def test3FuzzyParameter(self):
         
