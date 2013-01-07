@@ -131,6 +131,10 @@ def MetaModelSimulatedAnnealingImproved(metaModel, maxiter = 1000, initialT = 1,
             print "Best fit reached"
             break
 
+    	if (i + 1)% 100 and bestFitError > 1E20:
+            print "Error stays to large (>1E20), break computation."
+	    break
+
     print "Finished after ", count, " Iterations with best fit ", bestFitError, " and Model assessment ", bestFitModelAssessment
     
     return bestFitModelParameter, bestFitDataSet, bestFitError, bestFitModelAssessment
