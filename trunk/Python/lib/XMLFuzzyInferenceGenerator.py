@@ -46,12 +46,14 @@ def ComputeDoubleArrayRange(array, noData):
     
     sum = 0.0
 
+    """We assume that no data is always the maximum value"""
     if max == noData:
         max = min
 
     for i in range(array.GetNumberOfTuples()):
         val = array.GetValue(i)
-        sum += val
+	if val != noData:
+            sum += val
         if val < min:
             min = val
         elif val != noData and val > max:
@@ -101,6 +103,7 @@ def BuildXML(factorNames, fuzzySetNum, measureName, dataset, noData, useCellData
         min, max, rmean = ComputeDoubleArrayRange(dataset.GetCellData().GetArray(measureName), noData)
 
     print "Using ", numberOfRules, " number of rules "
+    print "Responses: min: %g max: %g rmean: %g"%(min, max, rmean)
 
     resp.SetName("Responses")
     resp.SetAttribute("min", "%.15f" % min)

@@ -439,6 +439,8 @@ def main():
         # Set up the parameter and the model
         parameter = vtkTAG2EFuzzyInferenceModelParameter()
         parameter.SetXMLRepresentation(xmlRootFIS)
+        parameter.SetFileName("generated.xml")
+        parameter.Write()
         
         NumberOfModelParameter = parameter.GetNumberOfCalibratableParameter()
 
