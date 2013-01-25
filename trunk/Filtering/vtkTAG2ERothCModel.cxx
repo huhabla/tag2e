@@ -240,12 +240,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         <<"Cell data array <" << ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY << "> is missing ");
     return -1;
     }
-  if (!this->EquilibriumRun && !input->GetCellData()->HasArray(ROTHC_INPUT_NAME_FERTILIZER_CARBON))
-    {
-    vtkErrorMacro(
-        <<"Cell data array <" << ROTHC_INPUT_NAME_FERTILIZER_CARBON << "> is missing ");
-    return -1;
-    }
 
   // Copy geometry from input
   output->CopyStructure(input);
@@ -555,6 +549,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     pointIds->Delete();
     }
 
+  if(input->GetCellData()->HasArray("Layer"))
+    output->GetCellData()->AddArray(input->GetCellData()->GetArray("Layer"));
   output->GetCellData()->AddArray(result);
   output->GetCellData()->SetActiveScalars(result->GetName());
 
