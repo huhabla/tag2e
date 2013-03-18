@@ -43,12 +43,12 @@ from RothCEqulibriumRun import *
 
 class RothCEquilibriumRunTest(unittest.TestCase):
 
-    def test1(self):
+    def setUp(self):
         
         
         # Create the point data
-        xext = 500
-        yext = 500
+        xext = 20
+        yext = 20
         num = xext*yext
         
         GlobalRadiationArray = vtkDoubleArray()
@@ -130,22 +130,42 @@ class RothCEquilibriumRunTest(unittest.TestCase):
         SoilCarbon.GetCellData().SetScalars(SoilCarbonArray)
         SoilCarbon.SetPoints(points)   
         
-        Inputs = []
-        ResidualsInput = Residuals
-        SoilCarbonInput = SoilCarbon
+        self.Inputs = []
+        self.ResidualsInput = Residuals
+        self.SoilCarbonInput = SoilCarbon
         
         for month in range(0, 12):
-          Inputs.append(Input)
+          self.Inputs.append(Input)
         
-        new_ds, res = RothCEquilibriumRun(Inputs=Inputs, ResidualsInput=ResidualsInput, 
-                                     SoilCarbonInput=SoilCarbonInput, Years=300,
-                                     NumberOfRuns=20)
+    def test1(self):
+        new_ds, res = RothCEquilibriumRun(Inputs=self.Inputs, ResidualsInput=self.ResidualsInput, 
+                                     SoilCarbonInput=self.SoilCarbonInput, Years=300,
+                                     NumberOfRuns=20, runType="monthly")
         
         writer = vtkPolyDataWriter()
         writer.SetInput(new_ds)
-        writer.SetFileName("/tmp/RothCEqulibirumTest1.vtk")
+        writer.SetFileName("/tmp/RothCEqulibirumTest_monthly.vtk")
         writer.Write()
-
+        
+    def test2(self):
+        new_ds, res = RothCEquilibriumRun(Inputs=self.Inputs, ResidualsInput=self.ResidualsInput, 
+                                     SoilCarbonInput=self.SoilCarbonInput, Years=300,
+                                     NumberOfRuns=20, runType="yearly")
+        
+        writer = vtkPolyDataWriter()
+        writer.SetInput(new_ds)
+        writer.SetFileName("/tmp/RothCEqulibirumTest_yearly.vtk")
+        writer.Write()
+        
+    def test3(self):
+        new_ds, res = RothCEquilibriumRun(Inputs=self.Inputs, ResidualsInput=self.ResidualsInput, 
+                                     SoilCarbonInput=self.SoilCarbonInput, Years=300,
+                                     NumberOfRuns=20, runType="slow")
+        
+        writer = vtkPolyDataWriter()
+        writer.SetInput(new_ds)
+        writer.SetFileName("/tmp/RothCEqulibirumTest_slow.vtk")
+        writer.Write()
 if __name__ == '__main__':
     suite1 = unittest.TestLoader().loadTestsFromTestCase(RothCEquilibriumRunTest)
     unittest.TextTestRunner(verbosity=2).run(suite1) 

@@ -36,6 +36,8 @@ from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeCommonPython import *
 from MetaModel import *
+from RothCModelRun import *
+import grass.temporal as tgis
 
 DaysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
@@ -44,10 +46,10 @@ DaysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 ################################################################################
 
 def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None, 
-                        NullValue=-99999):
+                        NullValue=-99999, ModelRunNames=None, runType="monthly"):
     """!Compute the RothC soil carbon equilibrium
     
-       @param ETpotInputs: A list of 12 inputs, each with the long term parameter
+       @param Inputs: A list of inputs, each with the long term parameter
                           - Long term monthly temperature mean [degree C]
                           - Long term monthly global radiation [J/(cm^2 * day)]
                           - Long term monthly accumulated precipitation [mm]
@@ -56,13 +58,25 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
                           - Long term monthly fertilizer carbon (should be 0)
                           - Initial C-org
                           
-       param ResidualsInput: The initial residuals as vtkPolyData input
+       @param ResidualsInput: The initial residuals as vtkPolyData input
                           for the RothC model [tC/ha]
                           
        @param Years: The maximum number of Iterations (years) for a single run
        @param NumberOfRuns: The maximum number of runs to find the equilibrium
        @param RothCParameter: The parameter object for the RothC Model
        @param NullValue: The Null value that represents unknown values
+       @param ModelRunNames: A dictionary with the names of input/output space time
+              raster datasets and maps with identifier:
+              * Temperature STRDS name
+              * Precipitation STRDS name
+              * Radiation STRDS name
+              * SoilCover STRDS name
+              * Fertilizer STRDS name
+              * Residuals STRDS name
+              * ClayContent raster map
+              These datastes are used to compute the RothC model in the equilibium run
+        @param runType: The type of equilibrium run slow, monthly, yearly
+              
        
        @return A vtkPolyDataSet with RothC pools and initial Carbon
     """
@@ -90,14 +104,22 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
     residuals = vtkTAG2ERothCResidualFilter()
     residuals.SetNullValue(NullValue)
     
-    # RothC model computation
+    # RothC model equilibrium computation
     if not RothCParameter or RothCParameter == None:
         RothCParameter = vtkTAG2ERothCModelParameter()
 
-    RothC = vtkTAG2ERothCModel()
+    if runType == "slow":
+        RothC = vtkTAG2ERothCModel()
+        RothC.EquilibriumRunOn()
+    else:
+        RothC = vtkTAG2ERothCModelEquilibrium()
+        if runType == "monthly":
+            RothC.SetTemporalResolutionToMonthly()
+        if runType == "yearly":
+            RothC.SetTemporalResolutionToYearly()
+            
     RothC.SetModelParameter(RothCParameter)
     RothC.AddCPoolsToOutputOn()
-    RothC.EquilibriumRunOn()
     RothC.SetNullValue(NullValue)
     
     dc1 = vtkTAG2EDataSetJoinFilter()
@@ -115,8 +137,33 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
     
     print "Optimization loop with %i cells"%(ResidualsInput.GetNumberOfCells())
     
-    for year in xrange(0, Years, 1):
-        print "**** Year", year
+    if runType == "slow":
+        for year in xrange(0, Years, 1):
+            # Report only ten times
+            if year % (Years/10) == 1:
+                print "**** year %i from %i years"%(year, Years)
+            for month in xrange(0, 12, 1): 
+                
+                dc1.RemoveAllInputs()
+                dc2.RemoveAllInputs()
+                               
+                ETpot.SetInput(Inputs[month])
+                ETpot.SetTimeInterval(DaysPerMonth[month])
+                
+                # Soil moisture input
+                dc1.AddInputConnection(ETpot.GetOutputPort())
+                dc1.AddInput(Inputs[month])
+                
+                SoilMoisture.SetInputConnection(dc1.GetOutputPort())
+                
+                # ETpot input
+                dc2.AddInput(Inputs[month])
+                dc2.AddInputConnection(SoilMoisture.GetOutputPort())
+                dc2.AddInputConnection(residuals.GetOutputPort())
+    
+                RothC.SetInputConnection(dc2.GetOutputPort())
+                RothC.Update()
+    else:
         for month in xrange(0, 12, 1): 
             
             dc1.RemoveAllInputs()
@@ -135,26 +182,47 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
             dc2.AddInput(Inputs[month])
             dc2.AddInputConnection(SoilMoisture.GetOutputPort())
             dc2.AddInputConnection(residuals.GetOutputPort())
-
-            RothC.SetInputConnection(dc2.GetOutputPort())
-            RothC.Update()
+    
+            RothC.AddInputConnection(dc2.GetOutputPort())
+        
+        RothC.Update()
             
-    # Return the output of RothC
-    output = vtkPolyData()
-    output.ShallowCopy(RothC.GetOutput())
+    # Model run
+    if ModelRunNames:
+        
+        inputNames = "%s,%s,%s,%s,%s"%(ModelRunNames["Precipitation"], 
+                                       ModelRunNames["Radiation"], 
+                                       ModelRunNames["SoilCover"], 
+                                       ModelRunNames["Fertilizer"], 
+                                       ModelRunNames["Residuals"])
+        
+        mapmatrix = tgis.sample_stds_by_stds_topology("strds", "strds", inputNames,
+                                                      ModelRunNames["Temperature"], False,
+                                                    "|", "equal", False, False)
+         
+        output = RothCModelRun(mapmatrix, RothC.GetOutput(), ModelRunNames["ClayContent"],
+                               None, None, 
+                               None, NullValue, True)
+    else:
+        # Return the output of RothC
+        output = vtkPolyData()
+        output.ShallowCopy(RothC.GetOutput())
     
     return output
-        
+
+
+
+
 ################################################################################
 ################################################################################
 ################################################################################
 
 def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOfRuns,
                         RothCParameter=None, NullValue=-99999, ax=0, cx=15, 
-                        brent_error=0.00001):
+                        brent_error=0.00001, ModelRunNames=None, runType="monthly"):
     """!Compute the RothC soil carbon equilibrium using Brents method
     
-       @param Inputs: A list of 12 inputs, each with long term parameter
+       @param Inputs: A list of inputs, each with long term parameter
                           - Long term monthly temperature mean [degree C]
                           - Long term monthly global radiation [J/(cm^2 * day)]
                           - Long term monthly accumulated precipitation [mm]
@@ -173,6 +241,16 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
        @param NumberOfRuns: The maximum number of runs to find the equilibrium
        @param RothCParameter: The parameter object for the RothC Model
        @param NullValue: The Null value that represents unknown values
+       @param ModelRunNames: A dictionary with the names of input/output space time
+              raster datasets and maps with identifier:
+              * Temperature STRDS name
+              * Precipitation STRDS name
+              * Radiation STRDS name
+              * SoilCover STRDS name
+              * Fertilizer STRDS name
+              * Residuals STRDS name
+              * ClayContent raster map
+        @param runType: The type of equilibrium run slow, monthly, yearly
        
        @return A vtkPolyDataSet with RothC pools and initial Carbon
     """   
@@ -180,20 +258,27 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
     # Initial model run
     print "Initial run"
     model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
-                              NullValue)
+                              NullValue, ModelRunNames, runType)
             
     # The brent and check lists
     blist = model.GetNumberOfCells()*[None]
     clist = model.GetNumberOfCells()*[False]
     
     squaredResiduals = vtkDoubleArray()
+    squaredResiduals.SetNumberOfTuples(model.GetNumberOfCells())
+    squaredResiduals.FillComponent(0,0.0)
+    
+    convergence = vtkShortArray()
+    convergence.SetNumberOfTuples(model.GetNumberOfCells())
+    convergence.FillComponent(0,0)
+    convergence.SetName("Convergence")
     
     # Compute squared residuals
     vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(model, SoilCarbonInput, 
                                                              True, squaredResiduals, True)
     
     # Initiate brents computation
-    print "Initializing Brent root finding optimizer"
+    print "Initializing Brent root finding optimizer using ax %f and cx %f"%(ax, cx)
     for id in xrange(model.GetNumberOfCells()):
         bx = ResidualsInput.GetCellData().GetScalars().GetTuple1(id)
         res = squaredResiduals.GetTuple1(id)
@@ -213,19 +298,21 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
                 continue
             
             if blist[id].IsFinished():
-                #print "Brent break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
+                print "Brent break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
                 # Put the computed model input value into the residuals dataset
                 ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
                 clist[id] = True
+                convergence.SetValue(id, 1)
                 continue
             
             # Compute the best fit and use it as input for the equilibrium run
             bx = blist[id].Fit()
+            # print "Id", id, "best fit ", bx
             ResidualsInput.GetCellData().GetScalars().SetTuple1(id, bx)
             
         # Run the model
         model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
-                                  NullValue)
+                                  NullValue, ModelRunNames, runType)
         
         # Compute squared residuals
         vtkTAG2EAbstractModelCalibrator.ComputeDataSetsResiduals(model, SoilCarbonInput, 
@@ -237,15 +324,17 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
                 continue
             
             res = squaredResiduals.GetTuple1(id)
-            #print "Id", id, "squared res ", res
+            # print "Id", id, "squared res ", res
             
-            #Evaluate the model result
+
+            #blist[id].Evaluate(res + blist[id].Getx()/10)
             blist[id].Evaluate(res)
             
             # Check break criteria
             if res < 0.01:
                 #print "Residual break criteria reached at id", id, " fx ", blist[id].Getfx(), " x", blist[id].Getx()
                 clist[id] = True
+                convergence.SetValue(id, 1)
                 ResidualsInput.GetCellData().GetScalars().SetTuple1(id, blist[id].Getx())
                 continue
             
@@ -256,6 +345,10 @@ def RothCEquilibriumRun(Inputs, ResidualsInput, SoilCarbonInput, Years, NumberOf
     
     print "Final run with latest residuals"
     model = _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter, 
-                              NullValue)
+                              NullValue, ModelRunNames, runType)
+                
+    squaredResiduals.SetName("SquaredResiduals")
+    model.GetCellData().AddArray(convergence)
+    model.GetCellData().AddArray(squaredResiduals)
                 
     return model, ResidualsInput
