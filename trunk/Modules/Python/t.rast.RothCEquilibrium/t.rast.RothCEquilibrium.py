@@ -81,7 +81,7 @@ def main():
     # Space time raster datasets
     soilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     soilCover.SetKey("soilcover")
-    soilCover.SetDescription("Space time raster dataset with long term monthly  (exactly 12 months)")
+    soilCover.SetDescription("Space time raster dataset with long term monthly soil cover (exactly 12 months)")
                        
     # Raster map input
     clayContent = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
@@ -120,6 +120,63 @@ def main():
     poolIOM.SetKey("iompool")
     poolIOM.SetDescription("The model IOM pool result at equilibirum")
     
+    convergence = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
+    convergence.SetKey("convergence")
+    convergence.SetDescription("Convergence flag for each pixel. 1 convence, 0 no convergence")
+    
+    squaredResiduals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
+    squaredResiduals.SetKey("squaredresiduals")
+    squaredResiduals.SetDescription("The squared residuals of the Brent optimization for each pixel")
+    """
+    Model input start
+      * Temperature STRDS name
+      * Precipitation STRDS name
+      * Radiation STRDS name
+      * SoilCover STRDS name
+      * Fertilizer STRDS name
+      * Residuals STRDS name
+    """
+    
+    modelTemperature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelTemperature.SetKey("mtemperature")
+    modelTemperature.RequiredOff()
+    modelTemperature.SetDescription("Space time raster dataset with monthly temperature mean [degree C]"
+                               ". This dataset will be used to temporally sample all other.")
+    
+    modelPrecipitation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelPrecipitation.SetKey("mprecipitation")
+    modelPrecipitation.RequiredOff()
+    modelPrecipitation.SetDescription("Space time raster dataset with "
+                                      "accumulated precipitation [mm]")
+    
+    modelRadiation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelRadiation.SetKey("mradiation")
+    modelRadiation.RequiredOff()
+    modelRadiation.SetDescription("Space time raster dataset with monthly "
+                             "global radiation [J/(cm^2 * day)]")
+    
+    modelResiduals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelResiduals.SetKey("mresiduals")
+    modelResiduals.RequiredOff()
+    modelResiduals.SetDescription("Space time raster dataset with monthly "
+                             "residuals tC/ha")
+    
+    modelFertilizer = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelFertilizer.SetKey("mfertilizer")
+    modelFertilizer.RequiredOff()
+    modelFertilizer.SetDescription("Space time raster dataset with monthly "
+                             "fertilizer tC/ha")
+    
+    # Space time raster datasets
+    modelSoilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    modelSoilCover.SetKey("msoilcover")
+    modelSoilCover.RequiredOff()
+    modelSoilCover.SetDescription("Space time raster dataset with monthly soil cover")
+    
+    """
+    Model input end
+    """
+
     residualsOut = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     residualsOut.SetKey("resout")
     residualsOut.SetDescription("The computed residuals to reach equilibirum")
@@ -140,6 +197,21 @@ def main():
     years.SetDescription("The number of years of the provided temporal cycle")
     years.SetTypeToInteger()
 
+    ax = vtkGRASSOption()
+    ax.SetKey("ax")
+    ax.MultipleOff()
+    ax.RequiredOff()
+    ax.SetDefaultAnswer("0")
+    ax.SetDescription("The lower limit of the residual range")
+    ax.SetTypeToDouble()
+    
+    cx = vtkGRASSOption()
+    cx.SetKey("cx")
+    cx.MultipleOff()
+    cx.RequiredOff()
+    cx.SetDefaultAnswer("15")
+    cx.SetDescription("The upper limit of the residual range")
+    cx.SetTypeToDouble()
     # INIT
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -205,10 +277,10 @@ def main():
     
     if len(mapmatrix) > 0:
         
-        if len(mapmatrix[0]) != 12:
-            messages.FatalError("You must provide 12 months of data")
+        if len(mapmatrix[0]) < 12:
+            messages.FatalError("You must provide at least 12 months of data")
         
-        for j in range(len(mapmatrix[0])):
+        for j in range(12):
             
             dsList = []
             
@@ -289,13 +361,44 @@ def main():
             join.Update()
             
             dataInputs.append(join.GetOutput())
-                
+    
+    # Create the module input dictionary
+    
+    """
+    Model input start
+      * Temperature STRDS name
+      * Precipitation STRDS name
+      * Radiation STRDS name
+      * SoilCover STRDS name
+      * Fertilizer STRDS name
+      * Residuals STRDS name
+    """
+    
+    ModelRunNames = None
+
+    if modelTemperature.GetAnswer() and \
+        modelPrecipitation.GetAnswer() and \
+        modelRadiation.GetAnswer() and \
+        modelResiduals.GetAnswer() and \
+        modelFertilizer.GetAnswer() and \
+        modelSoilCover.GetAnswer():
+        ModelRunNames = {}
+        
+        ModelRunNames["Temperature"] = modelTemperature.GetAnswer()
+        ModelRunNames["Precipitation"] = modelPrecipitation.GetAnswer()
+        ModelRunNames["Radiation"] = modelRadiation.GetAnswer()
+        ModelRunNames["SoilCover"] = modelSoilCover.GetAnswer()
+        ModelRunNames["Fertilizer"] = modelFertilizer.GetAnswer()
+        ModelRunNames["Residuals"] = modelResiduals.GetAnswer()
+        ModelRunNames["ClayContent"] = clayContent.GetAnswer()
                 
     new_ds, res_ds = RothCEquilibriumRun(Inputs=dataInputs, 
                                  ResidualsInput=residualsReader.GetOutput(), 
                                  SoilCarbonInput=soilCarbonReader.GetOutput(), 
                                  Years=int(years.GetAnswer()), 
-                                 NumberOfRuns=int(iterations.GetAnswer()))
+                                 NumberOfRuns=int(iterations.GetAnswer()),
+                                 ax=float(ax.GetAnswer()), cx=float(cx.GetAnswer()), 
+                                 ModelRunNames=ModelRunNames)
 
     # The layer array needs to be added
     new_ds.GetCellData().AddArray(soilCarbonReader.GetOutput().GetCellData().GetArray("Layer"))
@@ -350,6 +453,19 @@ def main():
     writer.SetInput(res_ds)
     writer.Update()
     
+    writer = vtkGRASSMultiRasterPolyDataLineWriter()
+    writer.SetRasterMapName(convergence.GetAnswer())
+    writer.SetArrayName("Convergence")
+    writer.SetLayer(1)
+    writer.SetInput(new_ds)
+    writer.Update()
+    
+    writer = vtkGRASSMultiRasterPolyDataLineWriter()
+    writer.SetRasterMapName(squaredResiduals.GetAnswer())
+    writer.SetArrayName("SquaredResiduals")
+    writer.SetLayer(1)
+    writer.SetInput(new_ds)
+    writer.Update()
 ################################################################################
 ################################################################################
 ################################################################################

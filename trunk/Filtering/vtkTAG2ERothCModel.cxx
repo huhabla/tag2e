@@ -165,20 +165,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       || !input->GetCellData()->HasArray(ROTHC_POOL_NAME_IOM))
     hasInputPools = false;
 
-  // Initiate the C pools
-  if ((this->CPools == NULL || this->CPoolsInitiated == 0)
-      && hasInputPools == false)
-    {
-    // Check for initial carbon array in the input
-
-    if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_INITIAL_CARBON))
-      {
-      vtkErrorMacro("Initial soil carbon is missing in input dataset, assuming no initial carbon.");
-      }
-
-    this->CreateCPools(input);
-    }
-
   // Allocate the pool structure if empty or if it has different
   // number of points/cells
   if (this->CPools == NULL
@@ -189,10 +175,11 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       this->CPools->Delete();
     this->CPools = vtkPolyData::New();
     this->CPools->CopyStructure(input);
+    cout << "Allocating C-Pools" << endl;
     }
 
   // Copy the arrays from input to the pools
-  if (hasInputPools)
+  if (hasInputPools && this->CPoolsInitiated == 0)
     {
     for (i = 0; i < this->CPools->GetCellData()->GetNumberOfArrays(); i++)
       this->CPools->GetCellData()->RemoveArray(i);
@@ -207,6 +194,20 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
         input->GetCellData()->GetArray(ROTHC_POOL_NAME_HUM));
     this->CPools->GetCellData()->AddArray(
         input->GetCellData()->GetArray(ROTHC_POOL_NAME_IOM));
+    cout << "Initializing C-Pools" << endl;
+    this->CPoolsInitiatedOn();
+    }
+
+  // Initiate the C pools
+  if (this->CPoolsInitiated == 0 && hasInputPools == false)
+    {
+    // Check for initial carbon array in the input
+    if (!input->GetCellData()->HasArray(ROTHC_INPUT_NAME_INITIAL_CARBON))
+      {
+      vtkErrorMacro("Initial soil carbon is missing in input dataset, assuming no initial carbon.");
+      }
+
+    this->CreateCPools(input);
     }
   // Check the array names
 
@@ -576,6 +577,8 @@ void vtkTAG2ERothCModel::CreateCPools(vtkPolyData *input)
   vtkDoubleArray *iomArray = vtkDoubleArray::New();
   vtkDataArray *initCArray = NULL;
   vtkIdType i;
+
+  cout << "CreateCPools from initial carbon" << endl;
 
   // Set up the arrays
   dpmArray->SetName(ROTHC_POOL_NAME_DPM);

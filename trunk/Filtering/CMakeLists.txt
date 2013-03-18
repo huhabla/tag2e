@@ -28,6 +28,7 @@ SET (Filtering_SRCS
     vtkTAG2EWeightingModel.cxx
     vtkTAG2ERothCModelParameter.cxx
     vtkTAG2ERothCModel.cxx
+    vtkTAG2ERothCModelEquilibrium.cxx
     vtkTAG2ERothCWaterBudgetModel.cxx
     vtkTAG2ETurcETPotModel.cxx
     vtkTAG2EDataSetJoinFilter.cxx
@@ -57,6 +58,7 @@ SET (Filtering_H
     vtkTAG2EWeightingModel.h
     vtkTAG2ERothCModelParameter.h
     vtkTAG2ERothCModel.h
+    vtkTAG2ERothCModelEquilibrium.h
     vtkTAG2ERothCWaterBudgetModel.h
     vtkTAG2ETurcETPotModel.h
     vtkTAG2EDataSetJoinFilter.h

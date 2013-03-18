@@ -37,6 +37,11 @@
 #ifndef vtkTAG2ERothCDefines_H
 #define	vtkTAG2ERothCDefines_H
 
+// Temporal resolution
+#define ROTHC_DAILY 365
+#define ROTHC_MONTHLY 12
+#define ROTHC_YEARLY 1
+
 // Names of the pool arrays
 #define ROTHC_POOL_NAME_DPM "DPM"
 #define ROTHC_POOL_NAME_RPM "RPM"

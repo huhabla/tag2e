@@ -79,7 +79,7 @@ t.create --o type=strds temporaltype=absolute output=residuals_RothC \
 t.register --o -i type=rast input=residuals_RothC map=residuals \
     start=2000-08-01 increment="1 months"
 
-# RESIDUALS
+# FERTILIZER
 r.mapcalc --o expr="fertilizer_1 = rand(1,50)"
 r.mapcalc --o expr="fertilizer_2 = rand(1,50)"
 

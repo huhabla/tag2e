@@ -73,7 +73,7 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
     
     # Clay content is not a time series
     names = vtkStringArray()
-    names.InsertNextValue(clayContent.GetAnswer())
+    names.InsertNextValue(clayContent)
     clayReader = vtkGRASSMultiRasterPolyDataLineReader()
     clayReader.SetRasterNames(names)
     clayReader.SetDataName("Clay")
