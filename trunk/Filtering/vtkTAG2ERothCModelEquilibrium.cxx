@@ -215,7 +215,6 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
     {
     for (i = 0; i < this->TemporalResolution; i++)
       {
-
       vtkPolyData* input = vtkPolyData::GetData(inputVector[0], i);
       // Get array pointer for easy access
       vtkDataArray *dpmArray = this->CPools->GetCellData()->GetArray(
@@ -298,6 +297,9 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
         efficiency = (*this->x[i])[cellId];
         resRoots = (*this->roots[i])[cellId];
         resSurf = (*this->surface[i])[cellId];
+
+        // Constants
+        // we assume soil cover in the equilibrium run
         c_res = 0.6;
         allocFractionhum = 0.54;
         allocFractionbio = 0.46;

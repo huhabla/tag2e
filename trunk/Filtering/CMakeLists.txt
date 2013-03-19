@@ -68,11 +68,13 @@ SET (Filtering_H
 
 # VTK R Support
 if (USE_VTK_GRASS_BRIDGE_R_SUPPORT)
-	SET (Filtering_H 
+    SET (Filtering_SRCS 
+    ${Filtering_SRCS}
     vtkTAG2EModelMonteCarloVariationAnalyser.cxx
 #    vtkTAG2ERSpaceTimeModel.cxx
     )
-	SET (Filtering_H 
+    SET (Filtering_H 
+    ${Filtering_H}
     vtkTAG2EModelMonteCarloVariationAnalyser.h
 #   vtkTAG2ERSpaceTimeModel.h
     )
