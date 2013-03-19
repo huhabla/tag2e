@@ -212,6 +212,12 @@ def main():
     cx.SetDefaultAnswer("15")
     cx.SetDescription("The upper limit of the residual range")
     cx.SetTypeToDouble()
+    
+    
+    yearly = vtkGRASSFlag()
+    yearly.SetDescription("Compute yearly aggregates for equilibrium run")
+    yearly.SetKey('y')
+    
     # INIT
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -391,6 +397,12 @@ def main():
         ModelRunNames["Fertilizer"] = modelFertilizer.GetAnswer()
         ModelRunNames["Residuals"] = modelResiduals.GetAnswer()
         ModelRunNames["ClayContent"] = clayContent.GetAnswer()
+            
+            
+    runType = "monthly"
+    if yearly.GetAnswer():
+        runType = "yearly"
+        
                 
     new_ds, res_ds = RothCEquilibriumRun(Inputs=dataInputs, 
                                  ResidualsInput=residualsReader.GetOutput(), 
@@ -398,7 +410,7 @@ def main():
                                  Years=int(years.GetAnswer()), 
                                  NumberOfRuns=int(iterations.GetAnswer()),
                                  ax=float(ax.GetAnswer()), cx=float(cx.GetAnswer()), 
-                                 ModelRunNames=ModelRunNames)
+                                 ModelRunNames=ModelRunNames, runType=runType)
 
     # The layer array needs to be added
     new_ds.GetCellData().AddArray(soilCarbonReader.GetOutput().GetCellData().GetArray("Layer"))
