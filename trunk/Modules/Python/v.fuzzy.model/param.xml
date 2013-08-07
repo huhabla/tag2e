@@ -1,0 +1,60 @@
+<FuzzyInferenceScheme name="Test" xmlns="http://tag2e.googlecode.com/files/FuzzyInferenceScheme" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tag2e.googlecode.com/files/FuzzyInferenceScheme http://tag2e.googlecode.com/files/WeightedFuzzyInferenceScheme.xsd">
+  <Factor name="map1" min="1.0512710000000000665" max="1.6487210000000001031" portId="0">
+    <Set const="0" position="left" priority="0" type="Triangular">
+      <Triangular center="1.236181493337111359" left="9999" right="0.14236326785344832757">
+        
+      </Triangular>
+      
+    </Set>
+    <Set const="0" position="right" priority="0" type="Triangular">
+      <Triangular center="1.3785447611905596865" left="0.14236326785344832757" right="9999">
+        
+      </Triangular>
+      
+    </Set>
+    
+  </Factor>
+  <Factor name="map2" min="6.0515959999999999752" max="63.029009999999999536" portId="0">
+    <Set const="0" position="left" priority="0" type="Triangular">
+      <Triangular center="10.072736703649962209" left="9999" right="17.906550840460653262">
+        
+      </Triangular>
+      
+    </Set>
+    <Set const="0" position="intermediate" priority="0" type="Triangular">
+      <Triangular center="27.979287544110604813" left="17.906550840460653262" right="33.313531367589291676">
+        
+      </Triangular>
+      
+    </Set>
+    <Set const="0" position="right" priority="0" type="Triangular">
+      <Triangular center="61.292818911699932016" left="33.313531367589291676" right="9999">
+        
+      </Triangular>
+      
+    </Set>
+    
+  </Factor>
+  <Responses min="2" max="2">
+    <Response const="0" sd="1">
+      212.55853685750480508
+    </Response>
+    <Response const="0" sd="1">
+      3247.7218622807567954
+    </Response>
+    <Response const="0" sd="1">
+      16849.37999166352165
+    </Response>
+    <Response const="0" sd="1">
+      4356.4667880714714556
+    </Response>
+    <Response const="0" sd="1">
+      3089.1483843077721758
+    </Response>
+    <Response const="0" sd="1">
+      18323.230376449027972
+    </Response>
+    
+  </Responses>
+  
+</FuzzyInferenceScheme>

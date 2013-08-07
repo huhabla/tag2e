@@ -35,6 +35,7 @@
 #  GNU General Public License for more details.
 
 import sys
+import math
 
 #include the VTK and vtkGRASSBridge Python libraries
 from vtk import *
@@ -59,6 +60,11 @@ def main():
     module.AddKeyword("fuzzy")
 
     input = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorInputType())
+    
+    mcol = vtkGRASSOption()
+    mcol.SetKey("mcol")
+    mcol.SetDescription("The column name with measurements")
+    mcol.RequiredOff()
 
     feature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorFeatureType())
     feature.SetDefaultOptions("point,centroid,area")
@@ -67,9 +73,17 @@ def main():
     
     paramXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType(), "parameter")
     paramXML.SetDescription("Name of the XML (weighted) fuzzy inference parameter file")
+ 
+    sigparamXML = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileOutputType(), "sigparameter")
+    sigparamXML.SetDescription("Compute the rule specific sigma and store it in this xml file")
+    sigparamXML.RequiredOff()
 
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetVectorOutputType())
     output.SetDescription("The model result")
+
+    sigma = vtkGRASSFlag()
+    sigma.SetDescription("Compute the rule specific sigma.")
+    sigma.SetKey('s')
 
     weighting = vtkGRASSFlag()
     weighting.SetDescription("Input is weighted fuzzy inference scheme")
@@ -87,6 +101,9 @@ def main():
         return -1
 
     messages = vtkGRASSMessagingInterface()
+
+    if sigparamXML.GetAnswer() and not mcol.GetAnswer():
+        messages.FatalError("You need to specifiy the measument column name of the input vector map")
 
     messages.Message("Reading vector map into memory")
     # Reader
@@ -133,6 +150,10 @@ def main():
         modelFIS = vtkTAG2EFuzzyInferenceModel()
         modelFIS.SetInputConnection(dataset.GetOutputPort())
         modelFIS.SetModelParameter(parameterFIS)
+        if sigma.GetAnswer():
+            modelFIS.ComputeSigmaOn()
+        if sigparamXML.GetAnswer():
+            modelFIS.CreateDOFArrayOn()
         modelFIS.UseCellDataOn()
 
         parameterW = vtkTAG2EWeightingModelParameter()
@@ -156,10 +177,60 @@ def main():
         model = vtkTAG2EFuzzyInferenceModel()
         model.SetInputConnection(dataset.GetOutputPort())
         model.SetModelParameter(parameter)
+        if sigma.GetAnswer():
+            model.ComputeSigmaOn()
+        if sigparamXML.GetAnswer():
+            model.CreateDOFArrayOn()
         model.UseCellDataOn()
         model.Update()
 
         outputDS.ShallowCopy(model.GetOutput())
+
+    # Compute the rule specific standard deviation
+    if sigparamXML.GetAnswer():
+        numRules = parameter.GetNumberOfRules()
+        numCells = outputDS.GetNumberOfCells()
+        dofDev = [0]*numRules
+        dof = [0]*numRules
+        sig = [0]*numRules
+        values = [0]*numRules
+
+        inputArray = dataset.GetOutput().GetCellData().GetArray(mcol.GetAnswer())
+        modelArray = outputDS.GetCellData().GetArray(model.GetResultArrayName())
+
+        dofArray = outputDS.GetCellData().GetArray("DOF")
+        for id in xrange(numCells):
+
+            m = inputArray.GetTuple1(id)
+            i = modelArray.GetTuple1(id)
+
+            dev = (m - i)*(m - i)
+            dofArray.GetTupleValue(id, values)
+
+            for rule in xrange(numRules):
+                dofDev[rule] += values[rule] * dev
+                dof[rule] += values[rule]
+
+        for rule in xrange(numRules):
+            sig[rule] = math.sqrt(dofDev[rule] / dof[rule])
+            print "Rule %i has a standard deviation of %.5f"%(rule, sig[rule])
+
+        p = vtkTAG2EFuzzyInferenceModelParameter()
+        p.SetFileName(paramXML.GetAnswer())
+        p.Read()
+
+        # Lets create the output XML representation
+        paramXML = vtkXMLDataElement()
+        p.GetXMLRepresentation(paramXML)
+
+        responses = paramXML.FindNestedElementWithName("Responses")
+        for rule in xrange(numRules):
+            response = responses.GetNestedElement(rule)
+            response.SetDoubleAttribute("sd", sig[rule])
+
+        p.SetXMLRepresentation(paramXML)
+        p.SetFileName(sigparamXML.GetAnswer())
+        p.Write()
 
     messages.Message("Writing result vector map")
     
