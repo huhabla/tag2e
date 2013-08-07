@@ -70,6 +70,20 @@ public:
     
     // Verify the FIS comutation with simple test cases. No inputs required.
     bool TestFISComputation(){return tag2eFIS::TestFISComputation();}
+    
+    //! \brief Compute the sigma uncertainty for each value using the standard deviation of the responses
+    vtkSetMacro(ComputeSigma, int);
+    //! \brief Compute the sigma uncertainty for each value using the standard deviation of the responses
+    vtkGetMacro(ComputeSigma, int);
+    //! \brief Compute the sigma uncertainty for each value using the standard deviation of the responses
+    vtkBooleanMacro(ComputeSigma, int);
+    
+    //! \brief Add the DOF (deegree of fullfillment) vector array to the output
+    vtkSetMacro(CreateDOFArray, int);
+    //! \brief Add the DOF (deegree of fullfillment) vector array to the output
+    vtkGetMacro(CreateDOFArray, int);
+    //! \brief Add the DOF (deegree of fullfillment) vector array to the output
+    vtkBooleanMacro(CreateDOFArray, int);
 
 protected:
     vtkTAG2EFuzzyInferenceModel();
@@ -85,6 +99,8 @@ protected:
     vtkStringArray *ArrayNames;
     double ModelAssessmentFactor;
     double ApplicabilityRuleLimit;
+    int ComputeSigma;
+    int CreateDOFArray;
     
 private:
     vtkTAG2EFuzzyInferenceModel(const vtkTAG2EFuzzyInferenceModel& orig); // Not implemented.
