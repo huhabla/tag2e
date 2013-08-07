@@ -73,6 +73,11 @@ def main():
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     output.SetDescription("The model result")
 
+    sd = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
+    sd.SetDescription("Compute the cell specific standard deviation based on the rule standard deviation specified in the XML input file")
+    sd.RequiredOff()
+    sd.SetKey('sd')
+
     weighting = vtkGRASSFlag()
     weighting.SetDescription("Input is weighted fuzzy inference scheme")
     weighting.SetKey('w')
@@ -162,6 +167,8 @@ def main():
         modelFIS.SetInput(dataset)
         modelFIS.SetModelParameter(parameterFIS)
         modelFIS.UseCellDataOff()
+        if sd.GetAnswer():
+            modelFIS.ComputeSigmaOn()
         modelFIS.SetNullValue(nullValue)
 
         parameterW = vtkTAG2EWeightingModelParameter()
@@ -187,6 +194,8 @@ def main():
         model.SetInput(dataset)
         model.SetModelParameter(parameter)
         model.UseCellDataOff()
+        if sd.GetAnswer():
+            model.ComputeSigmaOn()
         model.SetNullValue(nullValue)
         model.Update()
 
@@ -194,13 +203,22 @@ def main():
 
     messages.VerboseMessage("Writing first result raster map")
 
-    # Write the result as vector map
+    # Write the result as image maps
     writer = vtkGRASSRasterImageWriter()
     writer.SetInput(outputDS)
     writer.SetRasterName(output.GetAnswer())
     writer.SetNullValue(nullValue)
     writer.Update()
-    
+ 
+    # Write the standard deviation as image maps
+    if sd.GetAnswer():
+        outputDS.GetPointData().SetActiveScalars("Sigma")
+        writer = vtkGRASSRasterImageWriter()
+        writer.SetInput(outputDS)
+        writer.SetRasterName(sd.GetAnswer())
+        writer.SetNullValue(nullValue)
+        writer.Update()
+       
     # Create the image data output for paraview analysis
     if vtkout.GetAnswer():
         messages.Message("Writing result VTK image data")
