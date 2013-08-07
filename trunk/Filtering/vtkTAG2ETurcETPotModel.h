@@ -35,7 +35,7 @@
  *
  * Input:
  * * Temperature in C°
- * * Global Radiation in J/(cm^2 * d)
+ * * Global Radiation in J/(cm^2 * d) or alternatively in W/m^2
  *
  */
 
@@ -70,7 +70,15 @@ protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
 
+  //! \brief Set this true is the radiation is in W/m^2
+  vtkSetMacro(RadiationInWatt, int);
+  //! \brief Set this true is the radiation is in W/m^2
+  vtkGetMacro(RadiationInWatt, int);
+  //! \brief Set this true is the radiation is in W/m^2
+  vtkBooleanMacro(RadiationInWatt, int);
+
   double TimeInterval;
+  int RadiationInWatt;
 
 private:
   vtkTAG2ETurcETPotModel(const vtkTAG2ETurcETPotModel& orig); // Not implemented.

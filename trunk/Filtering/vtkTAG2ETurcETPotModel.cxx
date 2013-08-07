@@ -66,6 +66,7 @@ vtkTAG2ETurcETPotModel::vtkTAG2ETurcETPotModel()
   this->SetNumberOfOutputPorts(1);
   this->SetResultArrayName(ROTHC_INPUT_NAME_ETPOT);
   this->TimeInterval = 1; // Default a single day
+  this->RadiationInWatt = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -104,9 +105,7 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
                                        vtkInformationVector **inputVector,
                                        vtkInformationVector *outputVector)
 {
-  vtkIdType i;
   vtkIdType cellId;
-  bool hasInputPools = true;
 
   vtkDataSet* input = vtkDataSet::GetData(inputVector[0]);
   vtkDataSet* output = vtkDataSet::GetData(outputVector);
@@ -158,6 +157,11 @@ int vtkTAG2ETurcETPotModel::RequestData(vtkInformation * vtkNotUsed(request),
       result->SetTuple1(cellId, this->NullValue);
       continue;
       }
+
+    // The global radiation can be in J/(cm^2*s) or in W/m^2
+    // Here we compute J/(cm^2 * s) from w/m^2
+    if(this->RadiationInWatt == 1)
+      globalRadiation = globalRadiation *36.0 * 24.0/100.0;
 
     double etp = 0.0031 *
                 ((meanTemperature / (meanTemperature + 15.0)) *
