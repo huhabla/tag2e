@@ -85,12 +85,18 @@ int vtkTAG2EDataSetJoinFilter::RequestData(vtkInformation * vtkNotUsed(request),
     vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
   int i, j;
+  bool error = false;
 
   vtkDataSet* firstInput = vtkDataSet::GetData(inputVector[0], 0);
   vtkDataSet* output = vtkDataSet::GetData(outputVector);
 
   // We copy the structure of the first input
   output->CopyStructure(firstInput);
+
+  for(j = 0; j < firstInput->GetCellData()->GetNumberOfArrays(); j++)
+    {
+    cerr << firstInput->GetCellData()->GetArray(j)->GetName() << endl;;
+    }
 
   // Now we add the data arrays from all inputs to the output
   for(i = 0; i < inputVector[0]->GetNumberOfInformationObjects(); i++)
@@ -100,15 +106,28 @@ int vtkTAG2EDataSetJoinFilter::RequestData(vtkInformation * vtkNotUsed(request),
     if(firstInput->GetNumberOfCells() != input->GetNumberOfCells())
       {
       vtkErrorMacro("The number of cells is different between the first input"
-          " and the " << i << " input ");
-      return -1;
+          " and the " << i << " input " << firstInput->GetNumberOfCells() <<
+          " : " << input->GetNumberOfCells());
+      cerr << "First input arrays:" << endl;
+      for(j = 0; j < firstInput->GetCellData()->GetNumberOfArrays(); j++)
+        {
+        cerr << firstInput->GetCellData()->GetArray(j)->GetName() << endl;;
+        }
+      cerr << "Arrays of input number " << i << endl;
+        for(j = 0; j < input->GetCellData()->GetNumberOfArrays(); j++)
+          {
+          cerr << input->GetCellData()->GetArray(j)->GetName() << endl;;
+          }
+      error = true;
+      continue;
       }
 
     if(firstInput->GetNumberOfPoints() != input->GetNumberOfPoints())
       {
       vtkErrorMacro("The number of points is different between the first input"
           " and the " << i << " input ");
-      return -1;
+      error = true;
+      continue;
       }
 
     for(j = 0; j < input->GetCellData()->GetNumberOfArrays(); j++)
@@ -130,5 +149,8 @@ int vtkTAG2EDataSetJoinFilter::RequestData(vtkInformation * vtkNotUsed(request),
       }
     }
 
-  return 1;
+  if(error)
+    return -1;
+  else
+    return 1;
 }
