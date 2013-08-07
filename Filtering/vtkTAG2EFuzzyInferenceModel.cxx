@@ -404,9 +404,9 @@ int vtkTAG2EFuzzyInferenceModel::RequestData (
     {
         output->GetPointData()->AddArray ( result );
         if(sigma)
-            output->GetCellData()->AddArray ( dof );
+            output->GetPointData()->AddArray ( sigma );
         if(dof)
-            output->GetCellData()->AddArray ( dof );
+            output->GetPointData()->AddArray ( dof );
       output->GetPointData()->SetActiveScalars ( result->GetName() );
     }
   result->Delete();
