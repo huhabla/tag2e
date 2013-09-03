@@ -49,27 +49,80 @@ vtkTAG2ERothCModelParameter::vtkTAG2ERothCModelParameter()
 {
   // We initialize the RothC parameter with
   // default values from the RothC paper
-
+  /*
+   * RothC parameter a from (1 - e^(-abckt))
+   *
+   * a is the rate modifying factor for temperature
+   *
+   * a = a1 / (1 + e^(a2/(T + a3)))
+   *
+   * Default:
+   *
+   * a1 = 47.9
+   * a2 = 106.0
+   * a3 = 18.3
+   *
+   * T: mean temperature
+   *
+   */
   this->R.a.a1.value = this->R.a.a1.max = this->R.a.a1.min = 47.9;
   this->R.a.a1.constant = true;
   this->R.a.a2.value = this->R.a.a2.max = this->R.a.a2.min = 106.0;
   this->R.a.a2.constant = true;
   this->R.a.a3.value = this->R.a.a3.max = this->R.a.a3.min = 18.3;
   this->R.a.a3.constant = true;
-
-
+  /*
+   * RothC parameter b from (1 - e^(-abckt))
+   *
+   * b is the rate modifying factor for moisture
+   *
+   * maxTSMD = -(b1 + b2 * Clay - b3 * Clay^2)
+   *
+   * b = b1 + (b2 - b1) * (maxTSMD - accTSMD)/(maxTSMD - b3 * maxTSMD)
+   *
+   * Default:
+   *
+   * b1 = 0.2
+   * b2 = 1.0
+   * b3 = 0.444
+   */
   this->R.b.b1.value = this->R.b.b1.max = this->R.b.b1.min = 0.2;
   this->R.b.b1.constant = true;
   this->R.b.b2.value = this->R.b.b2.max = this->R.b.b2.min = 1;
   this->R.b.b2.constant = true;
   this->R.b.b3.value = this->R.b.b3.max = this->R.b.b3.min = 0.444;
   this->R.b.b3.constant = true;
-
+  /*
+   * RothC parameter c from (1 - e^(-abckt))
+   *
+   * c is the soil cover rate modifying factor
+   *
+   * if soilcover == True:
+   *   c = c1
+   * else:
+   *   c = c2
+   *
+   * Default:
+   *
+   * c1 = 0.6
+   * c2 = 1.0
+   */
   this->R.c.c1.value = this->R.c.c1.max = this->R.c.c1.min = 0.6;
   this->R.c.c1.constant = true;
   this->R.c.c2.value = this->R.c.c2.max = this->R.c.c2.min = 1.0;
   this->R.c.c2.constant = true;
-
+  /*
+   * RothC parameter k from (1 - e^(-abckt))
+   *
+   * k is the decomposition rate constant for that compartment
+   *
+   * Compartments are :
+   *   DPM - Decomposable Plant Material = 10.2
+   *   RPM - Resistant Plant Material    = 0.3
+   *   BIO - Microbial Biomass           = 0.66
+   *   HUM - Humified organic matter     = 0.02
+   *
+   */
   this->R.k.DPM.value = this->R.k.DPM.max = this->R.k.DPM.min = 10.2;
   this->R.k.DPM.constant = true;
   this->R.k.RPM.value = this->R.k.RPM.max = this->R.k.RPM.min = 0.3;
@@ -78,7 +131,17 @@ vtkTAG2ERothCModelParameter::vtkTAG2ERothCModelParameter()
   this->R.k.BIO.constant = true;
   this->R.k.HUM.value = this->R.k.HUM.max = this->R.k.HUM.min = 0.02;
   this->R.k.HUM.constant = true;
-
+  /**
+   * The CO2/(BIO + HUM) ratio
+   *
+   * x = x1 * (x2 + x3 * exp(x4 * Clay))
+   *
+   * Default:
+   *   x1 = 1.67
+   *   x2 = 1.85
+   *   x3 = 1.60
+   *   x4 = -0.0786
+   */
   this->R.x.x1.value = this->R.x.x1.max = this->R.x.x1.min = 1.67;
   this->R.x.x1.constant = true;
   this->R.x.x2.value = this->R.x.x2.max = this->R.x.x2.min = 1.85;
@@ -87,7 +150,26 @@ vtkTAG2ERothCModelParameter::vtkTAG2ERothCModelParameter()
   this->R.x.x3.constant = true;
   this->R.x.x4.value = this->R.x.x4.max = this->R.x.x4.min = -0.0786;
   this->R.x.x4.constant = true;
-
+  /*
+   * These are plant and organic fertilization specific
+   * fractions in %
+   *
+   * Examples:
+   *
+   * most crops and improved grass lands:
+   *   DPM = 59
+   *   RPM = 41
+   *
+   * tropical woodland:
+   *   DPM = 20
+   *   RPM = 80
+   *
+   * Farm Yard Manure:
+   *   DPM = 49
+   *   RPM = 49
+   *   HUM = 2
+   *
+   */
   // Plants
   RothCParameterFraction *pfrac = new RothCParameterFraction;
   pfrac->name = "default";
@@ -823,7 +905,7 @@ bool vtkTAG2ERothCModelParameter::GenerateInternalSchemeFromXML()
       }
     }
 
-  // Prase the plant fractions
+  // Parse the plant fractions
   vtkXMLDataElement *plantsXML = root->FindNestedElementWithName(
       "PlantFractions");
   if (plantsXML != NULL)
@@ -897,7 +979,7 @@ bool vtkTAG2ERothCModelParameter::GenerateInternalSchemeFromXML()
           fert->RPM);
       this->ParseRothCParameter(fertXML->FindNestedElementWithName("HUM"),
           fert->HUM);
-      this->R.PlantFractions.push_back(fert);
+      this->R.FertilizerFractions.push_back(fert);
       }
     }
 
