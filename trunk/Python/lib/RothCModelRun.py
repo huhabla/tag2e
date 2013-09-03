@@ -60,9 +60,10 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
     
         mapset = grass.gisenv()["MAPSET"]
         # Create the output space time raster dataset
-        out = tgis.create_space_time_dataset(outputName, "strds", first.get_temporal_type(), 
-                                       "RothC", "RothC", "mean",
-                                       dbif, overwrite)
+        out = tgis.open_new_space_time_dataset(outputName, "strds", 
+                                               first.get_temporal_type(), 
+                                               "RothC", "RothC", "mean", 
+                                               dbif, overwrite)
     
         sqlStatements = ""
         outMapList = []
@@ -220,13 +221,7 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
             # Read metadata from the computed map
             map.load()
             # We use the time from the current granule
-            if granule.is_time_absolute():
-                start, end, zone = granule.get_absolute_time()
-                map.set_absolute_time(start, end, zone)
-            else:
-                start, end, unit = granule.get_relative_time()
-                map.set_relative_time(start, end, unit)
-                
+            map.set_temporal_extent(granule.get_temporal_extent())
             # We store the SQL insert statements
             sqlStatements += map.insert(dbif, False)
             # We need to store the map objects to register them in
