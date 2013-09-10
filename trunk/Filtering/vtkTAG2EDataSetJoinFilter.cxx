@@ -93,10 +93,10 @@ int vtkTAG2EDataSetJoinFilter::RequestData(vtkInformation * vtkNotUsed(request),
   // We copy the structure of the first input
   output->CopyStructure(firstInput);
 
-  for(j = 0; j < firstInput->GetCellData()->GetNumberOfArrays(); j++)
-    {
-    cerr << firstInput->GetCellData()->GetArray(j)->GetName() << endl;;
-    }
+  //for(j = 0; j < firstInput->GetCellData()->GetNumberOfArrays(); j++)
+  //  {
+  //  cerr << firstInput->GetCellData()->GetArray(j)->GetName() << endl;;
+  //  }
 
   // Now we add the data arrays from all inputs to the output
   for(i = 0; i < inputVector[0]->GetNumberOfInformationObjects(); i++)

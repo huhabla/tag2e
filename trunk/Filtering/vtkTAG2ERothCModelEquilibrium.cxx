@@ -137,7 +137,7 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
     vtkInformation * vtkNotUsed(request), vtkInformationVector **inputVector,
     vtkInformationVector *outputVector)
 {
-  vtkIdType i, j;
+  vtkIdType i = 0, j = 0;
   vtkIdType cellId;
   bool hasInputPools = true;
   bool hasPlantId = true;
@@ -153,7 +153,14 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
 
   vtkPolyData* firstInput = vtkPolyData::GetData(inputVector[0], i);
   vtkPolyData* output = vtkPolyData::GetData(outputVector);
-
+  
+  // Check for initial carbon array in the input
+  if (!firstInput)
+  {
+      vtkErrorMacro( "First input dataset is missing.");
+      return -1;
+  }
+  
   // Check for initial carbon array in the input
   if (!firstInput->GetCellData()->HasArray(ROTHC_INPUT_NAME_INITIAL_CARBON))
     {
@@ -414,7 +421,7 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
 int vtkTAG2ERothCModelEquilibrium::ComputeResponses(
     vtkInformationVector **inputVector)
 {
-  vtkIdType i, j;
+  vtkIdType i = 0, j = 0;
   vtkIdType cellId;
   bool hasInputPools = true;
   bool hasPlantId = true;

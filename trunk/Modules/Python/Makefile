@@ -5,6 +5,8 @@ SUBDIRS = \
 	  v.fuzzy.calibrator\
 	  v.fuzzy.model\
 	  r.fuzzy.model
+	  t.rast.RothCEquilibrium \
+	  t.rast.RothCModel
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
