@@ -35,12 +35,10 @@
 #  GNU General Public License for more details.
 
 import sys
-import grass.script as grass
 import grass.temporal as tgis
 import os
 #include the VTK and vtkGRASSBridge Python libraries
 from vtk import *
-import libvtkTAG2EFilteringPython
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
 from libvtkGRASSBridgeIOPython import *
@@ -62,57 +60,72 @@ def main():
     module.SetDescription("Compute the RothC model")
     module.AddKeyword("temporal")
     module.AddKeyword("RothC")
-    
+
+    xmlParam = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetFileInputType())
+    xmlParam.SetKey("param")
+    xmlParam.RequiredOff()
+    xmlParam.SetDescription("The parameter XML file that describes the RothC configuarion ")
+
     temperature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     temperature.SetKey("temperature")
     temperature.SetDescription("Space time raster dataset with "
                                "monthly temperature mean [degree C]"
                                ". This dataset will be used to temporally sample all other.")
-    
+
     precipitation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     precipitation.SetKey("precipitation")
     precipitation.SetDescription("Space time raster dataset with "
                                  "monthly accumulated precipitation [mm]")
-    
+
     radiation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     radiation.SetKey("radiation")
     radiation.SetDescription("Space time raster dataset with "
                              "global radiation [J/(cm^2 * day)]")
-    
+
     fertilizer = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     fertilizer.SetKey("fertilizer")
     fertilizer.SetDescription("Raster map with fertilizer of the RothC model [tC/ha]")
-    
+
     residuals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     residuals.SetKey("residuals")
     residuals.SetDescription("Raster map with residuals of the RothC model [tC/ha]")
-    
+
     # Space time raster datasets
     soilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     soilCover.SetKey("soilcover")
     soilCover.SetDescription("Space time raster dataset with long term monthly  (exactly 12 months)")
-                       
+
+    fertId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    fertId.SetKey("fertid")
+    fertId.RequiredOff()
+    fertId.SetDescription("Raster map with fertilizer ids of the RothC model parameter")
+
+    plantId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    plantId.SetKey("plantid")
+    plantId.RequiredOff()
+    plantId.SetDescription("Raster map with plant ids of the RothC model parameter")
+
     # Raster map input
     clayContent = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     clayContent.SetKey("claycontent")
     clayContent.SetDescription("Raster map with clay content in percent [%]")
-    
+
     poolDPM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     poolDPM.SetKey("dpmpool")
     poolDPM.SetDescription("The model DPM pool at the start of the computation")
-        
+
     poolRPM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     poolRPM.SetKey("rpmpool")
     poolRPM.SetDescription("The model RPM pool at the start of the computation")
-        
+
     poolHUM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     poolHUM.SetKey("humpool")
     poolHUM.SetDescription("The model HUM pool at the start of the computation")
-        
+
     poolBIO = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     poolBIO.SetKey("biopool")
     poolBIO.SetDescription("The model BIO pool at the start of the computation")
-        
+
     poolIOM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     poolIOM.SetKey("iompool")
     poolIOM.SetDescription("The model IOM pool at the start of the computation")
@@ -123,12 +136,12 @@ def main():
     baseName.MultipleOff()
     baseName.RequiredOn()
     baseName.SetDescription("The base name of the new created raster maps")
-    
+
     # Space time raster datasets
     soc = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSOutputType())
     soc.SetKey("soc")
     soc.SetDescription("Result space time raster dataset with SOC content")
-    
+
     # INIT
     paramter = vtkStringArray()
     for arg in sys.argv:
@@ -145,21 +158,41 @@ def main():
     messages.VerboseMessage("Sampling of input datasets")
 
     tgis.init()
-    
+
     inputNames = "%s,%s,%s,%s,%s"%(precipitation.GetAnswer(), radiation.GetAnswer(),
-                            soilCover.GetAnswer(), fertilizer.GetAnswer(), 
+                            soilCover.GetAnswer(), fertilizer.GetAnswer(),
                             residuals.GetAnswer())
-    
+
+    if fertId.GetAnswer():
+        inputNames += ",%s"%(fertId.GetAnswer())
+
+    if plantId.GetAnswer() and not fertId.GetAnswer():
+        print("ERROR: Plant id and fertilizer id must be set")
+        return -1
+
+    if plantId.GetAnswer():
+        inputNames += ",%s"%(plantId.GetAnswer())
+
     mapmatrix = tgis.sample_stds_by_stds_topology("strds", "strds", inputNames,
                                            temperature.GetAnswer(), False,
-                                 "|", "equal", False, True)
+                                 "|", "equal,during,contains", False, True)
 
     pools = read_pools(poolDPM=poolDPM.GetAnswer(), poolRPM=poolRPM.GetAnswer(),
                        poolHUM=poolHUM.GetAnswer(), poolBIO=poolBIO.GetAnswer(),
                        poolIOM=poolIOM.GetAnswer())
-     
-    RothCModelRun(mapmatrix, pools, clayContent.GetAnswer(), soc.GetAnswer(), 
-                  baseName.GetAnswer(), None, -99999, bool(init.Overwrite()))
+
+
+    xml = None
+    if xmlParam.GetAnswer():
+        xml = vtkTAG2ERothCModelParameter()
+        xml.SetFileName(xmlParam.GetAnswer())
+        xml.Read()
+        xml.GenerateInternalSchemeFromXML()
+
+    RothCModelRun(mapmatrix, pools, clayContent.GetAnswer(), soc.GetAnswer(),
+                  baseName.GetAnswer(), xml, -99999, bool(init.Overwrite()))
+
+    return 0
 
 ################################################################################
 
@@ -167,7 +200,7 @@ def read_pools(poolDPM, poolRPM, poolHUM, poolBIO, poolIOM):
     """
     Read the RothC pools and return a single poly dataset
     that includes all pools.
-    """    
+    """
     joiner = vtkTAG2EDataSetJoinFilter()
 
     # We define the line length as 30cm
@@ -180,46 +213,46 @@ def read_pools(poolDPM, poolRPM, poolHUM, poolBIO, poolIOM):
     poolDPMreader.SetRasterNames(names)
     poolDPMreader.SetDataName("DPM")
     poolDPMreader.SetLineLengths(lineLengths)
-    
+
     joiner.AddInputConnection(poolDPMreader.GetOutputPort())
-    
+
     names = vtkStringArray()
     names.InsertNextValue(poolRPM)
     poolRPMreader = vtkGRASSMultiRasterPolyDataLineReader()
     poolRPMreader.SetRasterNames(names)
     poolRPMreader.SetDataName("RPM")
     poolRPMreader.SetLineLengths(lineLengths)
-    
+
     joiner.AddInputConnection(poolRPMreader.GetOutputPort())
-    
+
     names = vtkStringArray()
     names.InsertNextValue(poolHUM)
     poolHUMreader = vtkGRASSMultiRasterPolyDataLineReader()
     poolHUMreader.SetRasterNames(names)
     poolHUMreader.SetDataName("HUM")
     poolHUMreader.SetLineLengths(lineLengths)
-    
+
     joiner.AddInputConnection(poolHUMreader.GetOutputPort())
-    
+
     names = vtkStringArray()
     names.InsertNextValue(poolBIO)
     poolBIOreader = vtkGRASSMultiRasterPolyDataLineReader()
     poolBIOreader.SetRasterNames(names)
     poolBIOreader.SetDataName("BIO")
     poolBIOreader.SetLineLengths(lineLengths)
-    
+
     joiner.AddInputConnection(poolDPMreader.GetOutputPort())
-    
+
     names = vtkStringArray()
     names.InsertNextValue(poolIOM)
     poolIOMreader = vtkGRASSMultiRasterPolyDataLineReader()
     poolIOMreader.SetRasterNames(names)
     poolIOMreader.SetDataName("IOM")
     poolIOMreader.SetLineLengths(lineLengths)
-    
+
     joiner.AddInputConnection(poolIOMreader.GetOutputPort())
     joiner.Update()
-    
+
     return joiner.GetOutput()
 
 ################################################################################

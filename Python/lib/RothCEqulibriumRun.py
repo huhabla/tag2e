@@ -160,6 +160,8 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
                 dc2.AddInput(Inputs[month])
                 dc2.AddInputConnection(SoilMoisture.GetOutputPort())
                 dc2.AddInputConnection(residuals.GetOutputPort())
+
+                print dc2
     
                 RothC.SetInputConnection(dc2.GetOutputPort())
                 RothC.Update()
@@ -182,7 +184,7 @@ def _RothCEquilibrium(Inputs, ResidualsInput, Years, RothCParameter=None,
             dc2.AddInput(Inputs[month])
             dc2.AddInputConnection(SoilMoisture.GetOutputPort())
             dc2.AddInputConnection(residuals.GetOutputPort())
-    
+
             RothC.AddInputConnection(dc2.GetOutputPort())
         
         RothC.Update()

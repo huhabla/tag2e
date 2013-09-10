@@ -398,12 +398,10 @@ def main():
         ModelRunNames["Residuals"] = modelResiduals.GetAnswer()
         ModelRunNames["ClayContent"] = clayContent.GetAnswer()
             
-            
     runType = "monthly"
     if yearly.GetAnswer():
         runType = "yearly"
         
-                
     new_ds, res_ds = RothCEquilibriumRun(Inputs=dataInputs, 
                                  ResidualsInput=residualsReader.GetOutput(), 
                                  SoilCarbonInput=soilCarbonReader.GetOutput(), 

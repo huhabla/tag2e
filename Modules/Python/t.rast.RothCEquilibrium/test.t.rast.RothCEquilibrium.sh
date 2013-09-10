@@ -92,8 +92,6 @@ r.mapcalc --o expr="clay = rand(1,20)"
 r.mapcalc --o expr="initialC = 25.0"
 r.mapcalc --o expr="residuals = rand(0,15)/10.0"
 
-exit
-
 ################################################################################
 # Equilibrium run
 ################################################################################
@@ -211,21 +209,5 @@ exit
 
 
 # @postprocess
-t.remove type=strds input=temperature_RothC,precipitation_RothC,radiation_RothC,soilCover_RothC,residuals_RothC,fertilizer_RothC
-t.unregister type=rast file="${temp}"
-for name in `cat "${temp}"` ; do
-    g.remove rast=${name}
-done
-t.unregister type=rast file="${prec}"
-for name in `cat "${prec}"` ; do
-    g.remove rast=${name}
-done
-t.unregister type=rast file="${radi}"
-for name in `cat "${radi}"` ; do
-    g.remove rast=${name}
-done
-t.unregister type=rast file="${soil}"
-for name in `cat "${soil}"` ; do
-    g.remove rast=${name}
-done
+t.remove -rf type=strds input=temperature_RothC,precipitation_RothC,radiation_RothC,soilCover_RothC,residuals_RothC,fertilizer_RothC
 g.remove rast=soc,dpm,rpm,hum,bio,iom,res

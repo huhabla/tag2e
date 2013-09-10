@@ -35,10 +35,7 @@
 # The column names of the csv are hard coded and must be changed
 # in case the csv layout changes
 
-from optparse import OptionParser
-from datetime import datetime
 from vtk import *
-import os
 
 from libvtkTAG2ECommonPython import *
 from libvtkTAG2EFilteringPython import *
@@ -54,8 +51,8 @@ from libvtkGRASSBridgeCommonPython import *
 
 class Parameter(object):
     """!This class specifies the  XML element,
-       XML subelement and the value of a RothC 
-       parameter 
+       XML subelement and the value of a RothC
+       parameter
     """
     def __init__(self, element, subelement, value):
         self.element = element
@@ -77,7 +74,7 @@ def create_parameter_xml(name, value):
     return d
 
 def create_fraction_xml(fraction, num, name, dpm, rpm, hum):
-    """!Create a fraction XML element and fill it with 
+    """!Create a fraction XML element and fill it with
        data
     """
     frac = vtkXMLDataElement()
@@ -129,8 +126,8 @@ def parse_plant_fractions(root, identifier, content):
                 values.append(content[i])
 
         if len(values) == 3:
-            cer_frac = create_fraction_xml("PlantFraction", count, key, 
-                                           values[0], values[1], values[2])    
+            cer_frac = create_fraction_xml("PlantFraction", count, key,
+                                           values[0], values[1], values[2])
             plant_xml.AddNestedElement(cer_frac)
 
 def parse_fertilizer_fractions(root, identifier, content):
@@ -162,8 +159,8 @@ def parse_fertilizer_fractions(root, identifier, content):
                 values.append(content[i])
 
         if len(values) == 3:
-            cer_frac = create_fraction_xml("FertilizerFraction", count, key, 
-                                           values[0], values[1], values[2])    
+            cer_frac = create_fraction_xml("FertilizerFraction", count, key,
+                                           values[0], values[1], values[2])
             fert_xml.AddNestedElement(cer_frac)
 
 def find_replace_parameter(root, p):
@@ -184,13 +181,12 @@ def parse_file(filename, RothCParameterIndex):
     """
     input = open(filename, "r").readlines()
     identifier = input[0].split("|")
-    dict_list = []
     count = 0
     for line in input[1:]:
         count += 1
 
         content = line.split("|")
- 
+
         rp = vtkTAG2ERothCModelParameter()
         rp.GenerateXMLFromInternalScheme()
         root = vtkXMLDataElement()
@@ -198,14 +194,14 @@ def parse_file(filename, RothCParameterIndex):
 
         parse_plant_fractions(root, identifier, content)
         parse_fertilizer_fractions(root, identifier, content)
-       
+
         for i in xrange(len(identifier)):
             if identifier[i] in RothCParameterIndex.keys():
                 p = RothCParameterIndex[identifier[i]]
                 p.value = float(content[i])
                 find_replace_parameter(root, p)
 
-        outfile = "RothCCalibration" + str(count) + ".xml"
+        outfile = "XML/RothCCalibration" + str(count) + ".xml"
         # Write the XML file
         root.PrintXML(outfile)
 

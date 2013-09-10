@@ -86,9 +86,30 @@ r.mapcalc --o expr="fertilizer_2 = rand(1,50)"
 t.create --o type=strds temporaltype=absolute output=fertilizer_RothC \
     title="Fertilizer" descr="Fertilizer"
 t.register --o -i type=rast input=fertilizer_RothC map=fertilizer_1 \
-    start=2000-04-01 increment="1 months"
+    start=2000-04-05 increment="1 day"
 t.register --o -i type=rast input=fertilizer_RothC map=fertilizer_2 \
-    start=2000-06-01 increment="1 months"
+    start=2000-06-13 increment="1 day"
+
+# FERTILIZER and PLANT ID
+r.mapcalc --o expr="fertId_1  = rand(0,5)"
+r.mapcalc --o expr="fertId_2  = rand(0,5)"
+r.mapcalc --o expr="plantId_1 = rand(0,2)"
+r.mapcalc --o expr="plantId_2 = rand(0,2)"
+
+t.create --o type=strds temporaltype=absolute output=fertId_RothC \
+    title="FertId" descr="FertId"
+t.register --o -i type=rast input=fertId_RothC map=fertId_1 \
+    start=2000-04-05 increment="1 day"
+t.register --o -i type=rast input=fertId_RothC map=fertId_2 \
+    start=2000-06-13 increment="1 day"
+
+t.create --o type=strds temporaltype=absolute output=plantId_RothC \
+    title="PlantId" descr="PlantId"
+t.register --o -i type=rast input=plantId_RothC map=plantId_1 \
+    start=2000-04-05 increment="1 day"
+t.register --o -i type=rast input=plantId_RothC map=plantId_2 \
+    start=2000-06-13 increment="1 day"
+
 
 # Several needed maps
 r.mapcalc --o expr="clay = rand(1,50)"
@@ -99,11 +120,13 @@ r.mapcalc --o expr="bio = 2.0"
 r.mapcalc --o expr="iom = 2.0"
 
 # The @test
-t.rast.RothCModel --o temperature=temperature_RothC \
+time t.rast.RothCModel --o temperature=temperature_RothC \
     precipitation=precipitation_RothC radiation=radiation_RothC \
     soilcover=soilCover_RothC claycontent=clay \
     residuals=residuals_RothC base=soc fertilizer=fertilizer_RothC \
-    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom soc=soc_RothC
+    plantid=plantId_RothC fertid=fertId_RothC \
+    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom soc=soc_RothC \
+    param=CalibrationXML/RothCCalibration1.xml
 
 t.info soc_RothC
 t.rast.list input=soc_RothC columns=name,start_time,min,max
