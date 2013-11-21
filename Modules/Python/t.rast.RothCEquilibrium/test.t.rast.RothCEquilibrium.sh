@@ -154,7 +154,7 @@ t.rast.RothCEquilibrium --o temperature=temperature_RothC \
     mprecipitation=precipitation_RothC mradiation=radiation_RothC \
     msoilcover=soilCover_RothC mresiduals=residuals_RothC \
     mfertilizer=fertilizer_RothC ax=0 cx=15 convergence=conv4 \
-     squaredresiduals=sqres4
+    squaredresiduals=sqres4
 
 r.info -r soc4
 r.info -r dpm4
@@ -174,7 +174,7 @@ t.rast.RothCEquilibrium --o temperature=temperature_RothC \
     mprecipitation=precipitation_RothC mradiation=radiation_RothC \
     msoilcover=soilCover_RothC mresiduals=residuals_RothC \
     mfertilizer=fertilizer_RothC ax=0 cx=10 convergence=conv5 \
-     squaredresiduals=sqres5
+    squaredresiduals=sqres5
 
 r.info -r soc5
 r.info -r dpm5
@@ -194,7 +194,7 @@ t.rast.RothCEquilibrium --o temperature=temperature_RothC \
     mprecipitation=precipitation_RothC mradiation=radiation_RothC \
     msoilcover=soilCover_RothC mresiduals=residuals_RothC \
     mfertilizer=fertilizer_RothC ax=0 cx=5 convergence=conv6 \
-     squaredresiduals=sqres6
+    squaredresiduals=sqres6
 
 r.info -r soc6
 r.info -r dpm6

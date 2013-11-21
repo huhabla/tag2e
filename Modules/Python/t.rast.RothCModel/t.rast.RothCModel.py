@@ -100,10 +100,15 @@ def main():
     fertId.RequiredOff()
     fertId.SetDescription("Raster map with fertilizer ids of the RothC model parameter")
 
-    plantId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
-    plantId.SetKey("plantid")
-    plantId.RequiredOff()
-    plantId.SetDescription("Raster map with plant ids of the RothC model parameter")
+    shootId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    shootId.SetKey("shootid")
+    shootId.RequiredOff()
+    shootId.SetDescription("Raster map with shoot ids of the RothC model parameter")
+
+    rootId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    rootId.SetKey("rootid")
+    rootId.RequiredOff()
+    rootId.SetDescription("Raster map with root ids of the RothC model parameter")
 
     # Raster map input
     clayContent = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
@@ -166,12 +171,19 @@ def main():
     if fertId.GetAnswer():
         inputNames += ",%s"%(fertId.GetAnswer())
 
-    if plantId.GetAnswer() and not fertId.GetAnswer():
-        print("ERROR: Plant id and fertilizer id must be set")
+    if shootId.GetAnswer() and not fertId.GetAnswer():
+        print("ERROR: Shoot id and fertilizer id must be set")
         return -1
 
-    if plantId.GetAnswer():
-        inputNames += ",%s"%(plantId.GetAnswer())
+    if shootId.GetAnswer():
+        inputNames += ",%s"%(shootId.GetAnswer())
+
+    if rootId.GetAnswer() and not shootId.GetAnswer():
+        print("ERROR: Root id and shoot id must be set")
+        return -1
+
+    if rootId.GetAnswer():
+        inputNames += ",%s"%(rootId.GetAnswer())
 
     mapmatrix = tgis.sample_stds_by_stds_topology("strds", "strds", inputNames,
                                            temperature.GetAnswer(), False,
@@ -180,7 +192,6 @@ def main():
     pools = read_pools(poolDPM=poolDPM.GetAnswer(), poolRPM=poolRPM.GetAnswer(),
                        poolHUM=poolHUM.GetAnswer(), poolBIO=poolBIO.GetAnswer(),
                        poolIOM=poolIOM.GetAnswer())
-
 
     xml = None
     if xmlParam.GetAnswer():

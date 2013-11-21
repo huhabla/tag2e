@@ -32,6 +32,10 @@
 
 /**
  * \brief RothC
+ *
+ * This class computes the soil organic carbon based on
+ * the RothC algorithm. 
+ *
  */
 
 #ifndef vtkTAG2ERothCModel_H
