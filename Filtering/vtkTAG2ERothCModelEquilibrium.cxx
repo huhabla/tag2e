@@ -140,7 +140,6 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
   vtkIdType i = 0, j = 0;
   vtkIdType cellId;
   bool hasInputPools = true;
-  bool hasPlantId = true;
   bool hasFertilizerId = true;
   int numInputs = inputVector[0]->GetNumberOfInformationObjects();
 
@@ -212,9 +211,13 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
   result->SetName(this->ResultArrayName);
   result->SetNumberOfTuples(output->GetNumberOfCells());
 
-  // Id's for plants taken from the first input
-  vtkDataArray *plantIdArray = firstInput->GetCellData()->GetArray(
-      ROTHC_INPUT_NAME_PLANT_ID);
+  // Shoot id's for plants taken from the first input
+  vtkDataArray *shootIdArray = firstInput->GetCellData()->GetArray(
+      ROTHC_INPUT_NAME_SHOOT_ID);
+
+  // Root id's for plants taken from the first input
+  vtkDataArray *rootIdArray = firstInput->GetCellData()->GetArray(
+      ROTHC_INPUT_NAME_ROOT_ID);
 
   cout << "Equilibrium run start" << endl;
 
@@ -250,7 +253,8 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
         double dpm_old, rpm_old, bio_old, hum_old; //old_pools
         double meanTemp, fertC, usableFieldCapacity, soilMoisture, soilCover,
             resRoots, resSurf, clay;
-        double plantId;
+        double shootId;
+        double rootId;
 
         // The line length is not needed yet
         /*
@@ -287,15 +291,26 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
         bio_old = bio;
         hum_old = hum;
 
-        // Index 0 is the default value
-        if (plantIdArray)
+        // Root index 0 is the default value
+        if (rootIdArray)
           {
-          plantIdArray->GetTuple(cellId, &plantId);
-          if ((int) plantId == this->NullValue)
-            plantId = 0;
+          rootIdArray->GetTuple(cellId, &rootId);
+          if ((int) rootId == this->NullValue)
+            rootId = 0;
           } else
           {
-          plantId = 0;
+          rootId = 0;
+          }
+
+        // Shoot index 0 is the default value
+        if (shootIdArray)
+          {
+          shootIdArray->GetTuple(cellId, &shootId);
+          if ((int) shootId == this->NullValue)
+            shootId = 0;
+          } else
+          {
+          shootId = 0;
           }
 
         // Get the responses
@@ -311,7 +326,7 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
         allocFractionhum = 0.54;
         allocFractionbio = 0.46;
 
-        if (R.PlantFractions.size() <= plantId)
+        if (R.PlantFractions.size() <= shootId)
           {
           vtkErrorMacro("Plant id is out of plant fraction vector boundaries");
 #ifndef OMP_PARALLELIZED
@@ -321,13 +336,13 @@ int vtkTAG2ERothCModelEquilibrium::RequestData(
 #endif
           }
 
-        double dpmRootsFraction = R.PlantFractions[plantId]->DPM.value;
-        double rpmRootsFraction = R.PlantFractions[plantId]->RPM.value;
-        double humRootsFraction = R.PlantFractions[plantId]->HUM.value;
+        double dpmRootsFraction = R.PlantFractions[rootId]->DPM.value;
+        double rpmRootsFraction = R.PlantFractions[rootId]->RPM.value;
+        double humRootsFraction = R.PlantFractions[rootId]->HUM.value;
 
-        double dpmSurfFraction = R.PlantFractions[plantId]->DPM.value;
-        double rpmSurfFraction = R.PlantFractions[plantId]->RPM.value;
-        double humSurfFraction = R.PlantFractions[plantId]->HUM.value;
+        double dpmSurfFraction = R.PlantFractions[shootId]->DPM.value;
+        double rpmSurfFraction = R.PlantFractions[shootId]->RPM.value;
+        double humSurfFraction = R.PlantFractions[shootId]->HUM.value;
 
         // CPool computation
         // 1. Add residues from crop and fertilization
@@ -424,8 +439,6 @@ int vtkTAG2ERothCModelEquilibrium::ComputeResponses(
   vtkIdType i = 0, j = 0;
   vtkIdType cellId;
   bool hasInputPools = true;
-  bool hasPlantId = true;
-  bool hasFertilizerId = true;
   int numInputs = inputVector[0]->GetNumberOfInformationObjects();
 
   cout << "Compute response functions" << endl;

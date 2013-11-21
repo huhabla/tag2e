@@ -57,7 +57,8 @@
 #define ROTHC_INPUT_NAME_RESIDUALS         "Residuals"
 #define ROTHC_INPUT_NAME_RESIDUALS_ROOTS   "ResidualsRoots"
 #define ROTHC_INPUT_NAME_RESIDUALS_SURFACE "ResidualsSurface"
-#define ROTHC_INPUT_NAME_PLANT_ID          "PlantID"
+#define ROTHC_INPUT_NAME_SHOOT_ID          "ShootID"
+#define ROTHC_INPUT_NAME_ROOT_ID           "RootID"
 #define ROTHC_INPUT_NAME_FERTILIZER_ID     "FertilizerID"
 #define ROTHC_INPUT_NAME_SOIL_MOISTURE     "SoilMoisture" // Usable soil moisture
 #define ROTHC_INPUT_NAME_USABLE_FIELD_CAPACITY    "UsableFieldCapacity"
@@ -71,7 +72,7 @@
 #define ROTHC_INPUT_NAME_CUMULATIVE_LINE_LENGTH "CumulativeLineLength"
 #define ROTHC_INPUT_NAME_LINE_CENTER       "LineCenter"
 #define ROTHC_INPUT_NAME_ROOT_DEPTH        "RootDepth"
-#define ROTHC_OUTPUT_NAME_SOIL_CARBON        "SoilCarbon"
+#define ROTHC_OUTPUT_NAME_SOIL_CARBON      "SoilCarbon"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

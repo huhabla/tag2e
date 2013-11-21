@@ -73,7 +73,7 @@ vtkTypeRevisionMacro(vtkTAG2ERothCModel, vtkTAG2EAbstractCalibratableModel)
   vtkGetMacro(AddCPoolsToOutput, int);
   vtkBooleanMacro(AddCPoolsToOutput, int);
 
-  //! \brief Set this value true to enable the equlibrium run for the TothC model
+  //! \brief Set this value true to enable the equlibrium run for the RothC model
   //! In this case the fertilizer input is ignored and soil cover is assumed
   //! at every run.
   vtkSetMacro(EquilibriumRun, int);

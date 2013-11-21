@@ -106,10 +106,15 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         ResidualsSurface.SetName("ResidualsSurface")
         ResidualsSurface.FillComponent(0, 0.7)
 
-        PlantID = vtkDoubleArray()
-        PlantID.SetNumberOfTuples(num)
-        PlantID.SetName("PlantID")
-        PlantID.FillComponent(0, 0)
+        ShootID = vtkDoubleArray()
+        ShootID.SetNumberOfTuples(num)
+        ShootID.SetName("ShootID")
+        ShootID.FillComponent(0, 0)
+
+        RootID = vtkDoubleArray()
+        RootID.SetNumberOfTuples(num)
+        RootID.SetName("RootID")
+        RootID.FillComponent(0, 0)
 
         FertilizerID = vtkDoubleArray()
         FertilizerID.SetNumberOfTuples(num)
@@ -126,6 +131,31 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         InitialCarbon.SetName("InitialCarbon")
         InitialCarbon.FillComponent(0, 40)
 
+        DPM = vtkDoubleArray()
+        DPM.SetNumberOfTuples(num)
+        DPM.SetName("DPM")
+        DPM.FillComponent(0, 1)
+
+        RPM = vtkDoubleArray()
+        RPM.SetNumberOfTuples(num)
+        RPM.SetName("RPM")
+        RPM.FillComponent(0, 1)
+
+        BIO = vtkDoubleArray()
+        BIO.SetNumberOfTuples(num)
+        BIO.SetName("BIO")
+        BIO.FillComponent(0, 1)
+
+        IOM = vtkDoubleArray()
+        IOM.SetNumberOfTuples(num)
+        IOM.SetName("IOM")
+        IOM.FillComponent(0, 1)
+
+        HUM = vtkDoubleArray()
+        HUM.SetNumberOfTuples(num)
+        HUM.SetName("HUM")
+        HUM.FillComponent(0, 1)
+
         # Point ids for poly vertex cell
         points = vtkPoints()
 
@@ -141,13 +171,20 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         self.ds1.SetPoints(points)
         self.ds2.SetPoints(points)
         self.ds3.SetPoints(points)
-        
+
+        self.ds1.GetCellData().AddArray(DPM)
+        self.ds1.GetCellData().AddArray(RPM)
+        self.ds1.GetCellData().AddArray(BIO)
+        self.ds1.GetCellData().AddArray(HUM)
+        self.ds1.GetCellData().AddArray(IOM)
+       
         self.ds1.GetCellData().AddArray(Clay)
         self.ds1.GetCellData().AddArray(MeanTemperature)
         self.ds1.GetCellData().AddArray(SoilCover)
         self.ds1.GetCellData().AddArray(ResidualsRoots)
         self.ds1.GetCellData().AddArray(ResidualsSurface)
-        self.ds1.GetCellData().AddArray(PlantID)
+        self.ds1.GetCellData().AddArray(ShootID)
+        self.ds1.GetCellData().AddArray(RootID)
         self.ds1.GetCellData().AddArray(FertilizerID)
         self.ds1.GetCellData().AddArray(FertilizerCarbon)
         self.ds1.GetCellData().AddArray(InitialCarbon)
@@ -187,7 +224,6 @@ class vtkTAG2ERothCModelTests(unittest.TestCase):
         RothC = vtkTAG2ERothCModel()
         RothC.SetModelParameter(rp)
         RothC.AddCPoolsToOutputOn()
-        RothC.CPoolsInitiatedOn()
         RothC.SetInputConnection(dc2.GetOutputPort())
         RothC.Update()
         

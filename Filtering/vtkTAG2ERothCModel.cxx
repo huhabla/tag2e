@@ -141,8 +141,6 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkIdType i;
   vtkIdType cellId;
   bool hasInputPools = true;
-  bool hasPlantId = true;
-  bool hasFertilizerId = true;
 
   // Check for model parameter
   if (this->ModelParameter == NULL)
@@ -279,7 +277,8 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
   vtkDataArray *fertCArray = input->GetCellData()->GetArray(
       ROTHC_INPUT_NAME_FERTILIZER_CARBON);
 
-  vtkDataArray *plantIdArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_PLANT_ID);
+  vtkDataArray *shootIdArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_SHOOT_ID);
+  vtkDataArray *rootIdArray = input->GetCellData()->GetArray(ROTHC_INPUT_NAME_ROOT_ID);
   vtkDataArray *fertIdArray = input->GetCellData()->GetArray(
         ROTHC_INPUT_NAME_FERTILIZER_ID);
 
@@ -296,7 +295,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 
   // Parallelize with OpenMP
 #ifdef OMP_PARALLELIZED
-#pragma omp parallel for private(cellId) shared(input, fertIdArray, plantIdArray,\
+#pragma omp parallel for private(cellId) shared(input, fertIdArray, shootIdArray,\
 		fertCArray, usableFieldCArray, soilMArray, resSurfArray, soilCoverArray,\
 		meanTempArray, clayArray, iomArray, humArray, bioArray, rpmArray, dpmArray,\
 		result)
@@ -316,7 +315,7 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     double dpm_old, rpm_old, bio_old, hum_old; //old_pools
     double meanTemp, fertC, usableFieldCapacity, soilMoisture, soilCover,
         resRoots, resSurf, clay;
-    double fertId, plantId;
+    double fertId, shootId, rootId;
 
     vtkIdList *pointIds = vtkIdList::New();
     input->GetCellPoints(cellId, pointIds);
@@ -392,22 +391,34 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       continue;
       }
 
-    // Index 0 is the default value
-    if (plantIdArray)
+    // Root index 0 is the default value
+    if (rootIdArray)
       {
-      plantIdArray->GetTuple(cellId, &plantId);
-      if ((int)plantId == this->NullValue)
-        plantId = 0;
+      rootIdArray->GetTuple(cellId, &rootId);
+      if ((int)rootId == this->NullValue)
+        rootId = 0;
       }
     else
       {
-      plantId = 0;
+      rootId = 0;
+      }
+
+    // Shoot index 0 is the default value
+    if (shootIdArray)
+      {
+      shootIdArray->GetTuple(cellId, &shootId);
+      if ((int)shootId == this->NullValue)
+        shootId = 0;
+      }
+    else
+      {
+      shootId = 0;
       }
 
     if (fertIdArray)
       {
       fertIdArray->GetTuple(cellId, &fertId);
-      if (hasFertilizerId == this->NullValue)
+      if ((int)fertId == this->NullValue)
         fertId = 0;
       }
     else
@@ -463,9 +474,9 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
     allocFractionhum = 0.54;
     allocFractionbio = 0.46;
 
-    if (R.PlantFractions.size() <= plantId)
+    if (R.PlantFractions.size() <= shootId || R.PlantFractions.size() <= rootId)
       {
-      vtkErrorMacro("Plant id is out of plant fraction vector boundaries");
+      vtkErrorMacro("Shoot/root ids out of plant fraction vector boundaries");
 #ifndef OMP_PARALLELIZED
       return -1;
 #else
@@ -473,13 +484,13 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
 #endif
       }
 
-    double dpmRootsFraction = R.PlantFractions[plantId]->DPM.value;
-    double rpmRootsFraction = R.PlantFractions[plantId]->RPM.value;
-    double humRootsFraction = R.PlantFractions[plantId]->HUM.value;
+    double dpmRootsFraction = R.PlantFractions[rootId]->DPM.value;
+    double rpmRootsFraction = R.PlantFractions[rootId]->RPM.value;
+    double humRootsFraction = R.PlantFractions[rootId]->HUM.value;
 
-    double dpmSurfFraction = R.PlantFractions[plantId]->DPM.value;
-    double rpmSurfFraction = R.PlantFractions[plantId]->RPM.value;
-    double humSurfFraction = R.PlantFractions[plantId]->HUM.value;
+    double dpmSurfFraction = R.PlantFractions[shootId]->DPM.value;
+    double rpmSurfFraction = R.PlantFractions[shootId]->RPM.value;
+    double humSurfFraction = R.PlantFractions[shootId]->HUM.value;
 
     if (R.FertilizerFractions.size() <= fertId)
       {
