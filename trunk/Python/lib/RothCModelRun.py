@@ -165,8 +165,12 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
                 reader.SetDataName("FertilizerID")
                 join.AddInputConnection(reader.GetOutputPort())
             elif i == 6:
-                reader.SetDataName("PlantID")
+                reader.SetDataName("ShootID")
                 join.AddInputConnection(reader.GetOutputPort())
+            elif i == 7:
+                reader.SetDataName("RootID")
+                join.AddInputConnection(reader.GetOutputPort())
+
 
         granule = mapmatrix[0][j]["granule"]
         start, end = granule.get_temporal_extent_as_tuple()
