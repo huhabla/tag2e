@@ -84,12 +84,16 @@ def main():
 
     fertilizer = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     fertilizer.SetKey("fertilizer")
-    fertilizer.SetDescription("Raster map with fertilizer of the RothC model [tC/ha]")
+    fertilizer.SetDescription("Raster map with organic fertilizer of the RothC model [tC/ha]")
 
-    residuals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
-    residuals.SetKey("residuals")
-    residuals.SetDescription("Raster map with residuals of the RothC model [tC/ha]")
-
+    roots = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    roots.SetKey("roots")
+    roots.SetDescription("Raster map with root residuals of the RothC model [tC/ha]")
+    
+    shoots = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
+    shoots.SetKey("shoots")
+    shoots.SetDescription("Raster map with shoot residuals of the RothC model [tC/ha]")
+    
     # Space time raster datasets
     soilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     soilCover.SetKey("soilcover")
@@ -164,9 +168,9 @@ def main():
 
     tgis.init()
 
-    inputNames = "%s,%s,%s,%s,%s"%(precipitation.GetAnswer(), radiation.GetAnswer(),
+    inputNames = "%s,%s,%s,%s,%s,%s"%(precipitation.GetAnswer(), radiation.GetAnswer(),
                             soilCover.GetAnswer(), fertilizer.GetAnswer(),
-                            residuals.GetAnswer())
+                            roots.GetAnswer(), shoots.GetAnswer())
 
     if fertId.GetAnswer():
         inputNames += ",%s"%(fertId.GetAnswer())
@@ -252,7 +256,7 @@ def read_pools(poolDPM, poolRPM, poolHUM, poolBIO, poolIOM):
     poolBIOreader.SetDataName("BIO")
     poolBIOreader.SetLineLengths(lineLengths)
 
-    joiner.AddInputConnection(poolDPMreader.GetOutputPort())
+    joiner.AddInputConnection(poolBIOreader.GetOutputPort())
 
     names = vtkStringArray()
     names.InsertNextValue(poolIOM)
@@ -264,6 +268,7 @@ def read_pools(poolDPM, poolRPM, poolHUM, poolBIO, poolIOM):
     joiner.AddInputConnection(poolIOMreader.GetOutputPort())
     joiner.Update()
 
+    print joiner.GetOutput()
     return joiner.GetOutput()
 
 ################################################################################
