@@ -84,15 +84,15 @@ def main():
 
     fertilizer = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     fertilizer.SetKey("fertilizer")
-    fertilizer.SetDescription("Raster map with organic fertilizer of the RothC model [tC/ha]")
+    fertilizer.SetDescription("Space time raster dataset with organic fertilizer of the RothC model [tC/ha]")
 
     roots = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     roots.SetKey("roots")
-    roots.SetDescription("Raster map with root residuals of the RothC model [tC/ha]")
+    roots.SetDescription("Space time raster dataset with root residuals of the RothC model [tC/ha]")
     
     shoots = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     shoots.SetKey("shoots")
-    shoots.SetDescription("Raster map with shoot residuals of the RothC model [tC/ha]")
+    shoots.SetDescription("Space time raster dataset with shoot residuals of the RothC model [tC/ha]")
     
     # Space time raster datasets
     soilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
@@ -102,17 +102,17 @@ def main():
     fertId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     fertId.SetKey("fertid")
     fertId.RequiredOff()
-    fertId.SetDescription("Raster map with fertilizer ids of the RothC model parameter")
+    fertId.SetDescription("Space time raster dataset with fertilizer ids of the RothC model parameter")
 
     shootId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     shootId.SetKey("shootid")
     shootId.RequiredOff()
-    shootId.SetDescription("Raster map with shoot ids of the RothC model parameter")
+    shootId.SetDescription("Space time raster dataset with shoot ids of the RothC model parameter")
 
     rootId = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     rootId.SetKey("rootid")
     rootId.RequiredOff()
-    rootId.SetDescription("Raster map with root ids of the RothC model parameter")
+    rootId.SetDescription("Space time raster dataset with root ids of the RothC model parameter")
 
     # Raster map input
     clayContent = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())

@@ -60,6 +60,9 @@ extern "C" {
 vtkCxxRevisionMacro(vtkTAG2ERothCModel, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkTAG2ERothCModel);
 
+
+#define DEFAULT_ROOTS 1
+
 //----------------------------------------------------------------------------
 
 vtkTAG2ERothCModel::vtkTAG2ERothCModel()
@@ -483,11 +486,16 @@ int vtkTAG2ERothCModel::RequestData(vtkInformation * vtkNotUsed(request),
       continue;
 #endif
       }
-
+#ifdef DEFAULT_ROOTS
     double dpmRootsFraction = R.PlantFractions[rootId]->DPM.value;
     double rpmRootsFraction = R.PlantFractions[rootId]->RPM.value;
     double humRootsFraction = R.PlantFractions[rootId]->HUM.value;
-
+#else
+    /* Work around, values from a mean calibration */
+    double dpmRootsFraction = 0.2656288362015;
+    double rpmRootsFraction = 0.7343711637985;
+    double humRootsFraction = 0;
+#endif
     double dpmSurfFraction = R.PlantFractions[shootId]->DPM.value;
     double rpmSurfFraction = R.PlantFractions[shootId]->RPM.value;
     double humSurfFraction = R.PlantFractions[shootId]->HUM.value;

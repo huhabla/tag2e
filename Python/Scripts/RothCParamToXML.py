@@ -224,6 +224,7 @@ def main():
     RothCParameterIndex["mult_Co2_humbio"] = Parameter("x", "x1", 0)
     RothCParameterIndex["co2_humbio_f2"] = Parameter("x", "x3", 0)
 
-    parse_file("RothC_Calibration.csv", RothCParameterIndex)
+    #parse_file("RothC_Calibration.csv", RothCParameterIndex)
+    parse_file("humkof_sample_mean.pfl", RothCParameterIndex)
 
 main()

@@ -117,7 +117,7 @@ vtkTAG2ERothCModelParameter::vtkTAG2ERothCModelParameter()
    * k is the decomposition rate constant for that compartment
    *
    * Compartments are :
-   *   DPM - Decomposable Plant Material = 10.2
+   *   DPM - Decomposable Plant Material = 10
    *   RPM - Resistant Plant Material    = 0.3
    *   BIO - Microbial Biomass           = 0.66
    *   HUM - Humified organic matter     = 0.02
