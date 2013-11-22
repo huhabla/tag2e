@@ -1,11 +1,10 @@
 #!/bin/sh
-# Aggregate a dataset by a second one
-
+# RothC test with 1000000 cells
 # We need to set a specific region in the
 # @preprocess step of this test. 
 # The region setting should work for UTM and LL test locations
 #g.region s=0 n=80 w=0 e=120 b=0 t=50 res=0.25 res3=10 -p3
-g.region s=0 n=80 w=0 e=120 b=0 t=50 res=0.25 res3=10 -p3
+g.region s=0 n=80 w=0 e=120 b=0 t=50 res=0.1 res3=10 -p3
 
 temp=`g.tempfile pid=1 -d` 
 prec=`g.tempfile pid=2 -d` 
@@ -72,13 +71,26 @@ t.create --o type=strds temporaltype=absolute output=soilCover \
 t.register --o -i type=rast input=soilCover file="${soil}" \
     start=2000-01-01 increment="1 months"
 
-# RESIDUALS
-r.mapcalc --o expr="residuals = rand(1,50)"
+# Compute roots and shoots
+r.mapcalc --o expr="shoots_1 = rand(0,50)/100.0"
+r.mapcalc --o expr="shoots_2 = rand(0,30)/100.0"
 
-t.create --o type=strds temporaltype=absolute output=residuals \
-    title="Residuals" descr="Residuals"
-t.register --o -i type=rast input=residuals map=residuals \
-    start=2000-08-01 increment="1 months"
+t.create --o type=strds temporaltype=absolute output=shoots \
+    title="Shoots" descr="Shoots"
+t.register --o type=rast input=shoots map=shoots_1 \
+    start=2000-04-05 increment="1 day"
+t.register --o type=rast input=shoots map=shoots_2 \
+    start=2000-06-13 increment="1 day"
+
+r.mapcalc --o expr="roots_1 = rand(0,50)/25.0"
+r.mapcalc --o expr="roots_2 = rand(0,30)/25.0"
+
+t.create --o type=strds temporaltype=absolute output=roots \
+    title="Roots" descr="Roots"
+t.register --o type=rast input=roots map=roots_1 \
+    start=2000-04-05 increment="1 day"
+t.register --o type=rast input=roots map=roots_2 \
+    start=2000-06-13 increment="1 day"
 
 # FERTILIZER
 r.mapcalc --o expr="fertilizer_1 = rand(1,50)"
@@ -92,13 +104,15 @@ t.register --o -i type=rast input=fertilizer map=fertilizer_2 \
     start=2000-06-13 increment="1 day"
 
 # FERTILIZER and PLANT ID
-r.mapcalc --o expr="fertId_1  = rand(0,0)"
-r.mapcalc --o expr="fertId_2  = rand(0,0)"
-r.mapcalc --o expr="shootId_1 = rand(0,0)"
-r.mapcalc --o expr="shootId_2 = rand(0,0)"
-r.mapcalc --o expr="rootId_1 = rand(0,0)"
-r.mapcalc --o expr="rootId_2 = rand(0,0)"
+r.mapcalc --o expr="fertId_1  = rand(0,5)"
+r.mapcalc --o expr="fertId_2  = rand(0,5)"
+r.mapcalc --o expr="shootId_1 = rand(0,2)"
+r.mapcalc --o expr="shootId_2 = rand(0,2)"
+r.mapcalc --o expr="rootId_1  = rand(0,2)"
+r.mapcalc --o expr="rootId_2  = rand(0,2)"
 
+# Generate the fertilizer, root and shoot ids that
+# will reference the configuration in the XML parameter file
 t.create --o type=strds temporaltype=absolute output=fertId \
     title="FertId" descr="FertId"
 t.register --o -i type=rast input=fertId map=fertId_1 \
@@ -120,7 +134,7 @@ t.register --o -i type=rast input=rootId map=rootId_1 \
 t.register --o -i type=rast input=rootId map=rootId_2 \
     start=2000-06-13 increment="1 day"
 
-# Several needed maps
+# Generate RothC pools and the clay conetent raster maps
 r.mapcalc --o expr="clay = rand(1,50)"
 r.mapcalc --o expr="dpm = 25.0"
 r.mapcalc --o expr="rpm = 5.0"
@@ -132,15 +146,18 @@ r.mapcalc --o expr="iom = 2.0"
 time t.rast.RothCModel --o temperature=temperature \
     precipitation=precipitation radiation=radiation \
     soilcover=soilCover claycontent=clay \
-    residuals=residuals base=soc fertilizer=fertilizer \
+    base=soc fertilizer=fertilizer \
     shootid=shootId rootid=rootId fertid=fertId \
-    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom soc=soc 
-#    param=CalibrationXML/RothCCalibration1.xml
+    shoots=shoots roots=roots \
+    dpm=dpm rpm=rpm hum=hum bio=bio iom=iom soc=soc \
+    param=CalibrationXML/RothCCalibration1.xml
 
 t.info soc
 t.rast.list input=soc columns=name,start_time,min,max
 
 # @postprocess
-t.remove -rf type=strds input=temperature,precipitation,radiation,soilCover,residuals,soc
+t.remove -rf type=strds input=temperature,precipitation,radiation,soilCover,roots,shoots,soc
 t.remove -rf type=strds input=fertId,rootId,shootId
-g.remove rast=soc,dpm,rpm,hum,bio,iom,residuals
+g.remove rast=dpm,rpm,hum,bio,iom
+
+

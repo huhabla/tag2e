@@ -1,0 +1,507 @@
+<RothC xmlns="http://tag2e.googlecode.com/files/RothC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://tag2e.googlecode.com/files/RothC http://tag2e.googlecode.com/files/RothC.xsd">
+  <a>
+    <a1 const="1" max="2.26128" min="2.26128">
+      2.261278
+    </a1>
+    <a2 const="1" max="27.8519" min="27.8519">
+      27.851908
+    </a2>
+    <a3 const="1" max="18.3" min="18.3">
+      18.3
+    </a3>
+    
+  </a>
+  <b>
+    <b1 const="1" max="0.189278" min="0.189278">
+      0.189278
+    </b1>
+    <b2 const="1" max="1" min="1">
+      1
+    </b2>
+    <b3 const="1" max="0" min="0">
+      0.0
+    </b3>
+    
+  </b>
+  <c>
+    <c1 const="1" max="0.6" min="0.6">
+      0.6
+    </c1>
+    <c2 const="1" max="1" min="1">
+      1
+    </c2>
+    
+  </c>
+  <k>
+    <DPM const="1" max="10.2" min="10.2">
+      10.2
+    </DPM>
+    <RPM const="1" max="0.3" min="0.3">
+      0.3
+    </RPM>
+    <BIO const="1" max="0.66" min="0.66">
+      0.66
+    </BIO>
+    <HUM const="1" max="0.02" min="0.02">
+      0.02
+    </HUM>
+    
+  </k>
+  <x>
+    <x1 const="1" max="0.46" min="0.46">
+      0.46
+    </x1>
+    <x2 const="1" max="1.85" min="1.85">
+      1.85
+    </x2>
+    <x3 const="1" max="108.275" min="108.275">
+      108.275349
+    </x3>
+    <x4 const="1" max="-0.0786" min="-0.0786">
+      -0.0786
+    </x4>
+    
+  </x>
+  <PlantFractions>
+    <PlantFraction id="0" name="default">
+      <description>
+        The default ratio parameter for agricultural crops and grassland
+      </description>
+      <DPM const="1" max="0.59" min="0.59">
+        0.59
+      </DPM>
+      <RPM const="1" max="0.41" min="0.41">
+        0.41
+      </RPM>
+      <HUM const="1" max="0" min="0">
+        0
+      </HUM>
+      
+    </PlantFraction>
+    <PlantFraction id="1" name="cerials">
+      <description>
+        cerials
+      </description>
+      <DPM const="1" max="2.16415" min="2.16415">
+        2.164147
+      </DPM>
+      <RPM const="1" max="0.98147" min="0.98147">
+        0.9814695251
+      </RPM>
+      <HUM const="1" max="0.0185305" min="0.0185305">
+        0.0185304749
+      </HUM>
+      
+    </PlantFraction>
+    <PlantFraction id="2" name="green">
+      <description>
+        green
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.884211" min="0.884211">
+        0.8842105847
+      </RPM>
+      <HUM const="1" max="0.115789" min="0.115789">
+        0.1157894153
+      </HUM>
+      
+    </PlantFraction>
+    <PlantFraction id="3" name="root">
+      <description>
+        root
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.900884" min="0.900884">
+        0.9008842608
+      </RPM>
+      <HUM const="1" max="0.0991157" min="0.0991157">
+        0.0991157391999999
+      </HUM>
+      
+    </PlantFraction>
+    
+  </PlantFractions>
+  <FertilizerFractions>
+    <FertilizerFraction id="0" name="default">
+      <description>
+        The default ratio parameter for farmyard manure
+      </description>
+      <DPM const="1" max="0.49" min="0.49">
+        0.49
+      </DPM>
+      <RPM const="1" max="0.49" min="0.49">
+        0.49
+      </RPM>
+      <HUM const="1" max="0.02" min="0.02">
+        0.02
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="1" name="1">
+      <description>
+        1
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.354171" min="0.354171">
+        0.3541713011
+      </RPM>
+      <HUM const="1" max="0.645829" min="0.645829">
+        0.6458286989
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="2" name="2">
+      <description>
+        2
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.504475" min="0.504475">
+        0.5044749735
+      </RPM>
+      <HUM const="1" max="0.495525" min="0.495525">
+        0.4955250265
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="3" name="3">
+      <description>
+        3
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0" min="0">
+        0
+      </RPM>
+      <HUM const="1" max="0.706356" min="0.706356">
+        0.706355808000001
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="4" name="4">
+      <description>
+        4
+      </description>
+      <DPM const="1" max="0.293644" min="0.293644">
+        0.293644191999999
+      </DPM>
+      <RPM const="1" max="0.914195" min="0.914195">
+        0.914195486
+      </RPM>
+      <HUM const="1" max="0.0858045" min="0.0858045">
+        0.085804514
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="5" name="5">
+      <description>
+        5
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.29393" min="0.29393">
+        0.2939301158
+      </RPM>
+      <HUM const="1" max="0.70607" min="0.70607">
+        0.7060698842
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="6" name="6">
+      <description>
+        6
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0" min="0">
+        0
+      </RPM>
+      <HUM const="1" max="0.413767" min="0.413767">
+        0.413767008
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="7" name="7">
+      <description>
+        7
+      </description>
+      <DPM const="1" max="0.586233" min="0.586233">
+        0.586232992
+      </DPM>
+      <RPM const="1" max="0.491745" min="0.491745">
+        0.4917450077
+      </RPM>
+      <HUM const="1" max="0.508255" min="0.508255">
+        0.5082549923
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="8" name="8">
+      <description>
+        8
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.981225" min="0.981225">
+        0.9812250882
+      </RPM>
+      <HUM const="1" max="0.0187749" min="0.0187749">
+        0.0187749118000001
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="9" name="9">
+      <description>
+        9
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.662558" min="0.662558">
+        0.6625582833
+      </RPM>
+      <HUM const="1" max="0.337442" min="0.337442">
+        0.3374417167
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="10" name="10">
+      <description>
+        10
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.495494" min="0.495494">
+        0.4954943233
+      </RPM>
+      <HUM const="1" max="0.504506" min="0.504506">
+        0.5045056767
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="11" name="11">
+      <description>
+        11
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.820732" min="0.820732">
+        0.820732054
+      </RPM>
+      <HUM const="1" max="0.179268" min="0.179268">
+        0.179267946
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="12" name="12">
+      <description>
+        12
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.791196" min="0.791196">
+        0.7911956078
+      </RPM>
+      <HUM const="1" max="0.208804" min="0.208804">
+        0.2088043922
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="13" name="13">
+      <description>
+        13
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.820249" min="0.820249">
+        0.8202489543
+      </RPM>
+      <HUM const="1" max="0.179751" min="0.179751">
+        0.1797510457
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="14" name="14">
+      <description>
+        14
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.412295" min="0.412295">
+        0.4122953164
+      </RPM>
+      <HUM const="1" max="0.587705" min="0.587705">
+        0.5877046836
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="15" name="15">
+      <description>
+        15
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.576145" min="0.576145">
+        0.5761450274
+      </RPM>
+      <HUM const="1" max="0.423855" min="0.423855">
+        0.4238549726
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="16" name="16">
+      <description>
+        16
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.597478" min="0.597478">
+        0.5974784022
+      </RPM>
+      <HUM const="1" max="0.402522" min="0.402522">
+        0.4025215978
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="17" name="17">
+      <description>
+        17
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.13485" min="0.13485">
+        0.1348498114
+      </RPM>
+      <HUM const="1" max="0.86515" min="0.86515">
+        0.8651501886
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="18" name="18">
+      <description>
+        18
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.597005" min="0.597005">
+        0.597004926
+      </RPM>
+      <HUM const="1" max="0.402995" min="0.402995">
+        0.402995074
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="19" name="19">
+      <description>
+        19
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.555274" min="0.555274">
+        0.5552735806
+      </RPM>
+      <HUM const="1" max="0.444726" min="0.444726">
+        0.4447264194
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="20" name="20">
+      <description>
+        20
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.620704" min="0.620704">
+        0.6207037571
+      </RPM>
+      <HUM const="1" max="0.379296" min="0.379296">
+        0.3792962429
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="21" name="21">
+      <description>
+        21
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.470315" min="0.470315">
+        0.4703153979
+      </RPM>
+      <HUM const="1" max="0.529685" min="0.529685">
+        0.5296846021
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="22" name="22">
+      <description>
+        22
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0" min="0">
+        0
+      </RPM>
+      <HUM const="1" max="0.71376" min="0.71376">
+        0.713759904
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="23" name="23">
+      <description>
+        23
+      </description>
+      <DPM const="1" max="0.28624" min="0.28624">
+        0.286240096
+      </DPM>
+      <RPM const="1" max="0.789207" min="0.789207">
+        0.7892073927
+      </RPM>
+      <HUM const="1" max="0.210793" min="0.210793">
+        0.2107926073
+      </HUM>
+      
+    </FertilizerFraction>
+    <FertilizerFraction id="24" name="24">
+      <description>
+        24
+      </description>
+      <DPM const="1" max="0" min="0">
+        0
+      </DPM>
+      <RPM const="1" max="0.510892" min="0.510892">
+        0.5108919233
+      </RPM>
+      <HUM const="1" max="0.489108" min="0.489108">
+        0.4891080767
+      </HUM>
+      
+    </FertilizerFraction>
+    
+  </FertilizerFractions>
+  
+</RothC>

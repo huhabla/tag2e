@@ -88,10 +88,6 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
     SoilMoisture = vtkTAG2ERothCWaterBudgetModel()
     SoilMoisture.SetNullValue(NullValue)
 
-    # Residual distribution
-    residuals = vtkTAG2ERothCResidualFilter()
-    residuals.SetNullValue(NullValue)
-
     # RothC model computation
     if not RothCParameter or RothCParameter == None:
         print("Create default RothCModelParameter")
@@ -111,6 +107,8 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
     # This is the iterator over the time series
     for j in range(len(mapmatrix[0])):
 
+        print "Run model ", j
+
         # Initialize the joiner
         join.RemoveAllInputs()
         join.AddInputConnection(clayReader.GetOutputPort())
@@ -121,6 +119,8 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
 
             samples = entry["samples"]
             granule = entry["granule"]
+
+            print "Read sample", i, samples[0].get_name() 
 
             # Gaps can appear for resiuals
             if samples[0].get_id() == None:
@@ -155,16 +155,19 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
             elif i == 3:
                 reader.SetDataName("FertilizerCarbon")
                 join.AddInputConnection(reader.GetOutputPort())
-            # Residuals
+            # Residuals roots
             elif i == 4:
-                reader.SetDataName("Residuals")
-                residuals.SetInputConnection(reader.GetOutputPort())
-                join.AddInputConnection(residuals.GetOutputPort())
-             # Fertilizer Id
+                reader.SetDataName("ResidualsRoots")
+                join.AddInputConnection(reader.GetOutputPort())
+                # Residuals shoots
             elif i == 5:
+                reader.SetDataName("ResidualsSurface")
+                join.AddInputConnection(reader.GetOutputPort())
+             # Fertilizer Id
+            elif i == 6:
                 reader.SetDataName("FertilizerID")
                 join.AddInputConnection(reader.GetOutputPort())
-            elif i == 6:
+            elif i == 7:
                 reader.SetDataName("ShootID")
                 join.AddInputConnection(reader.GetOutputPort())
             elif i == 7:
@@ -183,6 +186,8 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
         reader.SetDataName("MeanTemperature")
         reader.SetLineLengths(lineLengths)
         join.AddInputConnection(reader.GetOutputPort())
+
+        print "Read granule", granule.get_name()
 
         dc1.RemoveAllInputs()
         dc2.RemoveAllInputs()
@@ -211,6 +216,9 @@ def RothCModelRun(mapmatrix, pools, clayContent, outputName=None, baseName=None,
         if outputName != None and baseName != None:
             # Write the output as raster map
             mapname = "%s_%05i"%(outputName, j)
+            
+            start, end = granule.get_temporal_extent_as_tuple()
+            print "Write map", mapname, "at timestep", start, end
 
             writer = vtkGRASSMultiRasterPolyDataLineWriter()
             writer.SetRasterMapName(mapname)
