@@ -64,69 +64,70 @@ def main():
     
     temperature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     temperature.SetKey("temperature")
-    temperature.SetDescription("Space time raster dataset with long "
-                               "term monthly temperature mean [degree C] (exactly 12 months)"
+    temperature.SetDescription("Input space time raster dataset with long "
+    "term monthly temperature mean [degree C] (at least 12 months)"
                                ". This dataset will be used to temporally sample all other.")
     
     precipitation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     precipitation.SetKey("precipitation")
-    precipitation.SetDescription("Space time raster dataset with long term "
-                                 "monthly accumulated precipitation [mm] (exactly 12 months)")
+    precipitation.SetDescription("Input space time raster dataset with long term "
+                                 "monthly accumulated precipitation [mm] (at least 12 months)")
     
     radiation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     radiation.SetKey("radiation")
-    radiation.SetDescription("Space time raster dataset with long term monthly "
-                             "global radiation [J/(cm^2 * day)] (exactly 12 months)")
+    radiation.SetDescription("Input space time raster dataset with long term monthly "
+                             "global radiation [J/(cm^2 * day)] (at least 12 months)")
     
     # Space time raster datasets
     soilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     soilCover.SetKey("soilcover")
-    soilCover.SetDescription("Space time raster dataset with long term monthly soil cover (exactly 12 months)")
+    soilCover.SetDescription("Input space time raster dataset with long term monthly "
+                             "soil cover (at least 12 months)")
                        
     # Raster map input
     clayContent = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     clayContent.SetKey("claycontent")
-    clayContent.SetDescription("Raster map with clay content in percent [%]")
+    clayContent.SetDescription("Input raster map with clay content in percent [%]")
     
     soilCarbon = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     soilCarbon.SetKey("soc")
-    soilCarbon.SetDescription("Raster map with target SOC [tC/ha]")
+    soilCarbon.SetDescription("Input raster map with target SOC [tC/ha]")
 
     residuals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterInputType())
     residuals.SetKey("residuals")
-    residuals.SetDescription("Raster map with the initial residuals of the RothC model [tC/ha] "
+    residuals.SetDescription("Input raster map with the initial residuals of the RothC model [tC/ha] "
                              "applied in august of each model year")
     
     output = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
-    output.SetDescription("The model soil organic carbon result at equilibrium")
+    output.SetDescription("The model soil organic carbon result raster map at equilibrium")
     
     poolDPM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolDPM.SetKey("dpmpool")
-    poolDPM.SetDescription("The model DPM pool result at equilibirum")
+    poolDPM.SetDescription("The model DPM pool result raster map at equilibirum [tC/ha]")
         
     poolRPM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolRPM.SetKey("rpmpool")
-    poolRPM.SetDescription("The model RPM pool result at equilibirum")
+    poolRPM.SetDescription("The model RPM pool result raster map at equilibirum [tC/ha]")
         
     poolHUM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolHUM.SetKey("humpool")
-    poolHUM.SetDescription("The model HUM pool result at equilibirum")
+    poolHUM.SetDescription("The model HUM pool result raster map at equilibirum [tC/ha]")
         
     poolBIO = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolBIO.SetKey("biopool")
-    poolBIO.SetDescription("The model BIO pool result at equilibirum")
+    poolBIO.SetDescription("The model BIO pool result raster map at equilibirum [tC/ha]")
         
     poolIOM = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     poolIOM.SetKey("iompool")
-    poolIOM.SetDescription("The model IOM pool result at equilibirum")
+    poolIOM.SetDescription("The model IOM pool result raster map at equilibirum [tC/ha]")
     
     convergence = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     convergence.SetKey("convergence")
-    convergence.SetDescription("Convergence flag for each pixel. 1 convence, 0 no convergence")
+    convergence.SetDescription("Convergence raster map, 1 convence, 0 no convergence")
     
     squaredResiduals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     squaredResiduals.SetKey("squaredresiduals")
-    squaredResiduals.SetDescription("The squared residuals of the Brent optimization for each pixel")
+    squaredResiduals.SetDescription("The squared residuals  raster map of the Brent optimization")
     """
     Model input start
       * Temperature STRDS name
@@ -140,38 +141,38 @@ def main():
     modelTemperature = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelTemperature.SetKey("mtemperature")
     modelTemperature.RequiredOff()
-    modelTemperature.SetDescription("Space time raster dataset with monthly temperature mean [degree C]"
+    modelTemperature.SetDescription("Input space time raster dataset with monthly temperature mean [degree C]"
                                ". This dataset will be used to temporally sample all other.")
     
     modelPrecipitation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelPrecipitation.SetKey("mprecipitation")
     modelPrecipitation.RequiredOff()
-    modelPrecipitation.SetDescription("Space time raster dataset with "
+    modelPrecipitation.SetDescription("Input space time raster dataset with "
                                       "accumulated precipitation [mm]")
     
     modelRadiation = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelRadiation.SetKey("mradiation")
     modelRadiation.RequiredOff()
-    modelRadiation.SetDescription("Space time raster dataset with monthly "
+    modelRadiation.SetDescription("Input space time raster dataset with monthly "
                              "global radiation [J/(cm^2 * day)]")
     
     modelResiduals = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelResiduals.SetKey("mresiduals")
     modelResiduals.RequiredOff()
-    modelResiduals.SetDescription("Space time raster dataset with monthly "
+    modelResiduals.SetDescription("Input space time raster dataset with monthly "
                              "residuals tC/ha")
     
     modelFertilizer = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelFertilizer.SetKey("mfertilizer")
     modelFertilizer.RequiredOff()
-    modelFertilizer.SetDescription("Space time raster dataset with monthly "
+    modelFertilizer.SetDescription("Input space time raster dataset with monthly "
                              "fertilizer tC/ha")
     
     # Space time raster datasets
     modelSoilCover = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetSTRDSInputType())
     modelSoilCover.SetKey("msoilcover")
     modelSoilCover.RequiredOff()
-    modelSoilCover.SetDescription("Space time raster dataset with monthly soil cover")
+    modelSoilCover.SetDescription("Input space time raster dataset with monthly soil cover")
     
     """
     Model input end
@@ -179,7 +180,7 @@ def main():
 
     residualsOut = vtkGRASSOptionFactory().CreateInstance(vtkGRASSOptionFactory.GetRasterOutputType())
     residualsOut.SetKey("resout")
-    residualsOut.SetDescription("The computed residuals to reach equilibirum")
+    residualsOut.SetDescription("The computed residuals raster map to reach equilibirum")
         
     iterations = vtkGRASSOption()
     iterations.SetKey("iterations")
